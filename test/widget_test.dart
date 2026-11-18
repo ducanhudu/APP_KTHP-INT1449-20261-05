@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -7,6 +8,29 @@ import 'package:flutter_quiz_app/question.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'Reject missing bilingual content, duplicate IDs and invalid answers',
+    () {
+      final source = File('assets/flutter_quiz_300.json').readAsStringSync();
+      final invalidCases = <void Function(List<dynamic>)>[
+        (rows) => rows.removeLast(),
+        (rows) => rows[1]['id'] = rows[0]['id'],
+        (rows) => rows[0]['question_en'] = '  ',
+        (rows) => rows[0]['question_vi'] = '',
+        (rows) => rows[0]['explanation_en'] = '',
+        (rows) => rows[0]['options'][0]['vi'] = '',
+        (rows) => rows[0]['options'][0]['en'] = ' ',
+        (rows) => rows[0]['options'][0]['id'] = rows[0]['options'][1]['id'],
+        (rows) => rows[0]['correct_answer'] = 'missing',
+      ];
+      for (final change in invalidCases) {
+        final rows = jsonDecode(source) as List<dynamic>;
+        change(rows);
+        expect(() => decodeQuestions(jsonEncode(rows)), throwsFormatException);
+      }
+    },
+  );
+
   test(
     'The real bank supports a unique 50-question exam and scoring by ID',
     () {
@@ -43,7 +67,7 @@ void main() {
     final bank = decodeQuestions(
       File('assets/flutter_quiz_300.json').readAsStringSync(),
     );
-    final items = createQuiz(bank, 5, random: Random(23));
+    final items = createQuiz(bank, 3, random: Random(23));
     QuizResult? result;
     await tester.pumpWidget(
       MaterialApp(
@@ -79,6 +103,7 @@ void main() {
       result!.answers[items.first.question.id],
       items.first.choices.first.id,
     );
-    expect(result!.score.skipped, 4);
+    expect(result!.items, hasLength(3));
+    expect(result!.score.skipped, 2);
   });
 }
