@@ -35,7 +35,7 @@ Quy ước: ✅ đạt · ⚠️ đạt một phần · ❌ chưa có · — kh�
 
 | Nội dung | Điểm | Trạng thái | Việc cần làm |
 | --- | --- | --- | --- |
-| CI chạy `flutter analyze` + `flutter test` mỗi lần đẩy mã | +2 | ❌ | Thêm `.github/workflows/ci.yml` — rẻ nhất, làm ngay |
+| CI chạy `flutter analyze` + `flutter test` mỗi lần đẩy mã | +2 | ⚠️ | Đã có `.github/workflows/ci.yml` (format + analyze + test + audit JSON), **chờ lần chạy đầu tiên** trên GitHub để xác nhận xanh |
 | Test trợ năng `meetsGuideline` hoặc giao diện hai ngôn ngữ | +2 | ❌ | Đang chỉ song ngữ nội dung, nhãn vẫn tiếng Việt (`05-english.png`). Hoặc thêm test `androidTapTargetGuideline` + `labeledTapTargetGuideline` |
 | APK release ký bằng khoá riêng | +2 | ❌ | Release hiện ký bằng debug key; tạo keystore + `key.properties` (không commit) |
 | Mở rộng AI đúng mẫu máy chủ giữ khoá, có chế độ demo | +3 | ❌ | Chỉ làm nếu Ngày 2 xong sớm; khoá **không** được nằm trong APK |
@@ -80,3 +80,4 @@ flutter build apk --debug
 | Ngày | Người | Nội dung |
 | --- | --- | --- |
 | 18/11/2026 | Phúc | Tạo checklist; gỡ chặn SDK; bổ sung README; kiểm JSON; chạy thử trên emulator Pixel_8 |
+| 18/11/2026 | Phúc | Thêm CI GitHub Actions (format + analyze + test + audit JSON) trên nhánh `chore/ci-analyze-test` |

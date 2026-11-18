@@ -1,5 +1,7 @@
 # Flutter Lab Android
 
+[![CI](https://github.com/ducanhudu/APP_KTHP-INT1449-20261-05/actions/workflows/ci.yml/badge.svg)](https://github.com/ducanhudu/APP_KTHP-INT1449-20261-05/actions/workflows/ci.yml)
+
 Ứng dụng Flutter/Dart ôn thi **đề 32**: đọc 300 câu trắc nghiệm Việt–Anh từ
 `assets/flutter_quiz_300.json`, chạy được khi ngoại tuyến.
 
@@ -49,6 +51,19 @@ python tool/audit_question_bank.py assets/flutter_quiz_300.json
 
 Kết quả kiểm tra ngày 18/11/2026 và các phát hiện về dữ liệu nằm trong
 `docs/json-audit.md`.
+
+### CI trên GitHub Actions
+
+Mỗi lần đẩy mã lên `main`, `feature/**`, `fix/**`, `docs/**`, `test/**`,
+`chore/**` hoặc mở pull request vào `main`, workflow
+`.github/workflows/ci.yml` chạy hai việc song song:
+
+| Job | Nội dung |
+| --- | --- |
+| `Analyze + Test` | `dart format --set-exit-if-changed`, `flutter analyze`, `flutter test` trên Flutter 3.47.6 |
+| `Audit question bank` | `python tool/audit_question_bank.py assets/flutter_quiz_300.json` |
+
+Mã chỉ được coi là đạt khi cả hai job xanh.
 
 Hai test hiện có:
 
