@@ -4,7 +4,10 @@ publish_to: none
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.13.7
+  # Dart 3.13.5 là bản đi kèm Flutter 3.47.6 (stable). Toàn bộ mã và test đã
+  # chạy đạt trên phiên bản này, nên hạ mốc xuống 3.13.5 để máy khác cài được
+  # mà không phải nâng Flutter.
+  sdk: ^3.13.5
 
 dependencies:
   flutter:
