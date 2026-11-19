@@ -8,6 +8,8 @@ import 'package:flutter_quiz_app/sm2.dart';
 import 'package:flutter_quiz_app/today_overview.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fake_reminder_service.dart';
+
 List<Question> loadBank() =>
     decodeQuestions(File('assets/flutter_quiz_300.json').readAsStringSync());
 
@@ -51,6 +53,7 @@ void main() {
             onTopic: (_) {},
             onPracticeSetup: () {},
             onRetryCards: () => retried++,
+            reminder: FakeReminderService(),
           ),
         ),
       ),

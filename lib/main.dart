@@ -11,6 +11,7 @@ import 'flashcard_page.dart';
 import 'error_state.dart';
 import 'question.dart';
 import 'question_prompt.dart';
+import 'reminder_service.dart';
 import 'sm2.dart';
 
 export 'question_prompt.dart';
@@ -18,23 +19,33 @@ export 'question_prompt.dart';
 void main() => runApp(const FlutterLab());
 
 class FlutterLab extends StatelessWidget {
-  const FlutterLab({super.key, this.storage = const SharedPrefsCardStorage()});
+  const FlutterLab({
+    super.key,
+    this.storage = const SharedPrefsCardStorage(),
+    this.reminder,
+  });
 
   final CardStorage storage;
+  final ReminderService? reminder;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Flutter Lab',
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
-    home: QuizHome(storage: storage),
+    home: QuizHome(storage: storage, reminder: reminder),
   );
 }
 
 class QuizHome extends StatefulWidget {
-  const QuizHome({super.key, this.storage = const SharedPrefsCardStorage()});
+  const QuizHome({
+    super.key,
+    this.storage = const SharedPrefsCardStorage(),
+    this.reminder,
+  });
 
   final CardStorage storage;
+  final ReminderService? reminder;
 
   @override
   State<QuizHome> createState() => _QuizHomeState();
@@ -45,6 +56,10 @@ class _QuizHomeState extends State<QuizHome> {
 
   /// Nạp một lần rồi dùng lại; chỉ đọc lại đĩa khi có thay đổi bộ thẻ.
   late Future<List<Sm2Item>> cardsFuture = widget.storage.loadCards();
+
+  /// Chỉ tạo dịch vụ nhắc ôn khi thực sự dùng, để test truyền bản giả.
+  late final ReminderService reminder =
+      widget.reminder ?? NotificationReminderService();
   QuestionLanguage language = QuestionLanguage.vietnamese;
   int selectedTab = 0;
   int topic = 0;
@@ -202,6 +217,7 @@ class _QuizHomeState extends State<QuizHome> {
             onExam: () => _start(questions, 50, exam: true),
             onPracticeSetup: () => setState(() => selectedTab = 1),
             onRetryCards: _refreshCards,
+            reminder: reminder,
             onTopic: (value) => setState(() {
               topic = value;
               selectedTab = 1;
