@@ -1,4 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+﻿<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Chỉ xin quyền thông báo; quyền runtime được hỏi lúc người dùng bật nhắc ôn. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="Flutter Lab"
         android:name="${applicationName}"

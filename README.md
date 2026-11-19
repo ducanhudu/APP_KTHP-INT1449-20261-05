@@ -1,4 +1,4 @@
-﻿# Flutter Lab Android
+# Flutter Lab Android
 
 [![CI](https://github.com/ducanhudu/APP_KTHP-INT1449-20261-05/actions/workflows/ci.yml/badge.svg)](https://github.com/ducanhudu/APP_KTHP-INT1449-20261-05/actions/workflows/ci.yml)
 
@@ -119,9 +119,13 @@ trên điện thoại Android thật.
 - **Phiên làm bài, điểm, danh sách câu sai**: chỉ nằm trong bộ nhớ (RAM) của
   tiến trình. Đóng app là mất; **không có tệp nào được ghi ra**, không dùng cơ
   sở dữ liệu.
-- **Quyền**: `AndroidManifest.xml` không khai báo `INTERNET` và không xin quyền
-  nào, nên app không gửi dữ liệu ra ngoài. Bộ thẻ và lịch ôn của đề 33 sẽ bổ
-  sung phần lưu trữ cục bộ sau.
+- **Bộ thẻ SM-2 và lịch ôn**: lưu trong `SharedPreferences` của Android
+  (`FlutterSharedPreferences.xml`), gồm danh sách thẻ, số lần lặp, khoảng cách,
+  hệ số dễ, ngày đến hạn và trạng thái bật/tắt nhắc ôn. Gỡ app là mất dữ liệu.
+- **Quyền**: app **không** khai báo `INTERNET` nên không gửi dữ liệu ra ngoài.
+  Chỉ xin **một** quyền `POST_NOTIFICATIONS`, và chỉ hỏi **lúc người dùng bật
+  công tắc "Nhắc ôn hằng ngày"** — không hỏi khi mở app. Từ chối quyền thì app
+  vẫn dùng được bình thường, chỉ không có thông báo.
 
 ## Phạm vi
 

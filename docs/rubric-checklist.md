@@ -19,11 +19,11 @@ Quy ước: ✅ đạt · ⚠️ đạt một phần · ❌ chưa có · — kh�
 
 | # | Tiêu chí | Điểm | Hiện tại | Bằng chứng | Việc cần làm | Người |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Chức năng | 20 | ⚠️ ~16–18 | Đề 32 đủ tối thiểu + 2 mở rộng (`01`–`07`); đề 33 đã có bộ thẻ, SM-2, lưu cục bộ (`08`–`17`). **Thiếu nhắc ôn hằng ngày** | Thêm `flutter_local_notifications` | Huy, Trí |
+| 1 | Chức năng | 20 | ⚠️ ~16–18 | Đề 32 đủ tối thiểu + 2 mở rộng (`01`–`07`); đề 33 đã có bộ thẻ, SM-2, lưu cục bộ (`08`–`17`). **Đủ đề 32 + 33** (nhắc ôn hằng ngày đã có) | Giữ ổn định khi demo | Huy, Trí |
 | 2 | Giao diện & trải nghiệm | 15 | ⚠️ ~10–11 | Có loading, lỗi, **có trạng thái rỗng** cho bộ thẻ; vùng chạm 48 dp đạt. Màn lỗi vẫn **không có nút thử lại**; nhãn UI chưa song ngữ | Thêm nút "Thử lại" + bề rộng tối đa cho màn lớn | Trí, Phúc |
 | 3 | Kiến trúc & trạng thái | 15 | ⚠️ ~11 | Đã tách `sm2.dart`, `card_storage.dart`, `flashcard_page.dart`, `question_prompt.dart`; **`CardStorage` là interface, thay được bằng `MemoryCardStorage`** khi test | Tách tiếp phần còn lại của `main.dart`; bỏ đọc đĩa trong `build()` | Đức Anh, Huy |
 | 4 | Dữ liệu & xử lý lỗi | 10 | ✅ ~9 | `shared_preferences` lưu thẻ; JSON hỏng trả `[]` không crash (`card_storage_prefs_test.dart`); xử lý lỗi ngân hàng câu hỏi có thông báo | Thêm nút thử lại ở màn lỗi | Trí |
-| 5 | Kiểm thử | 10 | ✅ 10 | **31 test / 6 tệp**, `flutter test` pass 31/31, `flutter analyze` sạch; có unit cho SM-2, chấm điểm, lưu trữ thật và **3 widget test** (`docs/day-2-test-log.md`) | Giữ xanh khi thêm tính năng | Phúc, Trí |
+| 5 | Kiểm thử | 10 | ✅ 10 | **42 test / 8 tệp**, `flutter test` pass 42/42, `flutter analyze` sạch; có unit cho SM-2, chấm điểm, lưu trữ thật và **3 widget test** (`docs/day-2-test-log.md`) | Giữ xanh khi thêm tính năng | Phúc, Trí |
 | 6 | Bảo mật & quyền | 10 | ✅ ~9 | Manifest **không xin quyền nào**, không có `INTERNET`; README có mục "Dữ liệu lưu ở đâu" | Khi thêm thông báo: xin quyền đúng lúc bật nhắc ôn | Trí |
 | 7 | Tài liệu & quy trình | 10 | ⚠️ ~7 | `flutter analyze` → **No issues found**; README có phiên bản, cách chạy, cách test, dữ liệu lưu ở đâu; `docs/json-audit.md`, `docs/device-notes.md` | **Mỗi người phải commit**; bổ sung hướng dẫn cấu hình | Cả nhóm |
 | 8 | Trình bày & vấn đáp | 10 | ⚠️ ~5 | Có kịch bản demo 5 phút trong `docs/device-notes.md`; mới demo trên **emulator** | Quay video 3–5 phút trên máy thật; mỗi người tự giải thích tệp mình làm | Cả nhóm |
@@ -68,7 +68,7 @@ CI xanh). Khi thêm nhắc ôn + sửa 2 lỗi giao diện + commit đủ ngư�
 ```powershell
 flutter --version                     # Flutter 3.47.6 · Dart 3.13.5
 flutter analyze                       # No issues found!
-flutter test                          # All tests passed! (31 test)
+flutter test                          # All tests passed! (42 test)
 python tool/audit_question_bank.py assets/flutter_quiz_300.json
 git shortlog -sne                     # kiểm tra commit từng thành viên
 git log -p --all | Select-String 'sk_live|AIza'   # quét khoá trong lịch sử
@@ -81,4 +81,4 @@ flutter build apk --debug
 | --- | --- | --- |
 | 18/11/2026 | Phúc | Tạo checklist; gỡ chặn SDK; bổ sung README; kiểm JSON; chạy thử trên emulator Pixel_8 |
 | 18/11/2026 | Phúc | Thêm CI GitHub Actions (format + analyze + test + audit JSON) trên nhánh `chore/ci-analyze-test` |
-| 19/11/2026 | Phúc | 31 test (thêm 3 test luồng quiz, 7 test lưu trữ thật, 1 widget test bộ đếm thẻ); CI nhận `feat/**`; sửa lỗi bộ đếm thẻ không làm mới; nhật ký kiểm thử `docs/day-2-test-log.md` |
+| 19/11/2026 | Phúc | 42 test (thêm 3 test luồng quiz, 7 test lưu trữ thật, 1 widget test bộ đếm thẻ); CI nhận `feat/**`; sửa lỗi bộ đếm thẻ không làm mới; nhật ký kiểm thử `docs/day-2-test-log.md` |

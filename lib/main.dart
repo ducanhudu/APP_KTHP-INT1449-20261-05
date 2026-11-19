@@ -8,8 +8,10 @@ import 'card_storage.dart';
 import 'learning_tools.dart';
 import 'today_overview.dart';
 import 'flashcard_page.dart';
+import 'error_state.dart';
 import 'question.dart';
 import 'question_prompt.dart';
+import 'reminder_service.dart';
 import 'sm2.dart';
 
 export 'question_prompt.dart';
@@ -17,33 +19,47 @@ export 'question_prompt.dart';
 void main() => runApp(const FlutterLab());
 
 class FlutterLab extends StatelessWidget {
-  const FlutterLab({super.key, this.storage = const SharedPrefsCardStorage()});
+  const FlutterLab({
+    super.key,
+    this.storage = const SharedPrefsCardStorage(),
+    this.reminder,
+  });
 
   final CardStorage storage;
+  final ReminderService? reminder;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Flutter Lab',
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
-    home: QuizHome(storage: storage),
+    home: QuizHome(storage: storage, reminder: reminder),
   );
 }
 
 class QuizHome extends StatefulWidget {
-  const QuizHome({super.key, this.storage = const SharedPrefsCardStorage()});
+  const QuizHome({
+    super.key,
+    this.storage = const SharedPrefsCardStorage(),
+    this.reminder,
+  });
 
   final CardStorage storage;
+  final ReminderService? reminder;
 
   @override
   State<QuizHome> createState() => _QuizHomeState();
 }
 
 class _QuizHomeState extends State<QuizHome> {
-  late final Future<List<Question>> bank = _loadBank();
+  late Future<List<Question>> bank = _loadBank();
 
   /// Nạp một lần rồi dùng lại; chỉ đọc lại đĩa khi có thay đổi bộ thẻ.
   late Future<List<Sm2Item>> cardsFuture = widget.storage.loadCards();
+
+  /// Chỉ tạo dịch vụ nhắc ôn khi thực sự dùng, để test truyền bản giả.
+  late final ReminderService reminder =
+      widget.reminder ?? NotificationReminderService();
   QuestionLanguage language = QuestionLanguage.vietnamese;
   int selectedTab = 0;
   int topic = 0;
@@ -59,6 +75,13 @@ class _QuizHomeState extends State<QuizHome> {
     // Phải dùng thân hàm: setState không nhận callback trả về Future.
     setState(() {
       cardsFuture = widget.storage.loadCards();
+    });
+  }
+
+  /// Đọc lại ngân hàng câu hỏi khi người dùng bấm "Thử lại" ở màn hình lỗi.
+  void _retryBank() {
+    setState(() {
+      bank = _loadBank();
     });
   }
 
@@ -176,7 +199,10 @@ class _QuizHomeState extends State<QuizHome> {
       future: bank,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Center(child: Text('Không đọc được ngân hàng câu hỏi.'));
+          return ErrorState(
+            message: 'Không đọc được ngân hàng câu hỏi.',
+            onRetry: _retryBank,
+          );
         }
         final questions = snapshot.data;
         if (questions == null) {
@@ -190,6 +216,8 @@ class _QuizHomeState extends State<QuizHome> {
             onQuickPractice: () => _start(questions, 10),
             onExam: () => _start(questions, 50, exam: true),
             onPracticeSetup: () => setState(() => selectedTab = 1),
+            onRetryCards: _refreshCards,
+            reminder: reminder,
             onTopic: (value) => setState(() {
               topic = value;
               selectedTab = 1;
