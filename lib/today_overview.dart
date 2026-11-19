@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_strings.dart';
 import 'learning_tools.dart';
 import 'question.dart';
 import 'reminder_service.dart';
@@ -18,6 +19,7 @@ class TodayOverview extends StatelessWidget {
     required this.onPracticeSetup,
     required this.onRetryCards,
     required this.reminder,
+    this.language = QuestionLanguage.vietnamese,
   });
 
   final List<Question> questions;
@@ -34,16 +36,20 @@ class TodayOverview extends StatelessWidget {
   /// Dịch vụ nhắc ôn hằng ngày.
   final ReminderService reminder;
 
+  /// Ngôn ngữ của nhãn giao diện.
+  final QuestionLanguage language;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = AppStrings.of(language);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       children: [
-        Text('Ôn Flutter và Dart', style: theme.textTheme.bodyMedium),
+        Text(s.todaySubtitle, style: theme.textTheme.bodyMedium),
         const SizedBox(height: 6),
         Text(
-          'Hôm nay học gì?',
+          s.todayHeading,
           style: theme.textTheme.headlineLarge?.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: -1,
@@ -62,16 +68,16 @@ class TodayOverview extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.layers_outlined),
-                        SizedBox(width: 10),
-                        Expanded(child: Text('Ôn tập Flashcard (SM-2)')),
+                        const Icon(Icons.layers_outlined),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(s.cardsTitle)),
                       ],
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      cards == null ? 'Đang tải thẻ…' : '$due thẻ đến hạn',
+                      cards == null ? s.loadingCards : s.cardsDue(due),
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -81,19 +87,17 @@ class TodayOverview extends StatelessWidget {
                       TextButton.icon(
                         onPressed: onRetryCards,
                         icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text('Chưa đọc được bộ thẻ. Thử lại'),
+                        label: Text(s.cardsRetry),
                       )
                     else if (cards != null)
-                      Text(
-                        '${cards.length} thẻ đã lưu · $due thẻ cần ôn hôm nay',
-                      ),
+                      Text(s.cardsSaved(cards.length, due)),
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
                         onPressed: onOpenCards,
                         icon: const Icon(Icons.arrow_forward),
-                        label: Text(due > 0 ? 'Ôn thẻ ngay' : 'Mở bộ thẻ'),
+                        label: Text(due > 0 ? s.openCardsDue : s.openCards),
                       ),
                     ),
                   ],
@@ -108,14 +112,12 @@ class TodayOverview extends StatelessWidget {
           color: theme.colorScheme.surfaceContainerHighest.withValues(
             alpha: 0.4,
           ),
-          child: ReminderTile(service: reminder),
+          child: ReminderTile(service: reminder, strings: s),
         ),
         const SizedBox(height: 24),
-        Text('Luyện tập', style: theme.textTheme.titleLarge),
+        Text(s.practiceSection, style: theme.textTheme.titleLarge),
         const SizedBox(height: 6),
-        Text(
-          '${questions.length} câu song ngữ · ${topicNames.length} khối kiến thức',
-        ),
+        Text(s.bankSummary(questions.length, topicNames.length)),
         const SizedBox(height: 14),
         Wrap(
           spacing: 10,
@@ -124,12 +126,12 @@ class TodayOverview extends StatelessWidget {
             FilledButton.icon(
               onPressed: onQuickPractice,
               icon: const Icon(Icons.bolt_outlined),
-              label: const Text('Luyện 10 câu'),
+              label: Text(s.quickPractice),
             ),
             OutlinedButton.icon(
               onPressed: onExam,
               icon: const Icon(Icons.timer_outlined),
-              label: const Text('Thi thử'),
+              label: Text(s.examShort),
             ),
           ],
         ),
@@ -137,9 +139,9 @@ class TodayOverview extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text('Chọn chủ đề', style: theme.textTheme.titleLarge),
+              child: Text(s.pickTopic, style: theme.textTheme.titleLarge),
             ),
-            TextButton(onPressed: onPracticeSetup, child: const Text('Tất cả')),
+            TextButton(onPressed: onPracticeSetup, child: Text(s.all)),
           ],
         ),
         Card(
@@ -150,7 +152,7 @@ class TodayOverview extends StatelessWidget {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   title: Text(topicNames[topic - 1]),
                   subtitle: Text(
-                    '${questions.where((q) => q.topic == topic).length} câu',
+                    '${questions.where((q) => q.topic == topic).length} ${s.unitQuestions}',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => onTopic(topic),
@@ -159,24 +161,24 @@ class TodayOverview extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        Text('Công cụ học tập', style: theme.textTheme.titleLarge),
+        Text(s.toolsHeading, style: theme.textTheme.titleLarge),
         const SizedBox(height: 12),
         Card(
           child: Column(
             children: [
               ListTile(
                 leading: const Icon(Icons.auto_awesome_outlined),
-                title: const Text('Gia sư AI'),
-                subtitle: const Text('Giải thích theo câu hỏi và chủ đề'),
-                trailing: const Chip(label: Text('Sắp có')),
+                title: Text(s.aiTutor),
+                subtitle: Text(s.aiTutorSubtitle),
+                trailing: Chip(label: Text(s.soon)),
                 onTap: () => showLearningTool(context, LearningTool.assistant),
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
               ListTile(
                 leading: const Icon(Icons.camera_alt_outlined),
-                title: const Text('Camera học tập'),
-                subtitle: const Text('Quét QR và chụp câu hỏi'),
-                trailing: const Chip(label: Text('Sắp có')),
+                title: Text(s.cameraTool),
+                subtitle: Text(s.cameraSubtitle),
+                trailing: Chip(label: Text(s.soon)),
                 onTap: () => showLearningTool(context, LearningTool.camera),
               ),
             ],

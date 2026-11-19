@@ -1,0 +1,387 @@
+import 'question.dart';
+
+/// Chuỗi giao diện hai ngôn ngữ (Việt / Anh).
+///
+/// Nội dung câu hỏi đã song ngữ sẵn trong JSON; lớp này lo phần **nhãn giao
+/// diện** để khi chọn English thì cả app đổi ngôn ngữ, không chỉ nội dung.
+class AppStrings {
+  const AppStrings({
+    required this.appTitle,
+    required this.tabToday,
+    required this.tabPractice,
+    required this.tabCards,
+    required this.cameraTooltip,
+    required this.languageTooltip,
+    required this.practiceHeading,
+    required this.languageLabel,
+    required this.topicLabel,
+    required this.allTopics,
+    required this.practiceCountLabel,
+    required this.unitQuestions,
+    required this.loadingCards,
+    required this.cardsDue,
+    required this.cardsSaved,
+    required this.bankSummary,
+    required this.startPractice,
+    required this.examButton,
+    required this.quizPracticeTitle,
+    required this.quizExamTitle,
+    required this.quizCounter,
+    required this.prevQuestion,
+    required this.submit,
+    required this.nextQuestion,
+    required this.verdictCorrect,
+    required this.verdictReview,
+    required this.saveThisCard,
+    required this.aiSoon,
+    required this.resultTitle,
+    required this.scoreLine,
+    required this.expiredNotice,
+    required this.retryWrong,
+    required this.saveWrong,
+    required this.statsHeading,
+    required this.reviewHeading,
+    required this.reviewQuestionTitle,
+    required this.statusCorrect,
+    required this.statusWrong,
+    required this.statusSkipped,
+    required this.correctAnswer,
+    required this.correctAnswerChosen,
+    required this.chosenOnly,
+    required this.todaySubtitle,
+    required this.todayHeading,
+    required this.cardsTitle,
+    required this.cardsRetry,
+    required this.openCardsDue,
+    required this.openCards,
+    required this.practiceSection,
+    required this.quickPractice,
+    required this.examShort,
+    required this.pickTopic,
+    required this.all,
+    required this.toolsHeading,
+    required this.aiTutor,
+    required this.aiTutorSubtitle,
+    required this.cameraTool,
+    required this.cameraSubtitle,
+    required this.soon,
+    required this.reminderTitle,
+    required this.reminderOn,
+    required this.reminderOff,
+    required this.reminderEnabled,
+    required this.reminderDisabled,
+    required this.reminderDenied,
+    required this.reminderFailed,
+    required this.cardsPageTitle,
+    required this.cardCounter,
+    required this.dueTab,
+    required this.allTab,
+    required this.revealAnswer,
+    required this.gradeForgot,
+    required this.gradeHard,
+    required this.gradeGood,
+    required this.gradeEasy,
+    required this.deleteCard,
+    required this.cardDeleted,
+    required this.backToPractice,
+    required this.studyAll,
+    required this.cardNotFound,
+    required this.deleteBrokenCard,
+    required this.retry,
+    required this.errorBankLoad,
+  });
+
+  final String appTitle;
+  final String tabToday;
+  final String tabPractice;
+  final String tabCards;
+  final String cameraTooltip;
+  final String languageTooltip;
+  final String practiceHeading;
+  final String languageLabel;
+  final String topicLabel;
+  final String allTopics;
+  final String practiceCountLabel;
+  final String unitQuestions;
+  final String loadingCards;
+  final String Function(int due) cardsDue;
+  final String Function(int saved, int due) cardsSaved;
+  final String Function(int questions, int topics) bankSummary;
+  final String startPractice;
+  final String examButton;
+  final String quizPracticeTitle;
+  final String quizExamTitle;
+  final String Function(int index, int total, int answered) quizCounter;
+  final String prevQuestion;
+  final String submit;
+  final String nextQuestion;
+  final String verdictCorrect;
+  final String verdictReview;
+  final String saveThisCard;
+  final String aiSoon;
+  final String resultTitle;
+  final String Function(int correct, int wrong, int skipped) scoreLine;
+  final String expiredNotice;
+  final String Function(int count) retryWrong;
+  final String Function(int count) saveWrong;
+  final String statsHeading;
+  final String reviewHeading;
+  final String Function(int index, int code, String status) reviewQuestionTitle;
+  final String statusCorrect;
+  final String statusWrong;
+  final String statusSkipped;
+  final String correctAnswer;
+  final String correctAnswerChosen;
+  final String chosenOnly;
+  final String todaySubtitle;
+  final String todayHeading;
+  final String cardsTitle;
+  final String cardsRetry;
+  final String openCardsDue;
+  final String openCards;
+  final String practiceSection;
+  final String quickPractice;
+  final String examShort;
+  final String pickTopic;
+  final String all;
+  final String toolsHeading;
+  final String aiTutor;
+  final String aiTutorSubtitle;
+  final String cameraTool;
+  final String cameraSubtitle;
+  final String soon;
+  final String reminderTitle;
+  final String reminderOn;
+  final String reminderOff;
+  final String reminderEnabled;
+  final String reminderDisabled;
+  final String reminderDenied;
+  final String reminderFailed;
+  final String cardsPageTitle;
+  final String Function(int index, int total) cardCounter;
+  final String dueTab;
+  final String allTab;
+  final String revealAnswer;
+  final String gradeForgot;
+  final String gradeHard;
+  final String gradeGood;
+  final String gradeEasy;
+  final String deleteCard;
+  final String cardDeleted;
+  final String backToPractice;
+  final String studyAll;
+  final String Function(int code) cardNotFound;
+  final String deleteBrokenCard;
+  final String retry;
+  final String errorBankLoad;
+
+  /// Chọn bộ chuỗi theo ngôn ngữ đang dùng. Chế độ song ngữ hiển thị tiếng Việt
+  /// cho nhãn giao diện vì nội dung đã có cả hai thứ tiếng.
+  static AppStrings of(QuestionLanguage language) =>
+      language == QuestionLanguage.english ? english : vietnamese;
+
+  static const AppStrings vietnamese = AppStrings(
+    appTitle: 'Flutter Lab',
+    tabToday: 'Hôm nay',
+    tabPractice: 'Luyện tập',
+    tabCards: 'Thẻ ôn',
+    cameraTooltip: 'Camera học tập · Sắp có',
+    languageTooltip: 'Ngôn ngữ câu hỏi',
+    practiceHeading: 'Ôn thi Flutter và Dart',
+    languageLabel: 'Ngôn ngữ câu hỏi',
+    topicLabel: 'Khối luyện tập',
+    allTopics: 'Tất cả các khối',
+    practiceCountLabel: 'Số câu luyện tập',
+    unitQuestions: 'câu',
+    loadingCards: 'Đang tải thẻ…',
+    cardsDue: _viCardsDue,
+    cardsSaved: _viCardsSaved,
+    bankSummary: _viBankSummary,
+    startPractice: 'Bắt đầu luyện tập',
+    examButton: 'Thi thử · 50 câu · 50 phút',
+    quizPracticeTitle: 'Luyện tập',
+    quizExamTitle: 'Thi thử',
+    quizCounter: _viCounter,
+    prevQuestion: 'Câu trước',
+    submit: 'Nộp bài',
+    nextQuestion: 'Câu tiếp theo',
+    verdictCorrect: 'Chính xác',
+    verdictReview: 'Cần xem lại',
+    saveThisCard: 'Lưu câu này vào bộ thẻ',
+    aiSoon: 'Hỏi AI về câu này · Sắp có',
+    resultTitle: 'Kết quả',
+    scoreLine: _viScore,
+    expiredNotice: 'Hết giờ, bài thi đã được nộp.',
+    retryWrong: _viRetryWrong,
+    saveWrong: _viSaveWrong,
+    statsHeading: 'Thống kê theo khối',
+    reviewHeading: 'Xem lại bài',
+    reviewQuestionTitle: _viReviewTitle,
+    statusCorrect: 'Đúng',
+    statusWrong: 'Sai',
+    statusSkipped: 'Bỏ trống',
+    correctAnswer: 'Đáp án đúng',
+    correctAnswerChosen: 'Đáp án đúng · Bạn đã chọn',
+    chosenOnly: 'Bạn đã chọn',
+    todaySubtitle: 'Ôn Flutter và Dart',
+    todayHeading: 'Hôm nay học gì?',
+    cardsTitle: 'Ôn tập Flashcard (SM-2)',
+    cardsRetry: 'Chưa đọc được bộ thẻ. Thử lại',
+    openCardsDue: 'Ôn thẻ ngay',
+    openCards: 'Mở bộ thẻ',
+    practiceSection: 'Luyện tập',
+    quickPractice: 'Luyện 10 câu',
+    examShort: 'Thi thử',
+    pickTopic: 'Chọn chủ đề',
+    all: 'Tất cả',
+    toolsHeading: 'Công cụ học tập',
+    aiTutor: 'Gia sư AI',
+    aiTutorSubtitle: 'Giải thích theo câu hỏi và chủ đề',
+    cameraTool: 'Camera học tập',
+    cameraSubtitle: 'Quét QR và chụp câu hỏi',
+    soon: 'Sắp có',
+    reminderTitle: 'Nhắc ôn hằng ngày',
+    reminderOn: 'Nhắc lúc 20:00 mỗi ngày',
+    reminderOff: 'Nhận thông báo khi có thẻ đến hạn',
+    reminderEnabled: 'Đã bật nhắc ôn lúc 20:00 mỗi ngày.',
+    reminderDisabled: 'Đã tắt nhắc ôn hằng ngày.',
+    reminderDenied:
+        'Chưa có quyền thông báo. Hãy bật quyền trong Cài đặt để nhận nhắc ôn.',
+    reminderFailed: 'Không đặt được lịch nhắc. Thử lại sau.',
+    cardsPageTitle: 'Thẻ ghi nhớ SM-2',
+    cardCounter: _viCardCounter,
+    dueTab: 'Đến hạn',
+    allTab: 'Tất cả',
+    revealAnswer: 'Xem đáp án & giải thích',
+    gradeForgot: '1: Quên (Mai ôn lại)',
+    gradeHard: '3: Khó nhớ',
+    gradeGood: '4: Nhớ tốt',
+    gradeEasy: '5: Rất dễ',
+    deleteCard: 'Xoá thẻ này',
+    cardDeleted: 'Đã xoá thẻ khỏi bộ ôn tập.',
+    backToPractice: 'Quay lại luyện tập',
+    studyAll: 'Ôn tiếp tất cả thẻ',
+    cardNotFound: _viCardNotFound,
+    deleteBrokenCard: 'Xoá thẻ lỗi này',
+    retry: 'Thử lại',
+    errorBankLoad: 'Không đọc được ngân hàng câu hỏi.',
+  );
+
+  static const AppStrings english = AppStrings(
+    appTitle: 'Flutter Lab',
+    tabToday: 'Today',
+    tabPractice: 'Practice',
+    tabCards: 'Cards',
+    cameraTooltip: 'Study camera · Coming soon',
+    languageTooltip: 'Question language',
+    practiceHeading: 'Flutter and Dart exam practice',
+    languageLabel: 'Question language',
+    topicLabel: 'Practice topic',
+    allTopics: 'All topics',
+    practiceCountLabel: 'Number of questions',
+    unitQuestions: 'questions',
+    loadingCards: 'Loading cards…',
+    cardsDue: _enCardsDue,
+    cardsSaved: _enCardsSaved,
+    bankSummary: _enBankSummary,
+    startPractice: 'Start practice',
+    examButton: 'Mock exam · 50 questions · 50 minutes',
+    quizPracticeTitle: 'Practice',
+    quizExamTitle: 'Mock exam',
+    quizCounter: _enCounter,
+    prevQuestion: 'Previous',
+    submit: 'Submit',
+    nextQuestion: 'Next',
+    verdictCorrect: 'Correct',
+    verdictReview: 'Review this one',
+    saveThisCard: 'Save this question as a card',
+    aiSoon: 'Ask AI about this question · Coming soon',
+    resultTitle: 'Result',
+    scoreLine: _enScore,
+    expiredNotice: 'Time is up. Your exam was submitted.',
+    retryWrong: _enRetryWrong,
+    saveWrong: _enSaveWrong,
+    statsHeading: 'Breakdown by topic',
+    reviewHeading: 'Review answers',
+    reviewQuestionTitle: _enReviewTitle,
+    statusCorrect: 'Correct',
+    statusWrong: 'Wrong',
+    statusSkipped: 'Skipped',
+    correctAnswer: 'Correct answer',
+    correctAnswerChosen: 'Correct answer · Your choice',
+    chosenOnly: 'Your choice',
+    todaySubtitle: 'Practise Flutter and Dart',
+    todayHeading: 'What will you study today?',
+    cardsTitle: 'Flashcards (SM-2)',
+    cardsRetry: 'Could not read your cards. Try again',
+    openCardsDue: 'Review now',
+    openCards: 'Open cards',
+    practiceSection: 'Practice',
+    quickPractice: 'Practise 10 questions',
+    examShort: 'Mock exam',
+    pickTopic: 'Pick a topic',
+    all: 'All',
+    toolsHeading: 'Study tools',
+    aiTutor: 'AI tutor',
+    aiTutorSubtitle: 'Explains by question and topic',
+    cameraTool: 'Study camera',
+    cameraSubtitle: 'Scan QR codes and capture questions',
+    soon: 'Coming soon',
+    reminderTitle: 'Daily review reminder',
+    reminderOn: 'Reminder at 20:00 every day',
+    reminderOff: 'Get notified when cards are due',
+    reminderEnabled: 'Daily reminder set for 20:00.',
+    reminderDisabled: 'Daily reminder turned off.',
+    reminderDenied: 'Notification permission is off. Enable it in Settings to get reminders.',
+    reminderFailed: 'Could not schedule the reminder. Try again later.',
+    cardsPageTitle: 'SM-2 flashcards',
+    cardCounter: _enCardCounter,
+    dueTab: 'Due',
+    allTab: 'All',
+    revealAnswer: 'Show answer and explanation',
+    gradeForgot: '1: Forgot (review tomorrow)',
+    gradeHard: '3: Hard',
+    gradeGood: '4: Good',
+    gradeEasy: '5: Easy',
+    deleteCard: 'Delete this card',
+    cardDeleted: 'Card removed from your deck.',
+    backToPractice: 'Back to practice',
+    studyAll: 'Review all cards',
+    cardNotFound: _enCardNotFound,
+    deleteBrokenCard: 'Delete this broken card',
+    retry: 'Try again',
+    errorBankLoad: 'Could not load the question bank.',
+  );
+
+  static String _viCounter(int index, int total, int answered) =>
+      'Câu $index/$total · Đã chọn $answered';
+  static String _enCounter(int index, int total, int answered) =>
+      'Question $index/$total · Answered $answered';
+  static String _viScore(int correct, int wrong, int skipped) =>
+      '$correct đúng · $wrong sai · $skipped bỏ trống';
+  static String _enScore(int correct, int wrong, int skipped) =>
+      '$correct correct · $wrong wrong · $skipped skipped';
+  static String _viRetryWrong(int count) => 'Làm lại $count câu sai';
+  static String _enRetryWrong(int count) => 'Redo $count wrong answers';
+  static String _viSaveWrong(int count) => 'Lưu $count câu sai vào thẻ';
+  static String _enSaveWrong(int count) => 'Save $count wrong answers as cards';
+  static String _viReviewTitle(int index, int code, String status) =>
+      'Câu $index [Mã #$code] · $status';
+  static String _enReviewTitle(int index, int code, String status) =>
+      'Question $index [#$code] · $status';
+  static String _viCardCounter(int index, int total) => 'Thẻ $index/$total';
+  static String _enCardCounter(int index, int total) => 'Card $index/$total';
+  static String _viCardsDue(int due) => '$due thẻ đến hạn';
+  static String _enCardsDue(int due) => '$due cards due';
+  static String _viCardsSaved(int saved, int due) =>
+      '$saved thẻ đã lưu · $due thẻ cần ôn hôm nay';
+  static String _enCardsSaved(int saved, int due) =>
+      '$saved cards saved · $due due today';
+  static String _viBankSummary(int questions, int topics) =>
+      '$questions câu song ngữ · $topics khối kiến thức';
+  static String _enBankSummary(int questions, int topics) =>
+      '$questions bilingual questions · $topics topics';
+  static String _viCardNotFound(int code) =>
+      'Không tìm thấy câu hỏi mã ID #$code';
+  static String _enCardNotFound(int code) => 'Question #$code not found';
+}
