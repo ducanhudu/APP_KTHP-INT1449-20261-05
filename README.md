@@ -1,4 +1,4 @@
-# Flutter Lab Android
+﻿# Flutter Lab Android
 
 [![CI](https://github.com/ducanhudu/APP_KTHP-INT1449-20261-05/actions/workflows/ci.yml/badge.svg)](https://github.com/ducanhudu/APP_KTHP-INT1449-20261-05/actions/workflows/ci.yml)
 
@@ -110,6 +110,7 @@ nhắc ôn hằng ngày và lưu trữ cục bộ thuộc phần triển khai ti
 | --- | --- |
 | `docs/rubric-checklist.md` | Bảng đối chiếu 8 tiêu chí rubric, điều kiện chấm, điểm cộng/trừ, checklist nộp bài |
 | `docs/device-notes.md` | Thiết bị kiểm thử, 10 kịch bản đã chạy, phát hiện, kịch bản demo 5 phút |
+| `docs/day-2-test-log.md` | Nhật ký kiểm thử Ngày 2: 31 test, kịch bản thẻ trên máy, 5 lỗi kèm bước tái hiện |
 | `docs/json-audit.md` | Kết quả kiểm tra 300 câu và các phát hiện về dữ liệu |
 | `docs/screenshots/` | Ảnh chụp các màn hình trên emulator |
 

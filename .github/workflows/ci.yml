@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - "feature/**"
+      # Nhóm đang dùng cả hai cách đặt tên; hai nhánh feat/* trước đây đã bị bỏ
+      # sót CI vì chỉ khớp feature/**.
+      - "feat/**"
       - "fix/**"
       - "docs/**"
       - "test/**"
