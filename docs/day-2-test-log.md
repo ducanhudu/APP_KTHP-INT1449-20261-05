@@ -15,7 +15,7 @@ tự động và kiểm thử tay cho luồng luyện tập, chấm điểm, lư
 ## 1. Kiểm thử tự động
 
 ```
-flutter test  →  30/30 All tests passed
+flutter test  →  31/31 All tests passed
 flutter analyze →  No issues found!
 dart format --set-exit-if-changed lib test →  0 changed
 ```
@@ -27,7 +27,7 @@ dart format --set-exit-if-changed lib test →  0 changed
 | `test/sm2_test.dart` | 6 | Trạng thái thẻ mới, chuỗi 1 → 6 → `interval × EF`, reset khi grade < 3, sàn EF 1.3, `isDue`, JSON round-trip | ✅ |
 | `test/card_storage_test.dart` | 7 | Tầng lưu trữ giả (`MemoryCardStorage`): thêm, chống trùng, cập nhật, xoá, xoá sạch, JSON | ✅ |
 | `test/card_storage_prefs_test.dart` | 7 | **Tầng lưu trữ thật** (`SharedPrefsCardStorage`): ghi rồi đọc lại bằng instance mới, mở lại app vẫn còn thẻ và lịch SM-2, xoá, JSON hỏng | ✅ |
-| `test/quiz_flow_test.dart` | 3 | Xáo trộn lựa chọn, làm lại câu sai, widget nộp bài trắng | ✅ |
+| `test/quiz_flow_test.dart` | 4 | Xáo trộn lựa chọn, làm lại câu sai, widget nộp bài trắng, widget cập nhật số thẻ ở màn hình chính | ✅ |
 
 ### Ba test bổ sung trong Ngày 2
 
@@ -37,12 +37,27 @@ dart format --set-exit-if-changed lib test →  0 changed
 | `wrongQuestions` chỉ gồm câu chọn sai, bỏ qua câu bỏ trống | Khoá logic của nút "Làm lại N câu sai" |
 | Widget: nộp bài trắng hiện `0%`, không hiện nút "Làm lại" | Widget test thứ hai cho luồng chính |
 
-### Một lỗi test bắt được khi viết
+### Hai lỗi test bắt được khi viết
 
-`find.text('0%')` khớp **4 widget** vì màn kết quả hiện `0%` ở điểm tổng **và** ở
-từng dòng thống kê theo khối. Đã đổi sang `findsWidgets` và giữ assertion mạnh ở
-dòng `'0 đúng · 0 sai · 3 bỏ trống'` (duy nhất). Đây là ví dụ cho câu vấn đáp
-*"test nào bắt được lỗi thật trong quá trình làm"*.
+**1.** `find.text('0%')` khớp **4 widget** vì màn kết quả hiện `0%` ở điểm tổng
+**và** ở từng dòng thống kê theo khối. Đã đổi sang `findsWidgets` và giữ assertion
+mạnh ở dòng `'0 đúng · 0 sai · 3 bỏ trống'` (duy nhất).
+
+**2.** Widget test của bản sửa lỗi bộ đếm thẻ **bắt được lỗi trong chính bản sửa**:
+`setState(() => cardsFuture = widget.storage.loadCards())` trả về một `Future` nên
+Flutter ném `setState() callback argument returned a Future` và **không rebuild**.
+Trên máy, triệu chứng y hệt lỗi gốc nên rất dễ kết luận sai là "chưa sửa được".
+Sửa bằng thân hàm:
+
+```dart
+setState(() {
+  cardsFuture = widget.storage.loadCards();
+});
+```
+
+Sau đó cả 31 test xanh và bộ đếm trên emulator cập nhật ngay **10 → 14 thẻ** mà
+không cần khởi động lại app. Đây là câu trả lời tốt cho câu vấn đáp *"test nào bắt
+được lỗi thật trong quá trình làm"*.
 
 ## 2. Kiểm thử tay trên máy
 
@@ -91,7 +106,7 @@ sẽ gặp y hệt — nên đã bổ sung vào `docs/device-notes.md`.
 | 2 | Màn hình lỗi không có nút thử lại | Đổi tên `assets/flutter_quiz_300.json` rồi build lại | Trung bình (rubric yêu cầu mỗi trạng thái có lối ra) | Chưa sửa |
 | 3 | ~~Tầng lưu trữ thật không có test~~ | — | Cao | **Đã sửa**: thêm `card_storage_prefs_test.dart` |
 | 4 | Cảnh báo `totalDue` không dùng làm `flutter analyze` báo lỗi | `flutter analyze` trên nhánh `feat/flashcard-sm2-storage` | Cao (chặn CI) | **Đã sửa**: nhánh `fix/flashcard-unused-totaldue` |
-| 5 | **Bộ đếm thẻ trên màn hình chính không cập nhật sau khi lưu thẻ** | Luyện 5 câu → nộp → "Lưu 5 câu sai vào thẻ" → bấm Back về màn hình chính: vẫn hiện "0 thẻ đã lưu"; phải tắt hẳn app mở lại mới thấy "5 thẻ đã lưu" | Cao (ảnh hưởng kịch bản demo) | Chưa sửa |
+| 5 | **Bộ đếm thẻ trên màn hình chính không cập nhật sau khi lưu thẻ** | Luyện 5 câu → nộp → "Lưu N câu sai vào thẻ" → bấm Back: vẫn hiện số cũ; phải tắt hẳn app mở lại mới đúng | Cao (ảnh hưởng kịch bản demo) | **Đã sửa**: đọc lại bộ thẻ sau khi thoát luồng luyện tập và khi thoát màn thẻ (`17-counter-refreshed.png`) |
 
 ## 4. Việc tiếp theo
 

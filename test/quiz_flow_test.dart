@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_quiz_app/card_storage.dart';
 import 'package:flutter_quiz_app/main.dart';
 import 'package:flutter_quiz_app/question.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -92,5 +93,44 @@ void main() {
     expect(find.text('0 đúng · 0 sai · 3 bỏ trống'), findsOneWidget);
     expect(find.textContaining('Làm lại'), findsNothing);
     expect(result.wrongQuestions, isEmpty);
+  });
+
+  testWidgets('Màn hình chính đọc lại số thẻ sau khi bộ thẻ thay đổi', (
+    tester,
+  ) async {
+    final storage = MemoryCardStorage();
+    await tester.pumpWidget(MaterialApp(home: QuizHome(storage: storage)));
+    // Màn hình chính có CircularProgressIndicator khi nạp ngân hàng câu hỏi nên
+    // không dùng pumpAndSettle được; chờ future nạp xong bằng runAsync.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await tester.pump();
+    expect(find.text('0 thẻ đã lưu · 0 thẻ cần ôn hôm nay'), findsOneWidget);
+
+    // Giả lập vừa lưu 2 câu sai thành thẻ ở màn hình kết quả.
+    await storage.addCards([1, 2]);
+
+    // Mở rồi đóng bộ thẻ: màn hình chính phải đọc lại, không hiện số cũ.
+    await tester.tap(find.text('Ôn tập Flashcard (SM-2)'));
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pageBack();
+    await tester.pump();
+
+    // Chờ có giới hạn cho future đọc lại bộ thẻ hoàn tất.
+    const expected = '2 thẻ đã lưu · 2 thẻ cần ôn hôm nay';
+    for (var i = 0; i < 20; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.text(expected).evaluate().isNotEmpty) break;
+    }
+
+    expect(find.text(expected), findsOneWidget);
   });
 }

@@ -38,6 +38,9 @@ class QuizHome extends StatefulWidget {
 
 class _QuizHomeState extends State<QuizHome> {
   late final Future<List<Question>> bank = _loadBank();
+
+  /// Nạp một lần rồi dùng lại; chỉ đọc lại đĩa khi có thay đổi bộ thẻ.
+  late Future<List<Sm2Item>> cardsFuture = widget.storage.loadCards();
   QuestionLanguage language = QuestionLanguage.vietnamese;
   int topic = 0;
   int count = 10;
@@ -45,6 +48,15 @@ class _QuizHomeState extends State<QuizHome> {
   Future<List<Question>> _loadBank() async => decodeQuestions(
     await rootBundle.loadString('assets/flutter_quiz_300.json'),
   );
+
+  /// Đọc lại bộ thẻ sau khi người dùng lưu thẻ hoặc ôn tập.
+  void _refreshCards() {
+    if (!mounted) return;
+    // Phải dùng thân hàm: setState không nhận callback trả về Future.
+    setState(() {
+      cardsFuture = widget.storage.loadCards();
+    });
+  }
 
   Future<void> _runQuiz(
     List<Question> pool,
@@ -157,12 +169,18 @@ class _QuizHomeState extends State<QuizHome> {
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: () => _runQuiz(pool, practiceCount),
+              onPressed: () async {
+                await _runQuiz(pool, practiceCount);
+                _refreshCards();
+              },
               icon: const Icon(Icons.school_outlined),
               label: const Text('Bắt đầu luyện tập'),
             ),
             OutlinedButton.icon(
-              onPressed: () => _runQuiz(questions, 50, exam: true),
+              onPressed: () async {
+                await _runQuiz(questions, 50, exam: true);
+                _refreshCards();
+              },
               icon: const Icon(Icons.timer_outlined),
               label: const Text('Thi thử · 50 câu · 50 phút'),
             ),
@@ -178,7 +196,7 @@ class _QuizHomeState extends State<QuizHome> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: FutureBuilder<List<Sm2Item>>(
-                  future: widget.storage.loadCards(),
+                  future: cardsFuture,
                   builder: (context, snapshot) {
                     final cards = snapshot.data ?? [];
                     final due = cards.where((c) => c.isDue()).length;
@@ -198,7 +216,7 @@ class _QuizHomeState extends State<QuizHome> {
                       ),
                     ),
                   );
-                  if (mounted) setState(() {});
+                  _refreshCards();
                 },
               ),
             ),
