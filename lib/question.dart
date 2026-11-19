@@ -180,3 +180,46 @@ class QuizResult {
     return {for (final topic in topics) topic: totals[topic]!};
   }
 }
+
+class QuestionCard {
+  const QuestionCard({
+    required this.id,
+    required this.questionId,
+    this.note = '',
+  });
+
+  final String id;
+  final int questionId;
+  final String note;
+
+  Question? resolve(Iterable<Question> bank) {
+    for (final question in bank) {
+      if (question.id == questionId) return question;
+    }
+    return null;
+  }
+}
+
+QuizResult createSampleResult(List<Question> bank) {
+  if (bank.length < 3) {
+    throw ArgumentError('Ngân hàng câu hỏi cần ít nhất 3 câu.');
+  }
+  final sampleQuestions = bank.take(3).toList();
+  final items = [
+    QuizItem(sampleQuestions[0], Random(1)),
+    QuizItem(sampleQuestions[1], Random(1)),
+    QuizItem(sampleQuestions[2], Random(1)),
+  ];
+
+  final q1 = sampleQuestions[0];
+  final q2 = sampleQuestions[1];
+  final wrongChoice = q2.choices.firstWhere((c) => c.id != q2.correctId);
+
+  final answers = <int, String>{
+    q1.id: q1.correctId,   // 1 câu đúng
+    q2.id: wrongChoice.id, // 1 câu sai
+    // q3.id không có trong map -> 1 câu bỏ trống
+  };
+
+  return QuizResult(items, answers);
+}
