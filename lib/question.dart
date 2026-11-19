@@ -97,6 +97,18 @@ List<Question> decodeQuestions(String source) {
             question.topic > topicNames.length ||
             question.choices.length != 4 ||
             choiceIds.length != 4 ||
+            [
+              question.vi,
+              question.en,
+              question.explanationVi,
+              question.explanationEn,
+              question.level,
+              for (final choice in question.choices) ...[
+                choice.id,
+                choice.vi,
+                choice.en,
+              ],
+            ].any((text) => text.trim().isEmpty) ||
             !choiceIds.contains(question.correctId);
       })) {
     throw const FormatException('Ngân hàng câu hỏi không hợp lệ.');

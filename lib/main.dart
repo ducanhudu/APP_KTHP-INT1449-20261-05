@@ -85,7 +85,7 @@ class _QuizHomeState extends State<QuizHome> {
             ? questions
             : questions.where((question) => question.topic == topic).toList();
         final availableCounts = [
-          for (final size in [5, 10, 15, 20, 30])
+          for (final size in [3, 5, 10, 15, 20, 30])
             if (size <= pool.length) size,
         ];
         final practiceCount = availableCounts.contains(count)
