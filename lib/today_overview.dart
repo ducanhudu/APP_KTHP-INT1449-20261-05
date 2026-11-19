@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'learning_tools.dart';
 import 'question.dart';
@@ -14,6 +14,7 @@ class TodayOverview extends StatelessWidget {
     required this.onExam,
     required this.onTopic,
     required this.onPracticeSetup,
+    required this.onRetryCards,
   });
 
   final List<Question> questions;
@@ -23,6 +24,9 @@ class TodayOverview extends StatelessWidget {
   final VoidCallback onExam;
   final ValueChanged<int> onTopic;
   final VoidCallback onPracticeSetup;
+
+  /// Đọc lại bộ thẻ khi người dùng bấm "Thử lại" ở trạng thái lỗi.
+  final VoidCallback onRetryCards;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +72,11 @@ class TodayOverview extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     if (snapshot.hasError)
-                      const Text('Chưa đọc được bộ thẻ. Mở bộ thẻ để thử lại.')
+                      TextButton.icon(
+                        onPressed: onRetryCards,
+                        icon: const Icon(Icons.refresh, size: 18),
+                        label: const Text('Chưa đọc được bộ thẻ. Thử lại'),
+                      )
                     else if (cards != null)
                       Text(
                         '${cards.length} thẻ đã lưu · $due thẻ cần ôn hôm nay',
