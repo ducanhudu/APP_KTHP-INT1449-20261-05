@@ -58,6 +58,17 @@ class _QuizHomeState extends State<QuizHome> {
     });
   }
 
+  Future<bool?> _showResult(QuizResult result) =>
+      Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => ResultPage(
+            result: result,
+            language: language,
+            storage: widget.storage,
+          ),
+        ),
+      );
+
   Future<void> _runQuiz(
     List<Question> pool,
     int questionCount, {
@@ -78,15 +89,7 @@ class _QuizHomeState extends State<QuizHome> {
         ),
       );
       if (!mounted || result == null) return;
-      final retry = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(
-          builder: (_) => ResultPage(
-            result: result,
-            language: language,
-            storage: widget.storage,
-          ),
-        ),
-      );
+      final retry = await _showResult(result);
       if (retry != true) return;
       final wrong = result.wrongQuestions.toList();
       items = createQuiz(wrong, wrong.length);
@@ -218,6 +221,23 @@ class _QuizHomeState extends State<QuizHome> {
                   );
                   _refreshCards();
                 },
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () async {
+                final sampleResult = createSampleResult(questions);
+                final retry = await _showResult(sampleResult);
+                if (!mounted) return;
+                if (retry == true) {
+                  final wrong = sampleResult.wrongQuestions.toList();
+                  await _runQuiz(wrong, wrong.length);
+                }
+                _refreshCards();
+              },
+              icon: const Icon(Icons.analytics_outlined),
+              label: const Text(
+                'Xem lượt kết quả mẫu (1 đúng, 1 sai, 1 bỏ trống)',
               ),
             ),
           ],
@@ -503,14 +523,21 @@ class ResultPage extends StatelessWidget {
           }
           final item = result.items[index - 1];
           final question = item.question;
-          final selected = result.answers[question.id];
+          final card = QuestionCard(
+            id: 'card_${question.id}',
+            questionId: question.id,
+          );
+          final resolvedQuestion =
+              card.resolve(result.items.map((i) => i.question)) ?? question;
+
+          final selected = result.answers[resolvedQuestion.id];
           final status = switch (selected) {
             null => 'Bỏ trống',
-            _ when selected == question.correctId => 'Đúng',
+            _ when selected == resolvedQuestion.correctId => 'Đúng',
             _ => 'Sai',
           };
           return ExpansionTile(
-            title: Text('Câu $index · $status'),
+            title: Text('Câu $index [Mã #${resolvedQuestion.id}] · $status'),
             subtitle: Text(topicLabel(question.topic)),
             trailing: IconButton(
               icon: const Icon(Icons.bookmark_border),
@@ -534,14 +561,14 @@ class ResultPage extends StatelessWidget {
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             children: [
-              QuestionPrompt(question: question, language: language),
+              QuestionPrompt(question: resolvedQuestion, language: language),
               for (final (position, choice) in item.choices.indexed)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
                     '${String.fromCharCode(65 + position)}. ${language.display(choice.vi, choice.en)}',
                   ),
-                  subtitle: choice.id == question.correctId
+                  subtitle: choice.id == resolvedQuestion.correctId
                       ? Text(
                           choice.id == selected
                               ? 'Đáp án đúng · Bạn đã chọn'
@@ -553,8 +580,8 @@ class ResultPage extends StatelessWidget {
                 ),
               Text(
                 language.display(
-                  question.explanationVi,
-                  question.explanationEn,
+                  resolvedQuestion.explanationVi,
+                  resolvedQuestion.explanationEn,
                 ),
               ),
             ],

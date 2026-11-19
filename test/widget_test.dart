@@ -165,4 +165,37 @@ void main() {
       expect(find.text('Xem đáp án & giải thích'), findsOneWidget);
     },
   );
+  test('Sample result creates exact 1 correct, 1 wrong, 1 skipped run', () {
+    final bank = decodeQuestions(
+      File('assets/flutter_quiz_300.json').readAsStringSync(),
+    );
+    final sample = createSampleResult(bank);
+    expect(sample.items, hasLength(3));
+    expect(sample.score.correct, 1);
+    expect(sample.score.wrong, 1);
+    expect(sample.score.skipped, 1);
+    expect(sample.score.total, 3);
+    expect(sample.score.percent, 33);
+  });
+
+  test(
+    'QuestionCard stores questionId and resolves original question from bank',
+    () {
+      final bank = decodeQuestions(
+        File('assets/flutter_quiz_300.json').readAsStringSync(),
+      );
+      final targetQuestion = bank[5];
+      final card = QuestionCard(
+        id: 'card_5',
+        questionId: targetQuestion.id,
+        note: 'Thẻ ôn tập mẫu',
+      );
+
+      expect(card.questionId, targetQuestion.id);
+      final resolvedQuestion = card.resolve(bank);
+      expect(resolvedQuestion, isNotNull);
+      expect(resolvedQuestion!.id, targetQuestion.id);
+      expect(resolvedQuestion.vi, targetQuestion.vi);
+    },
+  );
 }
