@@ -9,16 +9,21 @@
 
 | Thành phần | Phiên bản |
 | --- | --- |
-| Flutter | **3.47.6** (stable) trở lên |
-| Dart | **3.13.5** trở lên (đi kèm Flutter 3.47.6) |
-| JDK | 17 — đã khai báo trong `android/app/build.gradle.kts` |
-| Android | thiết bị thật hoặc emulator, dùng `flutter.minSdkVersion` của SDK |
+| Flutter | **3.47.6 stable** để đồng bộ CI; đã chạy cục bộ bằng 3.47.8 |
+| Dart | Dùng bản đi kèm Flutter; yêu cầu **^3.13.5** |
+| JDK chạy Gradle | CI dùng **JDK 21**; máy phát triển có thể dùng JDK tương thích đi kèm Android Studio |
+| Android SDK | API 36, Build-Tools 36.0.0, NDK 28.2.13676358, CMake 3.22.1 |
+| Thiết bị chạy app | Android API 24 trở lên, thiết bị thật hoặc emulator |
+
+Java 17 trong `android/app/build.gradle.kts` là mức biên dịch mã Java/Kotlin.
+JDK dùng để chạy Gradle được Flutter/Android Studio chọn trên từng máy.
+Xem JDK thực tế bằng `flutter doctor -v`.
 
 Kiểm tra môi trường trước khi chạy:
 
 ```powershell
 flutter --version    # cần Flutter 3.47.6, Dart 3.13.5 trở lên
-flutter doctor
+flutter doctor -v
 ```
 
 Nếu `flutter pub get` báo `requires SDK version ^3.13.5`, Flutter trên máy cũ
@@ -36,11 +41,35 @@ Chọn điện thoại Android đã bật USB debugging hoặc emulator đang ch
 APK debug, chạy `flutter build apk --debug`; APK nằm tại
 `build/app/outputs/flutter-apk/app-debug.apk`.
 
+### Chạy sau khi pull trên máy thành viên
+
+```text
+git pull --ff-only origin main
+flutter pub get
+flutter devices
+flutter run
+```
+
+Trong Android Studio, mở thư mục gốc chứa `pubspec.yaml`, cài plugin Flutter/Dart
+và chọn Flutter SDK của máy. Cài các thành phần SDK ở bảng trên bằng SDK Manager.
+Mỗi người tự đọc và chấp nhận Android SDK licenses qua
+`flutter doctor --android-licenses` nếu máy chưa thiết lập.
+
+Đường dẫn máy cá nhân nằm trong `android/local.properties`, được Flutter tạo
+khi chuẩn bị/chạy bản Android và đã được loại khỏi Git. Mỗi máy dùng SDK của mình.
+
+`android/gradle.properties` đã đặt `kotlin.incremental=false` và
+`kotlin.compiler.execution.strategy=in-process` để xử lý lỗi Kotlin cache khi
+Pub Cache và dự án nằm trên hai ổ đĩa khác nhau. Đây là cấu hình chung của repo,
+có hiệu lực cả với nút Run trong Android Studio. Biên dịch Kotlin có thể chậm hơn.
+Máy từng gặp lỗi cache nên chạy `flutter clean`, rồi `flutter pub get` một lần
+trước khi chạy lại.
+
 ## Kiểm tra chất lượng mã
 
 ```powershell
 flutter analyze      # kết quả mong đợi: No issues found!
-flutter test         # kết quả mong đợi: All tests passed! (2 test)
+flutter test         # kết quả mong đợi: All tests passed!
 ```
 
 Kiểm tra ngân hàng câu hỏi (Python 3.9+, không cần thư viện ngoài):
@@ -54,16 +83,18 @@ Kết quả kiểm tra ngày 18/11/2026 và các phát hiện về dữ liệu n
 
 ### CI trên GitHub Actions
 
-Mỗi lần đẩy mã lên `main`, `feature/**`, `fix/**`, `docs/**`, `test/**`,
+Mỗi lần đẩy mã lên `main`, `feat/**`, `feature/**`, `fix/**`, `docs/**`, `test/**`,
 `chore/**` hoặc mở pull request vào `main`, workflow
-`.github/workflows/ci.yml` chạy hai việc song song:
+`.github/workflows/ci.yml` kiểm tra mã, dữ liệu và build Android:
 
 | Job | Nội dung |
 | --- | --- |
 | `Analyze + Test` | `dart format --set-exit-if-changed`, `flutter analyze`, `flutter test` trên Flutter 3.47.6 |
 | `Audit question bank` | `python tool/audit_question_bank.py assets/flutter_quiz_300.json` |
+| `Build APK` | Build APK từ checkout mới trên Windows và Linux, sau khi Analyze + Test đạt |
 
-Mã chỉ được coi là đạt khi cả hai job xanh.
+Đối chiếu kết quả từng job trong GitHub Actions. Job build kiểm tra khả năng
+biên dịch APK; chạy thử giao diện trên thiết bị được kiểm tra riêng.
 
 Hai test hiện có:
 
