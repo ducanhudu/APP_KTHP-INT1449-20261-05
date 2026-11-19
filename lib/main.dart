@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'app_theme.dart';
 import 'card_storage.dart';
+import 'learning_tools.dart';
+import 'today_overview.dart';
 import 'flashcard_page.dart';
 import 'question.dart';
 import 'question_prompt.dart';
@@ -22,7 +25,7 @@ class FlutterLab extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'Flutter Lab',
     debugShowCheckedModeBanner: false,
-    theme: ThemeData(colorSchemeSeed: const Color(0xff146c59)),
+    theme: buildAppTheme(),
     home: QuizHome(storage: storage),
   );
 }
@@ -42,6 +45,7 @@ class _QuizHomeState extends State<QuizHome> {
   /// Nạp một lần rồi dùng lại; chỉ đọc lại đĩa khi có thay đổi bộ thẻ.
   late Future<List<Sm2Item>> cardsFuture = widget.storage.loadCards();
   QuestionLanguage language = QuestionLanguage.vietnamese;
+  int selectedTab = 0;
   int topic = 0;
   int count = 10;
 
@@ -97,9 +101,77 @@ class _QuizHomeState extends State<QuizHome> {
     }
   }
 
+  Future<void> _openCards(List<Question> questions) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FlashcardPage(
+          allQuestions: questions,
+          storage: widget.storage,
+          language: language,
+        ),
+      ),
+    );
+    _refreshCards();
+  }
+
+  Future<void> _start(
+    List<Question> pool,
+    int size, {
+    bool exam = false,
+  }) async {
+    await _runQuiz(pool, size, exam: exam);
+    _refreshCards();
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Flutter Lab')),
+    appBar: AppBar(
+      title: Text(
+        ['Flutter Lab', 'Luyện tập', 'Thẻ ôn'][selectedTab],
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      actions: [
+        IconButton(
+          tooltip: 'Camera học tập · Sắp có',
+          onPressed: () => showLearningTool(context, LearningTool.camera),
+          icon: const Icon(Icons.camera_alt_outlined),
+        ),
+        PopupMenuButton<QuestionLanguage>(
+          tooltip: 'Ngôn ngữ câu hỏi',
+          initialValue: language,
+          onSelected: (value) => setState(() => language = value),
+          icon: const Icon(Icons.translate),
+          itemBuilder: (_) => [
+            for (final value in QuestionLanguage.values)
+              PopupMenuItem(value: value, child: Text(value.label)),
+          ],
+        ),
+      ],
+    ),
+    bottomNavigationBar: NavigationBar(
+      selectedIndex: selectedTab,
+      onDestinationSelected: (value) {
+        setState(() => selectedTab = value);
+        _refreshCards();
+      },
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: 'Hôm nay',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.menu_book_outlined),
+          selectedIcon: Icon(Icons.menu_book),
+          label: 'Luyện tập',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.layers_outlined),
+          selectedIcon: Icon(Icons.layers),
+          label: 'Thẻ ôn',
+        ),
+      ],
+    ),
     body: FutureBuilder(
       future: bank,
       builder: (context, snapshot) {
@@ -109,6 +181,30 @@ class _QuizHomeState extends State<QuizHome> {
         final questions = snapshot.data;
         if (questions == null) {
           return const Center(child: CircularProgressIndicator());
+        }
+        if (selectedTab == 0) {
+          return TodayOverview(
+            questions: questions,
+            cardsFuture: cardsFuture,
+            onOpenCards: () => _openCards(questions),
+            onQuickPractice: () => _start(questions, 10),
+            onExam: () => _start(questions, 50, exam: true),
+            onPracticeSetup: () => setState(() => selectedTab = 1),
+            onTopic: (value) => setState(() {
+              topic = value;
+              selectedTab = 1;
+            }),
+          );
+        }
+        if (selectedTab == 2) {
+          return FlashcardPage(
+            allQuestions: questions,
+            storage: widget.storage,
+            language: language,
+            embedded: true,
+            onCardsChanged: _refreshCards,
+            onPracticeRequested: () => setState(() => selectedTab = 1),
+          );
         }
         final pool = topic == 0
             ? questions
@@ -186,42 +282,6 @@ class _QuizHomeState extends State<QuizHome> {
               },
               icon: const Icon(Icons.timer_outlined),
               label: const Text('Thi thử · 50 câu · 50 phút'),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 0,
-              color: Theme.of(context).colorScheme.primaryContainer
-                  .withValues(alpha: 0.4),
-              child: ListTile(
-                leading: const Icon(Icons.style_outlined),
-                title: const Text(
-                  'Ôn tập Flashcard (SM-2)',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: FutureBuilder<List<Sm2Item>>(
-                  future: cardsFuture,
-                  builder: (context, snapshot) {
-                    final cards = snapshot.data ?? [];
-                    final due = cards.where((c) => c.isDue()).length;
-                    return Text(
-                      '${cards.length} thẻ đã lưu · $due thẻ cần ôn hôm nay',
-                    );
-                  },
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => FlashcardPage(
-                        allQuestions: questions,
-                        storage: widget.storage,
-                        language: language,
-                      ),
-                    ),
-                  );
-                  _refreshCards();
-                },
-              ),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -367,6 +427,14 @@ class _QuizPageState extends State<QuizPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: ChoiceChip(
+                showCheckmark: false,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 label: Text(
                   '${String.fromCharCode(65 + position)}. '
                   '${language.display(choice.vi, choice.en)}',
@@ -583,6 +651,17 @@ class ResultPage extends StatelessWidget {
                   resolvedQuestion.explanationVi,
                   resolvedQuestion.explanationEn,
                 ),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => showLearningTool(
+                  context,
+                  LearningTool.assistant,
+                  question: resolvedQuestion,
+                  language: language,
+                ),
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: const Text('Hỏi AI về câu này · Sắp có'),
               ),
             ],
           );

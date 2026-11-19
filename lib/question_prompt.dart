@@ -19,17 +19,28 @@ class QuestionPrompt extends StatelessWidget {
     children: [
       Text(
         language.display(question.vi, question.en),
-        style: Theme.of(context).textTheme.titleLarge,
+        style: Theme.of(context).textTheme.titleLarge
+            ?.copyWith(fontSize: 20, height: 1.5),
       ),
       if (question.code.isNotEmpty)
         Container(
           width: double.infinity,
           margin: const EdgeInsets.only(top: 12),
           padding: const EdgeInsets.all(12),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: SelectableText(
-            question.code,
-            style: const TextStyle(fontFamily: 'monospace'),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.inverseSurface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SelectableText(
+              question.code,
+              style: TextStyle(
+                fontFamily: 'monospace',
+                color: Theme.of(context).colorScheme.onInverseSurface,
+                height: 1.6,
+              ),
+            ),
           ),
         ),
     ],
