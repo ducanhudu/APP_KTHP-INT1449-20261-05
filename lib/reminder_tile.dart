@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'app_strings.dart';
 import 'reminder_service.dart';
 
 /// Công tắc "Nhắc ôn hằng ngày" trong màn hình Hôm nay.
 ///
 /// Quyền thông báo chỉ được xin khi người dùng bật công tắc, không xin lúc mở app.
 class ReminderTile extends StatefulWidget {
-  const ReminderTile({super.key, required this.service, this.hour = 20});
+  const ReminderTile({
+    super.key,
+    required this.service,
+    this.hour = 20,
+    this.strings = AppStrings.vietnamese,
+  });
 
   final ReminderService service;
   final int hour;
+  final AppStrings strings;
 
   @override
   State<ReminderTile> createState() => _ReminderTileState();
@@ -40,7 +47,7 @@ class _ReminderTileState extends State<ReminderTile> {
         _enabled = false;
         _busy = false;
       });
-      _notify('Đã tắt nhắc ôn hằng ngày.');
+      _notify(widget.strings.reminderDisabled);
       return;
     }
 
@@ -51,11 +58,9 @@ class _ReminderTileState extends State<ReminderTile> {
       _busy = false;
     });
     _notify(switch (result) {
-      ReminderResult.scheduled =>
-        'Đã bật nhắc ôn lúc ${widget.hour.toString().padLeft(2, '0')}:00 mỗi ngày.',
-      ReminderResult.permissionDenied =>
-        'Chưa có quyền thông báo. Hãy bật quyền trong Cài đặt để nhận nhắc ôn.',
-      ReminderResult.failed => 'Không đặt được lịch nhắc. Thử lại sau.',
+      ReminderResult.scheduled => widget.strings.reminderEnabled,
+      ReminderResult.permissionDenied => widget.strings.reminderDenied,
+      ReminderResult.failed => widget.strings.reminderFailed,
     });
   }
 
@@ -68,16 +73,13 @@ class _ReminderTileState extends State<ReminderTile> {
   @override
   Widget build(BuildContext context) {
     final enabled = _enabled;
+    final s = widget.strings;
     return SwitchListTile.adaptive(
       value: enabled ?? false,
       onChanged: enabled == null || _busy ? null : _toggle,
       secondary: const Icon(Icons.notifications_active_outlined),
-      title: const Text('Nhắc ôn hằng ngày'),
-      subtitle: Text(
-        enabled == true
-            ? 'Nhắc lúc ${widget.hour.toString().padLeft(2, '0')}:00 mỗi ngày'
-            : 'Nhận thông báo khi có thẻ đến hạn',
-      ),
+      title: Text(s.reminderTitle),
+      subtitle: Text(enabled == true ? s.reminderOn : s.reminderOff),
     );
   }
 }

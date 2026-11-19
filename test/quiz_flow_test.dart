@@ -169,4 +169,53 @@ void main() {
 
     expect(find.text(expected), findsOneWidget);
   });
+
+  testWidgets('Chọn English: nhãn màn làm bài đổi sang tiếng Anh', (
+    tester,
+  ) async {
+    final bank = loadBank();
+    final items = createQuiz(bank, 5, random: Random(3));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: QuizPage(
+          items: items,
+          language: QuestionLanguage.english,
+          timed: false,
+          onLanguageChanged: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Practice'), findsOneWidget);
+    expect(find.text('Question 1/5 · Answered 0'), findsOneWidget);
+    expect(find.text('Submit'), findsOneWidget);
+    // Nút chuyển câu là IconButton nên nhãn nằm ở tooltip.
+    expect(find.byTooltip('Next'), findsOneWidget);
+    expect(find.byTooltip('Previous'), findsOneWidget);
+    expect(find.text('Nộp bài'), findsNothing);
+  });
+
+  testWidgets('Chọn English: nhãn màn kết quả đổi sang tiếng Anh', (
+    tester,
+  ) async {
+    final bank = loadBank();
+    final items = createQuiz(bank, 3, random: Random(5));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ResultPage(
+          result: QuizResult(items, <int, String>{}),
+          language: QuestionLanguage.english,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Result'), findsOneWidget);
+    expect(find.text('0 correct · 0 wrong · 3 skipped'), findsOneWidget);
+    expect(find.text('Breakdown by topic'), findsOneWidget);
+    expect(find.text('0 đúng · 0 sai · 3 bỏ trống'), findsNothing);
+  });
 }

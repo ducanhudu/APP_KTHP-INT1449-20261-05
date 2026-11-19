@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'app_strings.dart';
 import 'app_theme.dart';
 import 'card_storage.dart';
 import 'learning_tools.dart';
@@ -52,6 +53,8 @@ class QuizHome extends StatefulWidget {
 }
 
 class _QuizHomeState extends State<QuizHome> {
+  /// Nhãn giao diện theo ngôn ngữ đang chọn.
+  AppStrings get s => AppStrings.of(language);
   late Future<List<Question>> bank = _loadBank();
 
   /// Nạp một lần rồi dùng lại; chỉ đọc lại đĩa khi có thay đổi bộ thẻ.
@@ -150,17 +153,17 @@ class _QuizHomeState extends State<QuizHome> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(
-        ['Flutter Lab', 'Luyện tập', 'Thẻ ôn'][selectedTab],
+        [s.appTitle, s.tabPractice, s.tabCards][selectedTab],
         style: const TextStyle(fontWeight: FontWeight.w700),
       ),
       actions: [
         IconButton(
-          tooltip: 'Camera học tập · Sắp có',
+          tooltip: s.cameraTooltip,
           onPressed: () => showLearningTool(context, LearningTool.camera),
           icon: const Icon(Icons.camera_alt_outlined),
         ),
         PopupMenuButton<QuestionLanguage>(
-          tooltip: 'Ngôn ngữ câu hỏi',
+          tooltip: s.languageTooltip,
           initialValue: language,
           onSelected: (value) => setState(() => language = value),
           icon: const Icon(Icons.translate),
@@ -177,21 +180,21 @@ class _QuizHomeState extends State<QuizHome> {
         setState(() => selectedTab = value);
         _refreshCards();
       },
-      destinations: const [
+      destinations: [
         NavigationDestination(
           icon: Icon(Icons.home_outlined),
           selectedIcon: Icon(Icons.home),
-          label: 'Hôm nay',
+          label: s.tabToday,
         ),
         NavigationDestination(
           icon: Icon(Icons.menu_book_outlined),
           selectedIcon: Icon(Icons.menu_book),
-          label: 'Luyện tập',
+          label: s.tabPractice,
         ),
         NavigationDestination(
           icon: Icon(Icons.layers_outlined),
           selectedIcon: Icon(Icons.layers),
-          label: 'Thẻ ôn',
+          label: s.tabCards,
         ),
       ],
     ),
@@ -199,10 +202,7 @@ class _QuizHomeState extends State<QuizHome> {
       future: bank,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return ErrorState(
-            message: 'Không đọc được ngân hàng câu hỏi.',
-            onRetry: _retryBank,
-          );
+          return ErrorState(message: s.errorBankLoad, onRetry: _retryBank);
         }
         final questions = snapshot.data;
         if (questions == null) {
@@ -217,6 +217,7 @@ class _QuizHomeState extends State<QuizHome> {
             onExam: () => _start(questions, 50, exam: true),
             onPracticeSetup: () => setState(() => selectedTab = 1),
             onRetryCards: _refreshCards,
+            language: language,
             reminder: reminder,
             onTopic: (value) => setState(() {
               topic = value;
@@ -248,7 +249,7 @@ class _QuizHomeState extends State<QuizHome> {
           padding: const EdgeInsets.all(20),
           children: [
             Text(
-              'Ôn thi Flutter và Dart',
+              s.practiceHeading,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 8),
@@ -259,7 +260,7 @@ class _QuizHomeState extends State<QuizHome> {
             DropdownButtonFormField<QuestionLanguage>(
               key: ValueKey(language),
               initialValue: language,
-              decoration: const InputDecoration(labelText: 'Ngôn ngữ câu hỏi'),
+              decoration: InputDecoration(labelText: s.languageLabel),
               items: [
                 for (final value in QuestionLanguage.values)
                   DropdownMenuItem(value: value, child: Text(value.label)),
@@ -270,25 +271,22 @@ class _QuizHomeState extends State<QuizHome> {
             DropdownButtonFormField<int>(
               initialValue: topic,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Khối luyện tập'),
+              decoration: InputDecoration(labelText: s.topicLabel),
               items: [
-                const DropdownMenuItem(
-                  value: 0,
-                  child: Text('Tất cả các khối'),
-                ),
+                DropdownMenuItem(value: 0, child: Text(s.allTopics)),
                 for (var i = 1; i <= topicNames.length; i++)
                   DropdownMenuItem(value: i, child: Text(topicLabel(i))),
               ],
               onChanged: (value) => setState(() => topic = value!),
             ),
             const SizedBox(height: 16),
-            const Text('Số câu luyện tập'),
+            Text(s.practiceCountLabel),
             Wrap(
               spacing: 8,
               children: [
                 for (final size in availableCounts)
                   ChoiceChip(
-                    label: Text('$size câu'),
+                    label: Text('$size ${s.unitQuestions}'),
                     selected: practiceCount == size,
                     onSelected: (_) => setState(() => count = size),
                   ),
@@ -301,7 +299,7 @@ class _QuizHomeState extends State<QuizHome> {
                 _refreshCards();
               },
               icon: const Icon(Icons.school_outlined),
-              label: const Text('Bắt đầu luyện tập'),
+              label: Text(s.startPractice),
             ),
             OutlinedButton.icon(
               onPressed: () async {
@@ -309,7 +307,7 @@ class _QuizHomeState extends State<QuizHome> {
                 _refreshCards();
               },
               icon: const Icon(Icons.timer_outlined),
-              label: const Text('Thi thử · 50 câu · 50 phút'),
+              label: Text(s.examButton),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -354,6 +352,7 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  AppStrings get s => AppStrings.of(language);
   final answers = <int, String>{};
   late QuestionLanguage language = widget.language;
   DateTime? deadline;
@@ -415,7 +414,7 @@ class _QuizPageState extends State<QuizPage> {
     final question = item.question;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.timed ? 'Thi thử' : 'Luyện tập'),
+        title: Text(widget.timed ? s.quizExamTitle : s.quizPracticeTitle),
         actions: [
           if (widget.timed)
             Padding(
@@ -423,7 +422,7 @@ class _QuizPageState extends State<QuizPage> {
               child: Center(child: Text(clock)),
             ),
           PopupMenuButton<QuestionLanguage>(
-            tooltip: 'Đổi ngôn ngữ câu hỏi',
+            tooltip: s.languageTooltip,
             icon: const Icon(Icons.translate),
             onSelected: (value) {
               if (_tick()) return;
@@ -441,9 +440,7 @@ class _QuizPageState extends State<QuizPage> {
         key: ValueKey(index),
         padding: const EdgeInsets.all(20),
         children: [
-          Text(
-            'Câu ${index + 1}/${widget.items.length} · Đã chọn ${answers.length}',
-          ),
+          Text(s.quizCounter(index + 1, widget.items.length, answers.length)),
           const SizedBox(height: 8),
           LinearProgressIndicator(value: answers.length / widget.items.length),
           const SizedBox(height: 16),
@@ -485,7 +482,7 @@ class _QuizPageState extends State<QuizPage> {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
-                  '${answers[question.id] == question.correctId ? 'Chính xác' : 'Cần xem lại'}\n'
+                  '${answers[question.id] == question.correctId ? s.verdictCorrect : s.verdictReview}\n'
                   '${language.display(question.explanationVi, question.explanationEn)}',
                 ),
               ),
@@ -499,7 +496,7 @@ class _QuizPageState extends State<QuizPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                tooltip: 'Câu trước',
+                tooltip: s.prevQuestion,
                 onPressed: index == 0 ? null : () => _goTo(index - 1),
                 icon: const Icon(Icons.navigate_before),
               ),
@@ -507,10 +504,10 @@ class _QuizPageState extends State<QuizPage> {
                 onPressed: () {
                   if (!_tick()) _submit();
                 },
-                child: const Text('Nộp bài'),
+                child: Text(s.submit),
               ),
               IconButton(
-                tooltip: 'Câu tiếp theo',
+                tooltip: s.nextQuestion,
                 onPressed: index == widget.items.length - 1
                     ? null
                     : () => _goTo(index + 1),
@@ -534,6 +531,8 @@ class ResultPage extends StatelessWidget {
 
   final QuizResult result;
   final QuestionLanguage language;
+
+  AppStrings get s => AppStrings.of(language);
   final CardStorage storage;
 
   @override
@@ -542,7 +541,7 @@ class ResultPage extends StatelessWidget {
     final topics = result.byTopic.entries.toList();
     final wrongCount = result.wrongQuestions.length;
     return Scaffold(
-      appBar: AppBar(title: const Text('Kết quả')),
+      appBar: AppBar(title: Text(s.resultTitle)),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: result.items.length + 1,
@@ -555,10 +554,8 @@ class ResultPage extends StatelessWidget {
                   '${score.percent}%',
                   style: Theme.of(context).textTheme.displayMedium,
                 ),
-                Text(
-                  '${score.correct} đúng · ${score.wrong} sai · ${score.skipped} bỏ trống',
-                ),
-                if (result.expired) const Text('Hết giờ, bài thi đã được nộp.'),
+                Text(s.scoreLine(score.correct, score.wrong, score.skipped)),
+                if (result.expired) Text(s.expiredNotice),
                 if (wrongCount > 0)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
@@ -569,7 +566,7 @@ class ResultPage extends StatelessWidget {
                         FilledButton.icon(
                           onPressed: () => Navigator.of(context).pop(true),
                           icon: const Icon(Icons.replay),
-                          label: Text('Làm lại $wrongCount câu sai'),
+                          label: Text(s.retryWrong(wrongCount)),
                         ),
                         OutlinedButton.icon(
                           onPressed: () async {
@@ -590,14 +587,14 @@ class ResultPage extends StatelessWidget {
                             }
                           },
                           icon: const Icon(Icons.bookmark_add_outlined),
-                          label: Text('Lưu $wrongCount câu sai vào thẻ'),
+                          label: Text(s.saveWrong(wrongCount)),
                         ),
                       ],
                     ),
                   ),
                 const SizedBox(height: 20),
                 Text(
-                  'Thống kê theo khối',
+                  s.statsHeading,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 for (final entry in topics)
@@ -605,13 +602,17 @@ class ResultPage extends StatelessWidget {
                     contentPadding: EdgeInsets.zero,
                     title: Text(topicLabel(entry.key)),
                     subtitle: Text(
-                      '${entry.value.correct} đúng · ${entry.value.wrong} sai · ${entry.value.skipped} bỏ trống',
+                      s.scoreLine(
+                        entry.value.correct,
+                        entry.value.wrong,
+                        entry.value.skipped,
+                      ),
                     ),
                     trailing: Text('${entry.value.percent}%'),
                   ),
                 const Divider(),
                 Text(
-                  'Xem lại bài',
+                  s.reviewHeading,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ],
@@ -628,9 +629,9 @@ class ResultPage extends StatelessWidget {
 
           final selected = result.answers[resolvedQuestion.id];
           final status = switch (selected) {
-            null => 'Bỏ trống',
-            _ when selected == resolvedQuestion.correctId => 'Đúng',
-            _ => 'Sai',
+            null => s.statusSkipped,
+            _ when selected == resolvedQuestion.correctId => s.statusCorrect,
+            _ => s.statusWrong,
           };
           return ExpansionTile(
             title: Text('Câu $index [Mã #${resolvedQuestion.id}] · $status'),
@@ -667,11 +668,11 @@ class ResultPage extends StatelessWidget {
                   subtitle: choice.id == resolvedQuestion.correctId
                       ? Text(
                           choice.id == selected
-                              ? 'Đáp án đúng · Bạn đã chọn'
-                              : 'Đáp án đúng',
+                              ? s.correctAnswerChosen
+                              : s.correctAnswer,
                         )
                       : choice.id == selected
-                      ? const Text('Bạn đã chọn')
+                      ? Text(s.chosenOnly)
                       : null,
                 ),
               Text(
@@ -689,7 +690,7 @@ class ResultPage extends StatelessWidget {
                   language: language,
                 ),
                 icon: const Icon(Icons.auto_awesome_outlined),
-                label: const Text('Hỏi AI về câu này · Sắp có'),
+                label: Text(s.aiSoon),
               ),
             ],
           );
