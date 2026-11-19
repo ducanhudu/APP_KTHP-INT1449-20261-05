@@ -15,11 +15,22 @@ rubric tiêu chí 7 (Tài liệu) và tiêu chí 8 (Trình bày, demo).
 | Kiến trúc | x86_64 (image 16 KB page size) |
 | Flutter | 3.47.6 stable · Dart 3.13.5 |
 | Render backend | Impeller (OpenGLES) |
-| JDK | 17 · AGP 9.1.0 · Gradle 9.3.1 |
+| JDK | **JBR 25** đi kèm Android Studio (`C:\Program Files\Android\Android Studio\jbr`) · AGP 9.1.0 · Gradle 9.3.1 |
+| Vị trí AVD | **`D:\AndroidAvd`** (`ANDROID_AVD_HOME`) — ổ C: không đủ chỗ |
 
 Ghi chú: đây là **emulator**, chưa phải máy thật. Rubric tiêu chí 8 yêu cầu demo
 trên máy thật, nên vẫn phải chạy lại kịch bản bên dưới trên điện thoại của nhóm
 trước buổi bảo vệ.
+
+## Hai sự cố môi trường đã gặp (19/11)
+
+| Triệu chứng | Nguyên nhân | Cách khắc phục |
+| --- | --- | --- |
+| Emulator không khởi động, log báo *"Your device does not have enough disk space to run avd"* | Ổ C: chỉ còn 0,9 GB trống | Xoá `~/.android/avd/Pixel_8.avd/snapshots`, `build/`, temp; đặt `ANDROID_AVD_HOME=D:\AndroidAvd` rồi tạo lại AVD |
+| `flutter build apk` báo `Gradle task assembleDebug failed with exit code 1` | `JAVA_HOME` trỏ tới `C:\Program Files\Java\jdk-17` đã bị xoá | `$env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'` trước khi build |
+
+Nếu build lại gặp lỗi Gradle mà không rõ nguyên nhân, kiểm tra `JAVA_HOME` trước
+tiên — thông báo lỗi của Gradle không hề nhắc tới JDK.
 
 ## Cách chạy
 
