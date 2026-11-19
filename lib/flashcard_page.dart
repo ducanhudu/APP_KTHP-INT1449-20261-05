@@ -115,7 +115,6 @@ class _FlashcardPageState extends State<FlashcardPage> {
   @override
   Widget build(BuildContext context) {
     final currentList = activeCards;
-    final totalDue = allCards.where((c) => c.isDue()).length;
 
     return Scaffold(
       appBar: AppBar(
