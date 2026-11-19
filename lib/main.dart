@@ -3,24 +3,34 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'card_storage.dart';
+import 'flashcard_page.dart';
 import 'question.dart';
+import 'question_prompt.dart';
+import 'sm2.dart';
+
+export 'question_prompt.dart';
 
 void main() => runApp(const FlutterLab());
 
 class FlutterLab extends StatelessWidget {
-  const FlutterLab({super.key});
+  const FlutterLab({super.key, this.storage = const SharedPrefsCardStorage()});
+
+  final CardStorage storage;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Flutter Lab',
     debugShowCheckedModeBanner: false,
     theme: ThemeData(colorSchemeSeed: const Color(0xff146c59)),
-    home: const QuizHome(),
+    home: QuizHome(storage: storage),
   );
 }
 
 class QuizHome extends StatefulWidget {
-  const QuizHome({super.key});
+  const QuizHome({super.key, this.storage = const SharedPrefsCardStorage()});
+
+  final CardStorage storage;
 
   @override
   State<QuizHome> createState() => _QuizHomeState();
@@ -58,7 +68,11 @@ class _QuizHomeState extends State<QuizHome> {
       if (!mounted || result == null) return;
       final retry = await Navigator.of(context).push<bool>(
         MaterialPageRoute(
-          builder: (_) => ResultPage(result: result, language: language),
+          builder: (_) => ResultPage(
+            result: result,
+            language: language,
+            storage: widget.storage,
+          ),
         ),
       );
       if (retry != true) return;
@@ -151,6 +165,42 @@ class _QuizHomeState extends State<QuizHome> {
               onPressed: () => _runQuiz(questions, 50, exam: true),
               icon: const Icon(Icons.timer_outlined),
               label: const Text('Thi thử · 50 câu · 50 phút'),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              elevation: 0,
+              color: Theme.of(context).colorScheme.primaryContainer
+                  .withValues(alpha: 0.4),
+              child: ListTile(
+                leading: const Icon(Icons.style_outlined),
+                title: const Text(
+                  'Ôn tập Flashcard (SM-2)',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: FutureBuilder<List<Sm2Item>>(
+                  future: widget.storage.loadCards(),
+                  builder: (context, snapshot) {
+                    final cards = snapshot.data ?? [];
+                    final due = cards.where((c) => c.isDue()).length;
+                    return Text(
+                      '${cards.length} thẻ đã lưu · $due thẻ cần ôn hôm nay',
+                    );
+                  },
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => FlashcardPage(
+                        allQuestions: questions,
+                        storage: widget.storage,
+                        language: language,
+                      ),
+                    ),
+                  );
+                  if (mounted) setState(() {});
+                },
+              ),
             ),
           ],
         );
@@ -340,44 +390,17 @@ class _QuizPageState extends State<QuizPage> {
   }
 }
 
-class QuestionPrompt extends StatelessWidget {
-  const QuestionPrompt({
-    super.key,
-    required this.question,
-    required this.language,
-  });
-
-  final Question question;
-  final QuestionLanguage language;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        language.display(question.vi, question.en),
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      if (question.code.isNotEmpty)
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(top: 12),
-          padding: const EdgeInsets.all(12),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: SelectableText(
-            question.code,
-            style: const TextStyle(fontFamily: 'monospace'),
-          ),
-        ),
-    ],
-  );
-}
-
 class ResultPage extends StatelessWidget {
-  const ResultPage({super.key, required this.result, required this.language});
+  const ResultPage({
+    super.key,
+    required this.result,
+    required this.language,
+    this.storage = const SharedPrefsCardStorage(),
+  });
 
   final QuizResult result;
   final QuestionLanguage language;
+  final CardStorage storage;
 
   @override
   Widget build(BuildContext context) {
@@ -403,9 +426,40 @@ class ResultPage extends StatelessWidget {
                 ),
                 if (result.expired) const Text('Hết giờ, bài thi đã được nộp.'),
                 if (wrongCount > 0)
-                  FilledButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text('Làm lại $wrongCount câu sai'),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          icon: const Icon(Icons.replay),
+                          label: Text('Làm lại $wrongCount câu sai'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final added = await storage.addCards(
+                              result.wrongQuestions.map((q) => q.id),
+                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    added > 0
+                                        ? 'Đã lưu $added câu sai vào bộ thẻ ôn tập!'
+                                        : 'Tất cả câu sai này đã có sẵn trong bộ thẻ.',
+                                  ),
+                                  duration: const Duration(seconds: 3),
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.bookmark_add_outlined),
+                          label: Text('Lưu $wrongCount câu sai vào thẻ'),
+                        ),
+                      ],
+                    ),
                   ),
                 const SizedBox(height: 20),
                 Text(
@@ -440,6 +494,25 @@ class ResultPage extends StatelessWidget {
           return ExpansionTile(
             title: Text('Câu $index · $status'),
             subtitle: Text(topicLabel(question.topic)),
+            trailing: IconButton(
+              icon: const Icon(Icons.bookmark_border),
+              tooltip: 'Lưu câu này vào bộ thẻ',
+              onPressed: () async {
+                final added = await storage.addCards([question.id]);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        added > 0
+                            ? 'Đã lưu câu #${question.id} vào bộ thẻ ôn tập!'
+                            : 'Câu #${question.id} đã có trong bộ thẻ.',
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+            ),
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             children: [

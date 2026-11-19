@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_quiz_app/card_storage.dart';
+import 'package:flutter_quiz_app/flashcard_page.dart';
 import 'package:flutter_quiz_app/main.dart';
 import 'package:flutter_quiz_app/question.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -106,4 +108,61 @@ void main() {
     expect(result!.items, hasLength(3));
     expect(result!.score.skipped, 2);
   });
+
+  testWidgets(
+    'ResultPage saves wrong questions to storage and shows Flashcard entry',
+    (tester) async {
+      final bank = decodeQuestions(
+        File('assets/flutter_quiz_300.json').readAsStringSync(),
+      );
+      final storage = MemoryCardStorage();
+      final items = createQuiz(bank, 3, random: Random(23));
+
+      // Giả lập câu trả lời: câu đầu trả lời sai, 2 câu sau bỏ trống
+      final first = items.first.question;
+      final wrongChoice = items.first.choices.firstWhere(
+        (c) => c.id != first.correctId,
+      );
+      final answers = <int, String>{first.id: wrongChoice.id};
+      final quizResult = QuizResult(items, answers);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ResultPage(
+            result: quizResult,
+            language: QuestionLanguage.vietnamese,
+            storage: storage,
+          ),
+        ),
+      );
+
+      // Kiểm tra nút "Lưu 1 câu sai vào thẻ" hiện đúng số
+      expect(find.text('Lưu 1 câu sai vào thẻ'), findsOneWidget);
+      await tester.tap(find.text('Lưu 1 câu sai vào thẻ'));
+      await tester.pumpAndSettle();
+
+      // Xác nhận đã lưu đúng 1 thẻ vào storage với ID câu sai
+      final cards = await storage.loadCards();
+      expect(cards, hasLength(1));
+      expect(cards.first.questionId, first.id);
+      expect(cards.first.repetitions, 0);
+      expect(cards.first.isDue(), isTrue);
+
+      // Mở màn hình FlashcardPage với storage vừa lưu, kiểm tra hiện thẻ
+      await tester.pumpWidget(
+        MaterialApp(
+          home: FlashcardPage(
+            allQuestions: bank,
+            storage: storage,
+            language: QuestionLanguage.vietnamese,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Thấy thẻ 1/1 và nút xem đáp án
+      expect(find.text('Thẻ 1/1'), findsOneWidget);
+      expect(find.text('Xem đáp án & giải thích'), findsOneWidget);
+    },
+  );
 }
