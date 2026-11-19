@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'card_storage.dart';
+import 'learning_tools.dart';
 import 'question.dart';
 import 'question_prompt.dart';
 import 'sm2.dart';
@@ -12,11 +13,17 @@ class FlashcardPage extends StatefulWidget {
     required this.allQuestions,
     this.storage = const SharedPrefsCardStorage(),
     this.language = QuestionLanguage.vietnamese,
+    this.embedded = false,
+    this.onCardsChanged,
+    this.onPracticeRequested,
   });
 
   final List<Question> allQuestions;
   final CardStorage storage;
   final QuestionLanguage language;
+  final bool embedded;
+  final VoidCallback? onCardsChanged;
+  final VoidCallback? onPracticeRequested;
 
   @override
   State<FlashcardPage> createState() => _FlashcardPageState();
@@ -34,6 +41,12 @@ class _FlashcardPageState extends State<FlashcardPage> {
   void initState() {
     super.initState();
     _loadCards();
+  }
+
+  @override
+  void didUpdateWidget(covariant FlashcardPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.language != widget.language) language = widget.language;
   }
 
   Future<void> _loadCards() async {
@@ -65,6 +78,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
     const sm2 = Sm2();
     final updated = sm2.review(item: item, grade: grade);
     await widget.storage.updateCard(updated);
+    widget.onCardsChanged?.call();
 
     if (!mounted) return;
 
@@ -96,6 +110,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
 
   Future<void> _deleteCard(int questionId) async {
     await widget.storage.removeCard(questionId);
+    widget.onCardsChanged?.call();
     if (!mounted) return;
     setState(() {
       allCards.removeWhere((c) => c.questionId == questionId);
@@ -115,6 +130,14 @@ class _FlashcardPageState extends State<FlashcardPage> {
   @override
   Widget build(BuildContext context) {
     final currentList = activeCards;
+    final body = loading
+        ? const Center(child: CircularProgressIndicator())
+        : allCards.isEmpty
+        ? _buildEmptyState()
+        : currentList.isEmpty
+        ? _buildCompletedDueState(totalCards: allCards.length)
+        : _buildCardStudyView(currentList);
+    if (widget.embedded) return body;
 
     return Scaffold(
       appBar: AppBar(
@@ -131,13 +154,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
           ),
         ],
       ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : allCards.isEmpty
-          ? _buildEmptyState()
-          : currentList.isEmpty
-          ? _buildCompletedDueState(totalCards: allCards.length)
-          : _buildCardStudyView(currentList),
+      body: body,
     );
   }
 
@@ -164,7 +181,8 @@ class _FlashcardPageState extends State<FlashcardPage> {
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed:
+                widget.onPracticeRequested ?? () => Navigator.of(context).pop(),
             icon: const Icon(Icons.school_outlined),
             label: const Text('Quay lại luyện tập'),
           ),
@@ -230,8 +248,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
       padding: const EdgeInsets.all(16),
       children: [
         // Thanh bộ lọc & Tiến độ
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          spacing: 16,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
               'Thẻ ${currentIndex + 1}/${currentList.length}',
@@ -269,8 +289,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
                   'Lặp: ${card.repetitions} lần · Cách: ${card.interval} ngày',
@@ -368,6 +390,17 @@ class _FlashcardPageState extends State<FlashcardPage> {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => showLearningTool(
+              context,
+              LearningTool.assistant,
+              question: question,
+              language: language,
+            ),
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: const Text('Hỏi AI về câu này · Sắp có'),
           ),
           const SizedBox(height: 20),
           Text(

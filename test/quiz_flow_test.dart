@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_quiz_app/card_storage.dart';
 import 'package:flutter_quiz_app/main.dart';
 import 'package:flutter_quiz_app/question.dart';
@@ -11,6 +12,26 @@ List<Question> loadBank() =>
     decodeQuestions(File('assets/flutter_quiz_300.json').readAsStringSync());
 
 void main() {
+  setUp(() => rootBundle.evict('assets/flutter_quiz_300.json'));
+
+  testWidgets('Home tabs navigate from an empty deck to practice', (
+    tester,
+  ) async {
+    await tester.pumpWidget(FlutterLab(storage: MemoryCardStorage()));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await tester.pump();
+    expect(find.text('Hôm nay học gì?'), findsOneWidget);
+    await tester.tap(find.byType(NavigationDestination).at(2));
+    await tester.pumpAndSettle();
+    expect(find.text('Chưa có thẻ ghi nhớ'), findsOneWidget);
+    await tester.tap(find.text('Quay lại luyện tập'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bắt đầu luyện tập'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   test(
     'Xáo trộn lựa chọn: cùng một câu, seed khác nhau cho thứ tự khác nhau',
     () {
@@ -106,13 +127,28 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
     );
     await tester.pump();
-    expect(find.text('0 thẻ đã lưu · 0 thẻ cần ôn hôm nay'), findsOneWidget);
+    const initialCount = '0 thẻ đã lưu · 0 thẻ cần ôn hôm nay';
+    for (var i = 0; i < 20; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.text(initialCount).evaluate().isNotEmpty) break;
+    }
+    expect(
+      find.text(initialCount),
+      findsOneWidget,
+      reason: tester
+          .widgetList<Text>(find.byType(Text))
+          .map((text) => text.data)
+          .join(' / '),
+    );
 
     // Giả lập vừa lưu 2 câu sai thành thẻ ở màn hình kết quả.
     await storage.addCards([1, 2]);
 
     // Mở rồi đóng bộ thẻ: màn hình chính phải đọc lại, không hiện số cũ.
-    await tester.tap(find.text('Ôn tập Flashcard (SM-2)'));
+    await tester.tap(find.text('Mở bộ thẻ'));
     await tester.pump();
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
