@@ -152,7 +152,13 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
           if (_loading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: CircularProgressIndicator()),
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 12),
+                  Text('Đang hỏi AI, có thể mất 10-60 giây…'),
+                ],
+              ),
             )
           else if (_result != null)
             _buildExplanationCard(context)

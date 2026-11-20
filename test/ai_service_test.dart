@@ -1,10 +1,18 @@
 /// test/ai_service_test.dart – Unit test cho AiService
-/// Kiểm tra fallback khi URL chưa cấu hình và khi timeout.
+///
+/// Kiểm tra 3 tình huống thật của lớp gọi AI:
+/// 1. Chưa cấu hình AI_API_URL → lời giải gốc từ JSON.
+/// 2. Server giữ khoá trả về đúng định dạng Gemini → dùng nội dung AI.
+/// 3. Server trả lời kiểu `{"text": ...}` hoặc lỗi 500 → đọc được / rơi về JSON.
 library;
+
+import 'dart:convert';
 
 import 'package:flutter_quiz_app/ai_service.dart';
 import 'package:flutter_quiz_app/question.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 /// Câu hỏi mẫu dùng trong test.
 Question _sampleQuestion() {
@@ -53,4 +61,99 @@ void main() {
       expect(result.text, equals(q.explanationEn));
     });
   });
+
+  group('AiService với server giữ khoá (dùng MockClient)', () {
+    test('Đọc đúng định dạng Gemini của proxy', () async {
+      final client = MockClient((request) async {
+        expect(request.method, 'POST');
+        // App phải gửi prompt lên server, không phải khoá.
+        expect(request.body, contains('contents'));
+        expect(request.headers['Content-Type'], contains('application/json'));
+        return http.Response(
+          jsonEncode({
+            'candidates': [
+              {
+                'content': {
+                  'parts': [
+                    {'text': 'Câu này nói về hướng đối tượng.'},
+                  ],
+                },
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final result = await AiService.explain(
+        question: _sampleQuestion(),
+        language: QuestionLanguage.vietnamese,
+        client: client,
+        endpoint: 'https://ai.test/explain',
+      );
+
+      expect(result.fromFallback, isFalse);
+      expect(result.text, 'Câu này nói về hướng đối tượng.');
+    });
+
+    test('Đọc được backend tự viết trả {"text": ...}', () async {
+      final client = MockClient(
+        (_) async => http.Response(
+          jsonEncode({'text': 'Giải thích từ backend riêng.'}),
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+
+      final result = await AiService.explain(
+        question: _sampleQuestion(),
+        language: QuestionLanguage.vietnamese,
+        client: client,
+        endpoint: 'https://ai.test/explain',
+      );
+
+      expect(result.fromFallback, isFalse);
+      expect(result.text, 'Giải thích từ backend riêng.');
+    });
+
+    test('Server lỗi 500 thì rơi về lời giải gốc', () async {
+      final client = MockClient(
+        (_) async => http.Response('{"error":"upstream_failed"}', 500),
+      );
+      final q = _sampleQuestion();
+
+      final result = await AiService.explain(
+        question: q,
+        language: QuestionLanguage.vietnamese,
+        client: client,
+        endpoint: 'https://ai.test/explain',
+      );
+
+      expect(result.fromFallback, isTrue);
+      expect(result.text, q.explanationVi);
+    });
+
+    test('Server mất mạng (ném lỗi) thì rơi về lời giải gốc', () async {
+      final client = MockClient((_) async => throw const SocketException());
+      final q = _sampleQuestion();
+
+      final result = await AiService.explain(
+        question: q,
+        language: QuestionLanguage.english,
+        client: client,
+        endpoint: 'https://ai.test/explain',
+      );
+
+      expect(result.fromFallback, isTrue);
+      expect(result.text, q.explanationEn);
+    });
+  });
+}
+
+/// Lỗi mạng giả, không phụ thuộc dart:io để test chạy được trên mọi nền tảng.
+class SocketException implements Exception {
+  const SocketException();
+  @override
+  String toString() => 'SocketException: mất mạng';
 }

@@ -32,13 +32,19 @@ class AiService {
     defaultValue: '',
   );
 
-  static const Duration _timeout = Duration(seconds: 5);
+  // Model thật có thể trả lời 5-90 giây tuỳ tải. Proxy có cache theo nội dung
+  // câu hỏi, nên lần hỏi đầu có thể chậm còn bấm 'Hỏi lại' sẽ nhận ngay.
+  static const Duration _timeout = Duration(seconds: 65);
 
   /// Lấy giải thích AI cho [question] theo [language].
   /// Fallback sang lời giải gốc nếu URL chưa cấu hình hoặc gặp lỗi.
+  ///
+  /// [client] và [endpoint] chỉ dùng trong test: thay mạng thật và URL build-time.
   static Future<AiResult> explain({
     required Question question,
     required QuestionLanguage language,
+    http.Client? client,
+    String? endpoint,
   }) async {
     final fallback = language.display(
       question.explanationVi,
@@ -46,7 +52,8 @@ class AiService {
     );
 
     // Nếu URL chưa cấu hình → dùng fallback ngay
-    if (_baseUrl.isEmpty) {
+    final url = endpoint ?? _baseUrl;
+    if (url.isEmpty) {
       return AiResult(text: fallback, fromFallback: true);
     }
 
@@ -58,7 +65,7 @@ class AiService {
           'Đáp án đúng: ${question.correctId}\n'
           'Lời giải gốc: $fallback';
 
-      final uri = Uri.parse(_baseUrl);
+      final uri = Uri.parse(url);
       final body = jsonEncode({
         'contents': [
           {
@@ -69,15 +76,21 @@ class AiService {
         ],
       });
 
-      final response = await http
-          .post(uri, headers: {'Content-Type': 'application/json'}, body: body)
-          .timeout(_timeout);
+      final request = client == null
+          ? http.post(
+              uri,
+              headers: {'Content-Type': 'application/json'},
+              body: body,
+            )
+          : client.post(
+              uri,
+              headers: {'Content-Type': 'application/json'},
+              body: body,
+            );
+      final response = await request.timeout(_timeout);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final text =
-            data['candidates']?[0]?['content']?['parts']?[0]?['text']
-                as String?;
+        final text = _extractText(response.body);
         if (text != null && text.trim().isNotEmpty) {
           return AiResult(text: text.trim(), fromFallback: false);
         }
@@ -88,5 +101,26 @@ class AiService {
 
     // Mọi lỗi → fallback lời giải JSON
     return AiResult(text: fallback, fromFallback: true);
+  }
+
+  /// Đọc nội dung trả về của hai kiểu backend:
+  /// - Gemini: `candidates[0].content.parts[0].text`
+  /// - backend tự viết: `{"text": "..."}` hoặc `{"explanation": "..."}`
+  static String? _extractText(String body) {
+    final data = jsonDecode(body);
+    if (data is! Map) return null;
+    final candidates = data['candidates'];
+    if (candidates is List && candidates.isNotEmpty) {
+      final parts = candidates.first?['content']?['parts'];
+      if (parts is List && parts.isNotEmpty) {
+        final text = parts.first?['text'];
+        if (text is String) return text;
+      }
+    }
+    for (final key in const ['text', 'explanation']) {
+      final value = data[key];
+      if (value is String) return value;
+    }
+    return null;
   }
 }
