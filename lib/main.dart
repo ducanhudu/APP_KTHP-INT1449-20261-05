@@ -122,6 +122,7 @@ class _QuizHomeState extends State<QuizHome> {
       final retry = await _showResult(result);
       if (retry != true) return;
       final wrong = result.wrongQuestions.toList();
+      if (wrong.isEmpty) return;
       items = createQuiz(wrong, wrong.length);
       timed = false;
     }
@@ -645,11 +646,13 @@ class ResultPage extends StatelessWidget {
             _ => s.statusWrong,
           };
           return ExpansionTile(
-            title: Text('Câu $index [Mã #${resolvedQuestion.id}] · $status'),
+            title: Text(
+              s.reviewQuestionTitle(index, resolvedQuestion.id, status),
+            ),
             subtitle: Text(topicLabel(question.topic)),
             trailing: IconButton(
               icon: const Icon(Icons.bookmark_border),
-              tooltip: 'Lưu câu này vào bộ thẻ',
+              tooltip: s.saveThisCard,
               onPressed: () async {
                 final added = await storage.addCards([question.id]);
                 if (context.mounted) {
