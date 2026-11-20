@@ -73,3 +73,40 @@ Host có HTTPS sẵn nên không phải lo chặn `http://` của Android.
 - server trả định dạng Gemini → app dùng nội dung AI trả về
 - server trả `{"text": "..."}` (backend tự viết) → app vẫn đọc được
 - server trả 500 → app rơi về lời giải gốc trong JSON
+
+## Số đo thật ngày 20/11 (máy trong nhóm, mạng Việt Nam)
+
+| Lần gọi | Model | Kết quả | Thời gian |
+|---|---|---|---|
+| 1 | gemini-3.8-flash | 200 | 60,6 s |
+| 2 | gemini-3.8-flash | 200 | 6,3 s |
+| 3 | gemini-3.8-flash | 200 | 58,8 s |
+| 4 | gemini-flash-latest | 503 → thử lại → 200 | 14,9 s |
+| nhiều lần sau | gemini-3.8-flash | **429** (hết hạn mức) | 0,3 s |
+
+Kết luận: khoá hợp lệ và model trả lời đúng, nhưng **độ trễ 6–90 giây** và
+**hạn mức miễn phí thấp** nên không thể hứa "bấm là có ngay" khi bảo vệ.
+
+## Chuẩn bị cho buổi bảo vệ
+
+Proxy có **cache theo nội dung câu hỏi** (mặc định 30 phút, đổi bằng AI_CACHE_MS):
+
+1. Trước giờ bảo vệ, mở đúng những câu sẽ demo và bấm "Hỏi AI" một lần. Lần đầu
+   có thể chậm 30–90 giây; app cho chờ tối đa 65 giây.
+2. Khi đã có kết quả, nội dung được lưu ở proxy. Bấm "Hỏi lại" sẽ trả về **ngay**
+   (log proxy ghi cache hit).
+3. Nếu lúc bảo vệ mạng hỏng hoặc hết hạn mức, app tự hiện **"Lời giải gốc"** —
+   đúng yêu cầu "vẫn xem lời giải JSON khi API lỗi".
+
+Muốn chắc chắn hơn thì quay video một lần AI trả lời thật, và khi bảo vệ trình bày
+cả video lẫn bản chạy trực tiếp.
+
+## Biến môi trường
+
+| Biến | Mặc định | Ý nghĩa |
+|---|---|---|
+| GEMINI_API_KEY | (trống) | Khoá API, **không commit** |
+| PORT | 8787 | Cổng lắng nghe |
+| AI_UPSTREAM | Gemini 2.0 Flash | URL model; đổi model tại đây |
+| AI_TIMEOUT_MS | 60000 | Thời gian chờ mỗi lần gọi upstream |
+| AI_CACHE_MS | 1800000 | Thời gian giữ cache;  để tắt |

@@ -32,7 +32,9 @@ class AiService {
     defaultValue: '',
   );
 
-  static const Duration _timeout = Duration(seconds: 5);
+  // Model thật có thể trả lời 5-90 giây tuỳ tải. Proxy có cache theo nội dung
+  // câu hỏi, nên lần hỏi đầu có thể chậm còn bấm 'Hỏi lại' sẽ nhận ngay.
+  static const Duration _timeout = Duration(seconds: 65);
 
   /// Lấy giải thích AI cho [question] theo [language].
   /// Fallback sang lời giải gốc nếu URL chưa cấu hình hoặc gặp lỗi.
