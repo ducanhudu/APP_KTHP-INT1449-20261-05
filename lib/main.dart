@@ -683,15 +683,15 @@ class ResultPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               OutlinedButton.icon(
-                  onPressed: () => showLearningTool(
-                    context,
-                    LearningTool.assistant,
-                    question: resolvedQuestion,
-                    language: language,
-                  ),
-                  icon: const Icon(Icons.auto_awesome_outlined),
-                  label: Text(s.aiSoon),
+                onPressed: () => showLearningTool(
+                  context,
+                  LearningTool.assistant,
+                  question: resolvedQuestion,
+                  language: language,
                 ),
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: Text(s.aiAsk),
+              ),
             ],
           );
         },

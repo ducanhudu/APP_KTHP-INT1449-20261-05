@@ -122,10 +122,25 @@ trên điện thoại Android thật.
 - **Bộ thẻ SM-2 và lịch ôn**: lưu trong `SharedPreferences` của Android
   (`FlutterSharedPreferences.xml`), gồm danh sách thẻ, số lần lặp, khoảng cách,
   hệ số dễ, ngày đến hạn và trạng thái bật/tắt nhắc ôn. Gỡ app là mất dữ liệu.
-- **Quyền**: app **không** khai báo `INTERNET` nên không gửi dữ liệu ra ngoài.
-  Chỉ xin **một** quyền `POST_NOTIFICATIONS`, và chỉ hỏi **lúc người dùng bật
-  công tắc "Nhắc ôn hằng ngày"** — không hỏi khi mở app. Từ chối quyền thì app
-  vẫn dùng được bình thường, chỉ không có thông báo.
+- **Quyền**: app xin **hai** quyền, mỗi quyền chỉ dùng cho một tính năng:
+  - `POST_NOTIFICATIONS` — hỏi **đúng lúc** người dùng bật công tắc "Nhắc ôn hằng
+    ngày", không hỏi khi mở app. Từ chối thì app vẫn dùng bình thường, chỉ không
+    có thông báo.
+  - `INTERNET` — chỉ dùng cho nút **"Hỏi AI"**. Không bấm thì không có request nào
+    rời khỏi máy: ngân hàng câu hỏi, bộ thẻ và điểm đều nằm trong app.
+
+## Hỏi AI (tuỳ chọn)
+
+Nút "Hỏi AI về câu này" gọi `AiService` (`lib/ai_service.dart`):
+
+- **Mặc định không gọi mạng.** URL đọc từ `--dart-define=AI_API_URL=...`; bỏ trống
+  thì app trả về **lời giải gốc** trong JSON (`explanation_vi` / `explanation_en`)
+  và hiện nhãn "Lời giải gốc". Nhờ vậy bản nộp chạy được khi không có backend.
+- **Không có khoá API trong repo.** Repo không chứa key, token hay mật khẩu; muốn
+  dùng AI thật thì truyền URL (kèm khoá phía server của bạn) lúc build.
+- Gọi lỗi, quá 5 giây hoặc mất mạng đều rơi về lời giải gốc, không treo app.
+- Nút "Nghe lời giải" dùng `flutter_tts` để đọc phần giải thích; máy không có
+  engine đọc tiếng thì nút báo lỗi và phần chữ vẫn dùng bình thường.
 
 ## Phạm vi
 
@@ -135,9 +150,10 @@ trên điện thoại Android thật.
 - Đổi ngôn ngữ Việt, Anh hoặc song ngữ trong khi làm bài; đáp án đã chọn được
   giữ nguyên.
 - Xem điểm, thống kê theo khối, lời giải và làm lại các câu đã trả lời sai.
-
-Thống kê nhóm theo trường `topic` của JSON, tương ứng K01–K20. Bộ thẻ SM-2,
-nhắc ôn hằng ngày và lưu trữ cục bộ thuộc phần triển khai tiếp theo (đề 33).
+- Bộ thẻ ghi nhớ SM-2: lưu câu sai thành thẻ, ôn theo lịch đến hạn, đánh giá 1/3/4/5.
+- Nhắc ôn hằng ngày bằng thông báo cục bộ, bật/tắt trong màn hình Hôm nay.
+- Giao diện hai ngôn ngữ: đổi sang English thì **nhãn giao diện** cũng đổi, không
+  chỉ nội dung câu hỏi.
 
 ## Tài liệu kèm theo
 

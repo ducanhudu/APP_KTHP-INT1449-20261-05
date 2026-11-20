@@ -77,7 +77,8 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
       question: widget.question!,
       language: widget.language,
     );
-    if (mounted) setState(() {
+    if (!mounted) return;
+    setState(() {
       _result = r;
       _loading = false;
     });
@@ -106,7 +107,10 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
     final q = widget.question;
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
-        24, 0, 24, 24 + MediaQuery.viewInsetsOf(context).bottom,
+        24,
+        0,
+        24,
+        24 + MediaQuery.viewInsetsOf(context).bottom,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -257,7 +261,10 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
   Widget _buildCameraPreview(BuildContext context) {
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
-        24, 0, 24, 24 + MediaQuery.viewInsetsOf(context).bottom,
+        24,
+        0,
+        24,
+        24 + MediaQuery.viewInsetsOf(context).bottom,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -340,7 +347,9 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
       'Cấu hình',
       'AI',
     ];
-    if (topic < 1 || topic > names.length) return 'K${topic.toString().padLeft(2, '0')}';
+    if (topic < 1 || topic > names.length) {
+      return 'K${topic.toString().padLeft(2, '0')}';
+    }
     return 'K${topic.toString().padLeft(2, '0')} · ${names[topic - 1]}';
   }
 }

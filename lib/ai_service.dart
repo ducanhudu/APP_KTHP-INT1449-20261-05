@@ -27,8 +27,10 @@ class AiResult {
 class AiService {
   /// Thay bằng URL thực khi tích hợp backend.
   /// Ví dụ: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
-  static const String _baseUrl =
-      String.fromEnvironment('AI_API_URL', defaultValue: '');
+  static const String _baseUrl = String.fromEnvironment(
+    'AI_API_URL',
+    defaultValue: '',
+  );
 
   static const Duration _timeout = Duration(seconds: 5);
 

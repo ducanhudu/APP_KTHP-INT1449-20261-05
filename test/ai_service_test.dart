@@ -29,34 +29,28 @@ Question _sampleQuestion() {
 
 void main() {
   group('AiService', () {
-    test(
-      'Trả về fallback lời giải gốc khi AI_API_URL chưa cấu hình',
-      () async {
-        // Vì biến môi trường AI_API_URL không được set trong test, AiService
-        // phải trả về fromFallback=true với text từ explanationVi.
-        final q = _sampleQuestion();
-        final result = await AiService.explain(
-          question: q,
-          language: QuestionLanguage.vietnamese,
-        );
+    test('Trả về fallback lời giải gốc khi AI_API_URL chưa cấu hình', () async {
+      // Vì biến môi trường AI_API_URL không được set trong test, AiService
+      // phải trả về fromFallback=true với text từ explanationVi.
+      final q = _sampleQuestion();
+      final result = await AiService.explain(
+        question: q,
+        language: QuestionLanguage.vietnamese,
+      );
 
-        expect(result.fromFallback, isTrue);
-        expect(result.text, equals(q.explanationVi));
-      },
-    );
+      expect(result.fromFallback, isTrue);
+      expect(result.text, equals(q.explanationVi));
+    });
 
-    test(
-      'Trả về fallback bằng tiếng Anh khi language=english',
-      () async {
-        final q = _sampleQuestion();
-        final result = await AiService.explain(
-          question: q,
-          language: QuestionLanguage.english,
-        );
+    test('Trả về fallback bằng tiếng Anh khi language=english', () async {
+      final q = _sampleQuestion();
+      final result = await AiService.explain(
+        question: q,
+        language: QuestionLanguage.english,
+      );
 
-        expect(result.fromFallback, isTrue);
-        expect(result.text, equals(q.explanationEn));
-      },
-    );
+      expect(result.fromFallback, isTrue);
+      expect(result.text, equals(q.explanationEn));
+    });
   });
 }

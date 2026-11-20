@@ -33,7 +33,7 @@ class AppStrings {
     required this.verdictCorrect,
     required this.verdictReview,
     required this.saveThisCard,
-    required this.aiSoon,
+    required this.aiAsk,
     required this.resultTitle,
     required this.scoreLine,
     required this.expiredNotice,
@@ -118,7 +118,7 @@ class AppStrings {
   final String verdictCorrect;
   final String verdictReview;
   final String saveThisCard;
-  final String aiSoon;
+  final String aiAsk;
   final String resultTitle;
   final String Function(int correct, int wrong, int skipped) scoreLine;
   final String expiredNotice;
@@ -208,7 +208,7 @@ class AppStrings {
     verdictCorrect: 'Chính xác',
     verdictReview: 'Cần xem lại',
     saveThisCard: 'Lưu câu này vào bộ thẻ',
-    aiSoon: 'Hỏi AI về câu này · Sắp có',
+    aiAsk: 'Hỏi AI về câu này',
     resultTitle: 'Kết quả',
     scoreLine: _viScore,
     expiredNotice: 'Hết giờ, bài thi đã được nộp.',
@@ -295,7 +295,7 @@ class AppStrings {
     verdictCorrect: 'Correct',
     verdictReview: 'Review this one',
     saveThisCard: 'Save this question as a card',
-    aiSoon: 'Ask AI about this question · Coming soon',
+    aiAsk: 'Ask AI about this question',
     resultTitle: 'Result',
     scoreLine: _enScore,
     expiredNotice: 'Time is up. Your exam was submitted.',

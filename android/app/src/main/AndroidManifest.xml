@@ -1,6 +1,9 @@
-﻿<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Chỉ xin quyền thông báo; quyền runtime được hỏi lúc người dùng bật nhắc ôn. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- INTERNET chỉ dùng cho nút "Hỏi AI"; app không gửi dữ liệu nào khác ra ngoài.
+         Bản debug tự có quyền này do Flutter chèn vào, nên thiếu nó chỉ lộ ra ở APK release. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="Flutter Lab"
         android:name="${applicationName}"
@@ -42,6 +45,10 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- flutter_tts cần khai báo để Android 11+ tìm thấy engine đọc tiếng. -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
         </intent>
     </queries>
 </manifest>
