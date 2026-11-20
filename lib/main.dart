@@ -363,6 +363,7 @@ class _QuizPageState extends State<QuizPage> {
   AppStrings get s => AppStrings.of(language);
   final answers = <int, String>{};
   late QuestionLanguage language = widget.language;
+
   /// Đồng hồ của bài; test truyền vào để điều khiển thời gian.
   DateTime _now() => widget.clock?.call() ?? DateTime.now();
 
@@ -384,8 +385,7 @@ class _QuizPageState extends State<QuizPage> {
   bool _tick() {
     final end = deadline;
     if (end == null || submitted) return submitted;
-    final remaining = (end.difference(_now()).inMilliseconds / 1000)
-        .ceil();
+    final remaining = (end.difference(_now()).inMilliseconds / 1000).ceil();
     if (remaining <= 0) {
       _submit(expired: true);
       return true;
