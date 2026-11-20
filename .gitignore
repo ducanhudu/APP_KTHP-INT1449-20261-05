@@ -46,3 +46,9 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Bí mật cấu hình AI: khoá chỉ nằm ở server/host, không bao giờ commit.
+.env
+.env.*
+server/.env
+server/.env.*

@@ -136,8 +136,12 @@ Nút "Hỏi AI về câu này" gọi `AiService` (`lib/ai_service.dart`):
 - **Mặc định không gọi mạng.** URL đọc từ `--dart-define=AI_API_URL=...`; bỏ trống
   thì app trả về **lời giải gốc** trong JSON (`explanation_vi` / `explanation_en`)
   và hiện nhãn "Lời giải gốc". Nhờ vậy bản nộp chạy được khi không có backend.
-- **Không có khoá API trong repo.** Repo không chứa key, token hay mật khẩu; muốn
-  dùng AI thật thì truyền URL (kèm khoá phía server của bạn) lúc build.
+- **Không có khoá API trong repo.** Repo không chứa key, token hay mật khẩu. Khoá
+  nằm ở **server** (`server/server.js`); app chỉ biết URL của server đó, truyền vào
+  lúc build bằng `--dart-define=AI_API_URL=https://.../explain`.
+- **Proxy giữ khoá** có sẵn trong `server/`: không cần `npm install`, chạy bằng
+  `node server/server.js`, đọc khoá từ biến môi trường `GEMINI_API_KEY`. Xem
+  `server/README.md` để biết cách chạy thử bằng stub, chạy thật và đưa lên host.
 - Gọi lỗi, quá 5 giây hoặc mất mạng đều rơi về lời giải gốc, không treo app.
 - Nút "Nghe lời giải" dùng `flutter_tts` để đọc phần giải thích; máy không có
   engine đọc tiếng thì nút báo lỗi và phần chữ vẫn dùng bình thường.
