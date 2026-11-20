@@ -1,4 +1,4 @@
-﻿name: flutter_quiz_app
+name: flutter_quiz_app
 description: Ung dung Android on thi Flutter va Dart bang 300 cau hoi song ngu.
 publish_to: none
 version: 1.0.0+1
@@ -16,9 +16,14 @@ dependencies:
   flutter_local_notifications: ^19.0.0
   timezone: ^0.10.0
   flutter_timezone: ^4.1.0
+  # Ngày 3 – AI explain + TTS
+  http: ^1.2.0
+  flutter_tts: ^4.2.0
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
 

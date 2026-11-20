@@ -701,7 +701,7 @@ class ResultPage extends StatelessWidget {
                   language: language,
                 ),
                 icon: const Icon(Icons.auto_awesome_outlined),
-                label: Text(s.aiSoon),
+                label: Text(s.aiAsk),
               ),
             ],
           );
