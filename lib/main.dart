@@ -340,12 +340,20 @@ class QuizPage extends StatefulWidget {
     required this.language,
     required this.timed,
     required this.onLanguageChanged,
+    this.examDuration = const Duration(minutes: 50),
+    this.clock,
   });
 
   final List<QuizItem> items;
   final QuestionLanguage language;
   final bool timed;
   final ValueChanged<QuestionLanguage> onLanguageChanged;
+
+  /// Thời lượng bài thi. Tách ra để test có thể dùng thời lượng ngắn.
+  final Duration examDuration;
+
+  /// Đồng hồ dùng cho hạn nộp; test truyền vào để điều khiển thời gian.
+  final DateTime Function()? clock;
 
   @override
   State<QuizPage> createState() => _QuizPageState();
@@ -355,17 +363,20 @@ class _QuizPageState extends State<QuizPage> {
   AppStrings get s => AppStrings.of(language);
   final answers = <int, String>{};
   late QuestionLanguage language = widget.language;
+  /// Đồng hồ của bài; test truyền vào để điều khiển thời gian.
+  DateTime _now() => widget.clock?.call() ?? DateTime.now();
+
   DateTime? deadline;
   Timer? timer;
   int index = 0;
   bool submitted = false;
-  int seconds = 50 * 60;
+  late int seconds = widget.examDuration.inSeconds;
 
   @override
   void initState() {
     super.initState();
     if (widget.timed) {
-      deadline = DateTime.now().add(const Duration(minutes: 50));
+      deadline = _now().add(widget.examDuration);
       timer = Timer.periodic(const Duration(milliseconds: 250), (_) => _tick());
     }
   }
@@ -373,7 +384,7 @@ class _QuizPageState extends State<QuizPage> {
   bool _tick() {
     final end = deadline;
     if (end == null || submitted) return submitted;
-    final remaining = (end.difference(DateTime.now()).inMilliseconds / 1000)
+    final remaining = (end.difference(_now()).inMilliseconds / 1000)
         .ceil();
     if (remaining <= 0) {
       _submit(expired: true);
