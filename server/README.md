@@ -84,8 +84,23 @@ Host có HTTPS sẵn nên không phải lo chặn `http://` của Android.
 | 4 | gemini-flash-latest | 503 → thử lại → 200 | 14,9 s |
 | nhiều lần sau | gemini-3.8-flash | **429** (hết hạn mức) | 0,3 s |
 
-Kết luận: khoá hợp lệ và model trả lời đúng, nhưng **độ trễ 6–90 giây** và
-**hạn mức miễn phí thấp** nên không thể hứa "bấm là có ngay" khi bảo vệ.
+### Đã tối ưu (cùng ngày)
+
+Nguyên nhân chậm không phải mạng: đo được DNS 33 ms, TCP 57 ms, TLS 112 ms — tổng
+chưa tới 0,2 giây. Thời gian nằm ở **token suy luận ẩn**: một câu trả lời 35 token
+nhưng usageMetadata.totalTokenCount = 321, tức 274 token là "thinking".
+
+Cách xử lý, đã áp dụng trong server.js:
+
+| Thay đổi | Kết quả đo |
+|---|---|
+| Chuyển sang gemini-3.1-flash-lite | nhanh nhất trong 25 model khả dụng |
+| Chèn generationConfig.thinkingConfig.thinkingBudget = 0 | bỏ 200–300 token suy luận |
+| **Tổng: câu hỏi thật của app** | **1,0–2,1 giây** (trước đó 6–90 giây) |
+
+Đặt AI_THINKING=1 nếu muốn giữ thinking mặc định; model không hỗ trợ
+	hinkingConfig (ví dụ gemini-flash-lite-latest) trả 400 và proxy tự gọi lại
+không kèm cấu hình đó.
 
 ## Chuẩn bị cho buổi bảo vệ
 

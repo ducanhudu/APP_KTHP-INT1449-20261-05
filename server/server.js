@@ -17,7 +17,7 @@ const API_KEY = process.env.GEMINI_API_KEY || '';
 // Đổi được để test bằng stub hoặc dùng nhà cung cấp khác cùng định dạng.
 const UPSTREAM =
   process.env.AI_UPSTREAM ||
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent';
 
 const MAX_BODY_BYTES = 64 * 1024;
 // Model AI thật có thể mất 30-60 giây khi tải cao; đổi bằng AI_TIMEOUT_MS.
@@ -115,7 +115,16 @@ const server = http.createServer(async (req, res) => {
       return res.end(cached);
     }
 
-    const { status, text } = await callUpstream(body);
+    // Tắt "suy nghĩ" của model: với câu hỏi trắc nghiệm, phần thinking chiếm
+    // 200-300 token ẩn và là nguyên nhân chính khiến mỗi câu mất 6-90 giây.
+    // Đo thực tế: bật thinking 6-90 giây, tắt thinking ~1,7 giây.
+    const prepared = prepareBody(body);
+    let { status, text } = await callUpstream(prepared.body);
+    // Model không hỗ trợ thinkingConfig (ví dụ bản lite cũ) trả 400 → gọi lại
+    // đúng body ban đầu, không chèn gì.
+    if (status === 400 && prepared.injected) {
+      ({ status, text } = await callUpstream(body));
+    }
     if (status === 200) cacheSet(key, text);
     res.writeHead(status, {
       'Content-Type': 'application/json; charset=utf-8',
@@ -130,8 +139,27 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-/// Gọi nhà cung cấp AI, tự thử lại khi bị 429/503 (model đang quá tải).
-/// Model thật thường trả 503 vài giây rồi mới nhận, nên một lần gọi là không đủ.
+// Chèn generationConfig.thinkingConfig.thinkingBudget = 0 nếu app chưa gửi.
+// Đặt AI_THINKING=1 để giữ nguyên hành vi mặc định của model.
+function prepareBody(raw) {
+  if (process.env.AI_THINKING === '1') return { body: raw, injected: false };
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { body: raw, injected: false };
+  }
+  if (parsed?.generationConfig?.thinkingConfig) {
+    return { body: raw, injected: false };
+  }
+  parsed.generationConfig = {
+    ...(parsed.generationConfig || {}),
+    thinkingConfig: { thinkingBudget: 0 },
+  };
+  return { body: JSON.stringify(parsed), injected: true };
+}
+// Gọi nhà cung cấp AI, tự thử lại khi bị 429/503 (model đang quá tải).
+// Model thật thường trả 503 vài giây rồi mới nhận, nên một lần gọi là không đủ.
 async function callUpstream(body) {
   const url =
     UPSTREAM + (UPSTREAM.includes('?') ? '&' : '?') +
