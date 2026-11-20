@@ -36,6 +36,24 @@ Question _sampleQuestion() {
 }
 
 void main() {
+  tearDown(() => AiService.accessCode = '');
+  test('Gửi mã truy cập và chỉ mã câu, không gửi prompt tùy ý', () async {
+    AiService.accessCode = 'session-code';
+    final client = MockClient((request) async {
+      expect(request.headers['Authorization'], 'Bearer session-code');
+      expect(jsonDecode(request.body), {'questionId': 1, 'language': 'en'});
+      return http.Response('{"error":"unauthorized"}', 401);
+    });
+    final q = _sampleQuestion();
+    final result = await AiService.explain(
+      question: q,
+      language: QuestionLanguage.english,
+      endpoint: 'https://ai.test/explain',
+      client: client,
+    );
+    expect(result.fromFallback, isTrue);
+    expect(result.text, q.explanationEn);
+  });
   group('AiService', () {
     test('Trả về fallback lời giải gốc khi AI_API_URL chưa cấu hình', () async {
       // Vì biến môi trường AI_API_URL không được set trong test, AiService
@@ -67,7 +85,7 @@ void main() {
       final client = MockClient((request) async {
         expect(request.method, 'POST');
         // App phải gửi prompt lên server, không phải khoá.
-        expect(request.body, contains('contents'));
+        expect(jsonDecode(request.body), {'questionId': 1, 'language': 'vi'});
         expect(request.headers['Content-Type'], contains('application/json'));
         return http.Response(
           jsonEncode({
