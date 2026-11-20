@@ -90,7 +90,7 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
     if (_ttsState == TtsState.playing) {
       await _tts.stop();
     } else {
-      await _tts.speak(text);
+      await _tts.speak(text, language: widget.language);
     }
   }
 

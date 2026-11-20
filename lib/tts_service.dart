@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import 'question.dart';
+
 enum TtsState { stopped, playing, error }
 
 class TtsService {
@@ -17,6 +19,7 @@ class TtsService {
   final FlutterTts _tts = FlutterTts();
   TtsState state = TtsState.stopped;
   bool permissionDenied = false;
+  bool _disposed = false;
 
   final _stateController = StreamController<TtsState>.broadcast();
   Stream<TtsState> get onStateChanged => _stateController.stream;
@@ -36,16 +39,25 @@ class TtsService {
   }
 
   void _setState(TtsState s) {
+    if (_disposed) return;
     state = s;
     _stateController.add(s);
   }
 
-  Future<void> speak(String text) async {
-    if (permissionDenied) return;
+  Future<void> speak(
+    String text, {
+    QuestionLanguage language = QuestionLanguage.vietnamese,
+  }) async {
+    if (permissionDenied || _disposed) return;
     try {
       await _tts.stop();
-      await _tts.setLanguage('vi-VN');
+      if (_disposed) return;
+      await _tts.setLanguage(
+        language == QuestionLanguage.english ? 'en-US' : 'vi-VN',
+      );
+      if (_disposed) return;
       await _tts.setSpeechRate(0.5);
+      if (_disposed) return;
       await _tts.speak(text);
     } catch (e) {
       debugPrint('TTS speak error: $e');
@@ -61,7 +73,9 @@ class TtsService {
   }
 
   void dispose() {
-    _tts.stop();
+    if (_disposed) return;
+    _disposed = true;
+    unawaited(_tts.stop().catchError((Object error) => null));
     _stateController.close();
   }
 }
