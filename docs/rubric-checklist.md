@@ -1,84 +1,38 @@
-﻿# Checklist nghiệm thu theo rubric
+# Nghiệm thu đề 32 và 33 — cập nhật 20/11/2026
 
-Bảng đối chiếu yêu cầu của đề 32 + 33 và 8 tiêu chí rubric với bằng chứng thật
-trong repo. Cập nhật cuối mỗi ngày làm việc; mỗi dòng phải có bằng chứng mở được,
-không ghi "đã làm" mà không kèm ảnh, lệnh hoặc tệp.
+Trạng thái phân biệt bằng chứng tự động với nghiệm thu trên điện thoại.
+Không suy từ test pass thành mọi chức năng Android đều hoạt động.
 
-Quy ước: ✅ đạt · ⚠️ đạt một phần · ❌ chưa có · — không áp dụng.
-
-## 1. Điều kiện được chấm
-
-| Điều kiện | Trạng thái | Bằng chứng / việc cần làm |
+| Yêu cầu | Bằng chứng | Kết luận |
 | --- | --- | --- |
-| Mã nguồn trên Git, giảng viên có quyền đọc | ⚠️ | Repo có, nhưng **chưa xác nhận** quyền truy cập. Kiểm tra Settings → Collaborators trước khi nộp. |
-| Build và chạy được trên Android theo README | ✅ | `flutter build apk --debug` thành công; cài và chạy trên emulator Pixel_8, xem `docs/device-notes.md` |
-| Không có khoá API, mật khẩu trong repo | ✅ | Quét toàn bộ lịch sử Git: 0 khoá thật. 2 dòng khớp mẫu là nội dung câu hỏi K19 minh hoạ `sk_live_...` (có dấu ba chấm), không phải khoá |
-| Mỗi thành viên có commit của mình | ❌ | `git shortlog -sne` → **1 commit, 1 tác giả** (`Duc Anh`, 17/11). Thiếu điều kiện này bị trừ 10% và phải nộp lại trong 48 giờ |
+| 300 câu Việt–Anh, ID và đáp án hợp lệ | `tool/audit_question_bank.py`, `test/scoring_test.dart` | Đạt kiểm tra dữ liệu |
+| Luyện tập, thi thử, chấm đúng/sai/bỏ trống | `test/widget_test.dart`, `test/quiz_flow_test.dart`, `test/scoring_test.dart` | Đạt tự động |
+| Thống kê theo khối, làm lại chỉ câu sai | `test/quiz_flow_test.dart`, `test/scoring_test.dart` | Đạt tự động; khối đang quy ước là topic |
+| Hết giờ tự nộp, đổi ngôn ngữ giữ đáp án | `test/exam_and_language_test.dart` | Đạt tự động |
+| Bộ thẻ, lịch SM-2, lưu sau mở lại | `test/sm2_test.dart`, `test/card_storage_prefs_test.dart` | Đạt tự động |
+| Nhắc ôn hằng ngày | `lib/reminder_service.dart`, receiver/boot permission trong manifest | Đã sửa cấu hình, build debug đạt; chờ thử phát thông báo và khởi động lại trên điện thoại |
+| Màn lỗi có thử lại | `test/error_state_test.dart` | Đạt tự động |
+| Nhãn Việt/Anh ở luồng chính | `test/quiz_flow_test.dart` | Đạt các màn có test; panel AI/camera còn nhãn Việt |
+| AI giữ khóa ở server, chỉ giải thích câu trong ngân hàng | `server/server.test.js`, `test/ai_service_test.dart` | Đạt mock/stub; chưa nghiệm thu với API thật |
+| AI lỗi/mất mạng vẫn xem lời giải JSON | `test/ai_service_test.dart`, `test/learning_tools_test.dart` | Đạt tự động; chờ thử APK mất mạng |
+| Đọc tiếng Việt/Anh, đóng panel dừng đọc | `test/tts_service_test.dart` | Đạt kiểm thử channel; chờ nghe trên điện thoại có engine phù hợp |
+| Mic: chép lời, sửa trước gửi, từ chối vẫn nhập tay | Chưa triển khai | Không đưa vào bản demo hiện tại |
+| Camera/QR, đề 36, Blockchain | Ngoài phạm vi kế hoạch 4 ngày | Không công bố đã có |
 
-## 2. Tám tiêu chí rubric
+## Điều kiện và gói nộp
 
-| # | Tiêu chí | Điểm | Hiện tại | Bằng chứng | Việc cần làm | Người |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | Chức năng | 20 | ⚠️ ~16–18 | Đề 32 đủ tối thiểu + 2 mở rộng (`01`–`07`); đề 33 đã có bộ thẻ, SM-2, lưu cục bộ (`08`–`17`). **Đủ đề 32 + 33** (nhắc ôn hằng ngày đã có) | Giữ ổn định khi demo | Huy, Trí |
-| 2 | Giao diện & trải nghiệm | 15 | ⚠️ ~10–11 | Có loading, lỗi, **có trạng thái rỗng** cho bộ thẻ; vùng chạm 48 dp đạt. Màn lỗi vẫn **không có nút thử lại**; nhãn UI chưa song ngữ | Thêm nút "Thử lại" + bề rộng tối đa cho màn lớn | Trí, Phúc |
-| 3 | Kiến trúc & trạng thái | 15 | ⚠️ ~11 | Đã tách `sm2.dart`, `card_storage.dart`, `flashcard_page.dart`, `question_prompt.dart`; **`CardStorage` là interface, thay được bằng `MemoryCardStorage`** khi test | Tách tiếp phần còn lại của `main.dart`; bỏ đọc đĩa trong `build()` | Đức Anh, Huy |
-| 4 | Dữ liệu & xử lý lỗi | 10 | ✅ ~9 | `shared_preferences` lưu thẻ; JSON hỏng trả `[]` không crash (`card_storage_prefs_test.dart`); xử lý lỗi ngân hàng câu hỏi có thông báo | Thêm nút thử lại ở màn lỗi | Trí |
-| 5 | Kiểm thử | 10 | ✅ 10 | **42 test / 8 tệp**, `flutter test` pass 42/42, `flutter analyze` sạch; có unit cho SM-2, chấm điểm, lưu trữ thật và **3 widget test** (`docs/day-2-test-log.md`) | Giữ xanh khi thêm tính năng | Phúc, Trí |
-| 6 | Bảo mật & quyền | 10 | ✅ ~9 | Manifest **không xin quyền nào**, không có `INTERNET`; README có mục "Dữ liệu lưu ở đâu" | Khi thêm thông báo: xin quyền đúng lúc bật nhắc ôn | Trí |
-| 7 | Tài liệu & quy trình | 10 | ⚠️ ~7 | `flutter analyze` → **No issues found**; README có phiên bản, cách chạy, cách test, dữ liệu lưu ở đâu; `docs/json-audit.md`, `docs/device-notes.md` | **Mỗi người phải commit**; bổ sung hướng dẫn cấu hình | Cả nhóm |
-| 8 | Trình bày & vấn đáp | 10 | ⚠️ ~5 | Có kịch bản demo 5 phút trong `docs/device-notes.md`; mới demo trên **emulator** | Quay video 3–5 phút trên máy thật; mỗi người tự giải thích tệp mình làm | Cả nhóm |
+- Lịch sử Git hiện có tác giả Đức Anh, Huy, Trí, Phúc (`git shortlog -sne HEAD`).
+  Số commit không đại diện phần trăm đóng góp; mỗi người tự xác nhận phần làm.
+- Quyền truy cập repo của giảng viên: nhóm cần xác nhận với giảng viên.
+- APK debug đã build; bản cũ đã cài/mở trên OPPO CPH2599 trước đợt sửa này.
+  Không dùng kết quả đó để nghiệm thu APK mới.
+- APK release: xem kết quả cuối cùng tại `docs/release-handover.md`.
+- APK release hiện dùng debug signing theo cấu hình có sẵn. Không đủ bằng chứng
+  cho tiêu chí ký khóa riêng. Không đưa keystore hoặc mật khẩu vào Git.
+- Tài liệu báo cáo, kịch bản và phân công: `docs/release-handover.md`,
+  `docs/final-report.md`, `docs/defense-script.md`.
+- Video thật, phản hồi người dùng ngoài nhóm, tổng duyệt cả bốn: chờ nhóm thực hiện.
+- CI phải được kiểm tra trên đúng commit/branch đã chọn để nộp.
 
-Ước lượng tổng hiện tại: **~78–84/100** (đã có đề 33 phần thẻ + lưu trữ, 31 test,
-CI xanh). Khi thêm nhắc ôn + sửa 2 lỗi giao diện + commit đủ người: **~92–100**.
-
-## 3. Điểm cộng (tối đa +10)
-
-| Nội dung | Điểm | Trạng thái | Việc cần làm |
-| --- | --- | --- | --- |
-| CI chạy `flutter analyze` + `flutter test` mỗi lần đẩy mã | +2 | ✅ | `.github/workflows/ci.yml`: format + analyze + test + audit JSON. Lần chạy đầu trên nhánh `chore/ci-analyze-test` **passing** (badge trong README) |
-| Test trợ năng `meetsGuideline` hoặc giao diện hai ngôn ngữ | +2 | ❌ | Đang chỉ song ngữ nội dung, nhãn vẫn tiếng Việt (`05-english.png`). Hoặc thêm test `androidTapTargetGuideline` + `labeledTapTargetGuideline` |
-| APK release ký bằng khoá riêng | +2 | ❌ | Release hiện ký bằng debug key; tạo keystore + `key.properties` (không commit) |
-| Mở rộng AI đúng mẫu máy chủ giữ khoá, có chế độ demo | +3 | ❌ | Chỉ làm nếu Ngày 2 xong sớm; khoá **không** được nằm trong APK |
-| Có người dùng thật dùng thử, phản hồi được ghi lại | +1 | ❌ | Nhờ 2 bạn ngoài nhóm dùng thử 10 phút, ghi lại nhận xét |
-
-## 4. Điểm trừ cần phòng
-
-| Rủi ro | Mức trừ | Cách phòng |
-| --- | --- | --- |
-| Khoá API trong mã hoặc lịch sử Git | −10 | Không hard-code; dùng biến môi trường phía máy chủ. Nếu lỡ push: thu hồi khoá + xoá lịch sử |
-| Nộp muộn | −5/ngày | Chốt mốc nộp sớm hơn 1 ngày |
-| Dùng mã/tài nguyên người khác không ghi nguồn | Mất điểm phần đó | Ghi nguồn trong README và báo cáo |
-| Thành viên không giải thích được mã mình nộp | Giảm hệ số cá nhân | Mỗi người chỉ nhận phần mình viết; review chéo trước khi nộp |
-
-## 5. Checklist nộp bài
-
-| Mục | Trạng thái | Ghi chú |
-| --- | --- | --- |
-| Link repo, giảng viên có quyền đọc | ⚠️ | Cần xác nhận quyền truy cập |
-| README đủ mục | ✅ | Mục đích, yêu cầu môi trường, cài đặt, cách chạy, cách test, dữ liệu lưu ở đâu, đã kiểm thử trên |
-| Tệp APK cài được | ⚠️ | Có `app-debug.apk`; cần bản **release** |
-| Video demo 3–5 phút trên máy thật | ❌ | Có kịch bản trong `docs/device-notes.md`, chưa quay |
-| Báo cáo tối đa 10 trang | ❌ | Có sẵn số liệu trong `docs/json-audit.md`, `docs/device-notes.md` |
-| Slide tối đa 10 trang | ❌ | — |
-| Bảng phân công và % đóng góp | ⚠️ | Có bảng trong kế hoạch 4 ngày, cần đưa vào repo |
-| `docs/ai/` nếu có dùng trợ lý AI | — | Chỉ cần nếu nhóm dùng trợ lý AI để viết mã/tài liệu |
-
-## 6. Cách tái lập bằng chứng
-
-```powershell
-flutter --version                     # Flutter 3.47.6 · Dart 3.13.5
-flutter analyze                       # No issues found!
-flutter test                          # All tests passed! (42 test)
-python tool/audit_question_bank.py assets/flutter_quiz_300.json
-git shortlog -sne                     # kiểm tra commit từng thành viên
-git log -p --all | Select-String 'sk_live|AIza'   # quét khoá trong lịch sử
-flutter build apk --debug
-```
-
-## 7. Nhật ký cập nhật
-
-| Ngày | Người | Nội dung |
-| --- | --- | --- |
-| 18/11/2026 | Phúc | Tạo checklist; gỡ chặn SDK; bổ sung README; kiểm JSON; chạy thử trên emulator Pixel_8 |
-| 18/11/2026 | Phúc | Thêm CI GitHub Actions (format + analyze + test + audit JSON) trên nhánh `chore/ci-analyze-test` |
-| 19/11/2026 | Phúc | 42 test (thêm 3 test luồng quiz, 7 test lưu trữ thật, 1 widget test bộ đếm thẻ); CI nhận `feat/**`; sửa lỗi bộ đếm thẻ không làm mới; nhật ký kiểm thử `docs/day-2-test-log.md` |
+Không quy đổi các kết quả trên thành điểm số chắc chắn. Giảng viên quyết định
+cách tính đề 32 + 33, định nghĩa khối và điểm phần nâng cao.

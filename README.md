@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ducanhudu/APP_KTHP-INT1449-20261-05/actions/workflows/ci.yml/badge.svg)](https://github.com/ducanhudu/APP_KTHP-INT1449-20261-05/actions/workflows/ci.yml)
 
-Ứng dụng Flutter/Dart ôn thi **đề 32**: đọc 300 câu trắc nghiệm Việt–Anh từ
+Ứng dụng Flutter/Dart ôn thi **đề 32 + 33**: đọc 300 câu trắc nghiệm Việt–Anh từ
 `assets/flutter_quiz_300.json`, chạy được khi ngoại tuyến.
 
 ## Yêu cầu môi trường
@@ -96,7 +96,7 @@ Mỗi lần đẩy mã lên `main`, `feat/**`, `feature/**`, `fix/**`, `docs/**`
 Đối chiếu kết quả từng job trong GitHub Actions. Job build kiểm tra khả năng
 biên dịch APK; chạy thử giao diện trên thiết bị được kiểm tra riêng.
 
-Hai test hiện có:
+Một số ca kiểm thử tiêu biểu (danh sách đầy đủ trong thư mục `test/`):
 
 | Test | Nội dung |
 | --- | --- |
@@ -109,8 +109,9 @@ Hai test hiện có:
 | --- | --- |
 | Android Emulator Pixel_8 · Android 17 (API 37) · 1080×2400 | Toàn bộ luồng luyện tập, thi thử, đổi ngôn ngữ, chấm điểm đạt; ảnh chụp trong `docs/screenshots/` |
 
-Chi tiết thiết bị, kịch bản và phát hiện: `docs/device-notes.md`. Chưa kiểm thử
-trên điện thoại Android thật.
+Chi tiết kiểm thử lịch sử: `docs/device-notes.md`. Bản trước đợt sửa cuối đã
+cài/mở trên OPPO CPH2599. Nghiệm thu APK mới và các ca còn chờ xem
+`docs/release-handover.md`; chưa suy kết quả bản cũ cho bản mới.
 
 ## Dữ liệu lưu ở đâu
 
@@ -122,12 +123,14 @@ trên điện thoại Android thật.
 - **Bộ thẻ SM-2 và lịch ôn**: lưu trong `SharedPreferences` của Android
   (`FlutterSharedPreferences.xml`), gồm danh sách thẻ, số lần lặp, khoảng cách,
   hệ số dễ, ngày đến hạn và trạng thái bật/tắt nhắc ôn. Gỡ app là mất dữ liệu.
-- **Quyền**: app xin **hai** quyền, mỗi quyền chỉ dùng cho một tính năng:
+- **Quyền**:
   - `POST_NOTIFICATIONS` — hỏi **đúng lúc** người dùng bật công tắc "Nhắc ôn hằng
     ngày", không hỏi khi mở app. Từ chối thì app vẫn dùng bình thường, chỉ không
     có thông báo.
   - `INTERNET` — chỉ dùng cho nút **"Hỏi AI"**. Không bấm thì không có request nào
     rời khỏi máy: ngân hàng câu hỏi, bộ thẻ và điểm đều nằm trong app.
+  - `RECEIVE_BOOT_COMPLETED` — khôi phục lịch thông báo sau reboot/cập nhật APK,
+    không có hộp thoại runtime riêng.
 
 ## Hỏi AI (tuỳ chọn)
 
@@ -142,7 +145,11 @@ Nút "Hỏi AI về câu này" gọi `AiService` (`lib/ai_service.dart`):
 - **Proxy giữ khoá** có sẵn trong `server/`: không cần `npm install`, chạy bằng
   `node server/server.js`, đọc khoá từ biến môi trường `GEMINI_API_KEY`. Xem
   `server/README.md` để biết cách chạy thử bằng stub, chạy thật và đưa lên host.
-- Gọi lỗi, quá 5 giây hoặc mất mạng đều rơi về lời giải gốc, không treo app.
+- Server yêu cầu `AI_ACCESS_CODE`; nhập mã nhóm qua nút "Mã truy cập AI" trong
+  panel. App chỉ gửi mã câu/ngôn ngữ, server tạo prompt từ dữ liệu tin cậy.
+  Mã nhập chỉ ở RAM, không đóng gói trong APK. Xem giới hạn demo trong server/README.
+- Gọi lỗi, quá 65 giây hoặc mất mạng đều rơi về lời giải gốc. Có thể đóng panel
+  trong lúc chờ. Server giới hạn mỗi lần gọi nhà cung cấp trong 55 giây.
 - Nút "Nghe lời giải" dùng `flutter_tts` để đọc phần giải thích; máy không có
   engine đọc tiếng thì nút báo lỗi và phần chữ vẫn dùng bình thường.
 
@@ -163,7 +170,10 @@ Nút "Hỏi AI về câu này" gọi `AiService` (`lib/ai_service.dart`):
 
 | Tệp | Nội dung |
 | --- | --- |
-| `docs/rubric-checklist.md` | Bảng đối chiếu 8 tiêu chí rubric, điều kiện chấm, điểm cộng/trừ, checklist nộp bài |
+| `docs/rubric-checklist.md` | Đối chiếu đề 32/33, bằng chứng và điều kiện chờ xác nhận |
+| `docs/release-handover.md` | Branch bàn giao, kiểm tra và nghiệm thu APK còn chờ |
+| `docs/final-report.md` | Nội dung báo cáo để nhóm đưa vào mẫu môn học |
+| `docs/defense-script.md` | Kịch bản demo 5 phút và dàn ý slide |
 | `docs/device-notes.md` | Thiết bị kiểm thử, 10 kịch bản đã chạy, phát hiện, kịch bản demo 5 phút |
 | `docs/day-2-test-log.md` | Nhật ký kiểm thử Ngày 2: 31 test, kịch bản thẻ trên máy, 5 lỗi kèm bước tái hiện |
 | `docs/json-audit.md` | Kết quả kiểm tra 300 câu và các phát hiện về dữ liệu |
