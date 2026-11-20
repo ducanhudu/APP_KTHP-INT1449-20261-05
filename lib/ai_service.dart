@@ -23,10 +23,14 @@ class AiResult {
 }
 
 /// Dịch vụ gọi AI để giải thích câu hỏi.
-/// Nếu API không phản hồi trong 5 giây hoặc lỗi, dùng lời giải gốc.
+/// Nếu API không phản hồi trong 65 giây hoặc lỗi, dùng lời giải gốc.
 class AiService {
-  /// Thay bằng URL thực khi tích hợp backend.
-  /// Ví dụ: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
+  // Demo access code entered by the user, kept only for the current app session.
+  // This is separate from the provider API key, which stays on the server.
+  static String accessCode = '';
+  static bool get isConfigured => _baseUrl.isNotEmpty;
+
+  /// URL của proxy nhóm triển khai, không phải URL nhà cung cấp AI.
   static const String _baseUrl = String.fromEnvironment(
     'AI_API_URL',
     defaultValue: '',
@@ -58,35 +62,23 @@ class AiService {
     }
 
     try {
-      final prompt =
-          'Giải thích ngắn gọn câu hỏi Flutter/Dart sau bằng '
-          '${language == QuestionLanguage.english ? 'English' : 'tiếng Việt'}:\n\n'
-          '${language.display(question.vi, question.en)}\n\n'
-          'Đáp án đúng: ${question.correctId}\n'
-          'Lời giải gốc: $fallback';
-
       final uri = Uri.parse(url);
       final body = jsonEncode({
-        'contents': [
-          {
-            'parts': [
-              {'text': prompt},
-            ],
-          },
-        ],
+        'questionId': question.id,
+        'language': switch (language) {
+          QuestionLanguage.vietnamese => 'vi',
+          QuestionLanguage.english => 'en',
+          QuestionLanguage.bilingual => 'bilingual',
+        },
       });
+      final headers = {
+        'Content-Type': 'application/json',
+        if (accessCode.isNotEmpty) 'Authorization': 'Bearer $accessCode',
+      };
 
       final request = client == null
-          ? http.post(
-              uri,
-              headers: {'Content-Type': 'application/json'},
-              body: body,
-            )
-          : client.post(
-              uri,
-              headers: {'Content-Type': 'application/json'},
-              body: body,
-            );
+          ? http.post(uri, headers: headers, body: body)
+          : client.post(uri, headers: headers, body: body);
       final response = await request.timeout(_timeout);
 
       if (response.statusCode == 200) {

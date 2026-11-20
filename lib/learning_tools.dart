@@ -94,6 +94,37 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
     }
   }
 
+  Future<void> _enterAccessCode() async {
+    var value = '';
+    final code = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Mã truy cập AI / AI access code'),
+        content: TextField(
+          autofocus: true,
+          obscureText: true,
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (text) => value = text,
+          decoration: const InputDecoration(labelText: 'Mã do nhóm cung cấp'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, value.trim()),
+            child: const Text('Lưu'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || code == null) return;
+    AiService.accessCode = code;
+    await _fetchAi();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.tool == LearningTool.camera) return _buildCameraPreview(context);
@@ -226,6 +257,12 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
       spacing: 8,
       runSpacing: 8,
       children: [
+        if (AiService.isConfigured)
+          OutlinedButton.icon(
+            onPressed: _loading ? null : _enterAccessCode,
+            icon: const Icon(Icons.key),
+            label: const Text('Mã truy cập AI'),
+          ),
         // Nút TTS – ẩn nếu quyền bị từ chối
         if (!_tts.permissionDenied)
           OutlinedButton.icon(
