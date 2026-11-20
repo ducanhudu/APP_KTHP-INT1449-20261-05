@@ -122,5 +122,37 @@ void main() {
       expect(result.score.percent, 100);
       expect(result.wrongQuestions, isEmpty);
     });
+
+    test('Tổng số liệu theo khối (byTopic) luôn khớp chính xác với điểm tổng của lượt vừa nộp', () {
+      final result = QuizResult(items, {1: 'A', 2: 'C'});
+
+      final byTopic = result.byTopic;
+      final sumCorrect = byTopic.values.fold(0, (sum, s) => sum + s.correct);
+      final sumWrong = byTopic.values.fold(0, (sum, s) => sum + s.wrong);
+      final sumSkipped = byTopic.values.fold(0, (sum, s) => sum + s.skipped);
+      final sumTotal = byTopic.values.fold(0, (sum, s) => sum + s.total);
+
+      expect(sumCorrect, result.score.correct, reason: 'Tổng đúng phải khớp');
+      expect(sumWrong, result.score.wrong, reason: 'Tổng sai phải khớp');
+      expect(
+        sumSkipped,
+        result.score.skipped,
+        reason: 'Tổng bỏ trống phải khớp',
+      );
+      expect(sumTotal, result.score.total, reason: 'Tổng số câu phải khớp');
+      expect(sumTotal, items.length);
+    });
+
+    test('Quy ước khối K01..K20 đồng nhất và đúng 20 chủ đề kiến thức', () {
+      expect(topicNames, hasLength(20));
+      for (var i = 1; i <= 20; i++) {
+        final label = topicLabel(i);
+        final expectedPrefix = 'K${i.toString().padLeft(2, '0')} · ';
+        expect(label.startsWith(expectedPrefix), isTrue);
+        expect(label, '$expectedPrefix${topicNames[i - 1]}');
+      }
+      expect(topicLabel(1), 'K01 · Dart căn bản');
+      expect(topicLabel(20), 'K20 · Flutter và AI');
+    });
   });
 }
