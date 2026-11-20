@@ -27,7 +27,9 @@ class AiResult {
 class AiService {
   // Demo access code entered by the user, kept only for the current app session.
   // This is separate from the provider API key, which stays on the server.
-  static String accessCode = '';
+  // Mã truy cập demo: có thể nhúng lúc build bằng --dart-define=AI_ACCESS_CODE=...
+  // để người nhận APK không phải gõ tay. Đây KHÔNG phải khoá nhà cung cấp AI.
+  static String accessCode = const String.fromEnvironment('AI_ACCESS_CODE');
   static bool get isConfigured => _baseUrl.isNotEmpty;
 
   /// URL của proxy nhóm triển khai, không phải URL nhà cung cấp AI.
