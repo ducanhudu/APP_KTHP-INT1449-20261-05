@@ -177,6 +177,7 @@ Nút "Hỏi AI về câu này" gọi `AiService` (`lib/ai_service.dart`):
 | --- | --- |
 | `docs/rubric-checklist.md` | Đối chiếu đề 32/33, bằng chứng và điều kiện chờ xác nhận |
 | `docs/release-handover.md` | Branch bàn giao, kiểm tra và nghiệm thu APK còn chờ |
+| `docs/physical-device-acceptance-2026-11-21.md` | Kết quả thử APK release trên OPPO Android 16, ảnh và các mục chưa nghiệm thu |
 | `docs/final-report.md` | Nội dung báo cáo để nhóm đưa vào mẫu môn học |
 | `docs/defense-script.md` | Kịch bản demo 5 phút và dàn ý slide |
 | `docs/device-notes.md` | Thiết bị kiểm thử, 10 kịch bản đã chạy, phát hiện, kịch bản demo 5 phút |

@@ -1,5 +1,10 @@
 # Bàn giao bản sửa cuối — 20/11/2026
 
+> Bản ghi dưới đây là mốc 20/11. Các nhánh này đã merge vào main. Nghiệm thu
+> điện thoại cập nhật 21/11, source 5aff6c3 và APK mới được ghi tại
+> [báo cáo OPPO](physical-device-acceptance-2026-11-21.md). Không dùng trạng thái
+> “chờ điện thoại”, checksum hoặc số test cũ dưới đây làm kết luận hiện tại.
+
 ## Các nhánh công việc
 
 Các nhánh nối tiếp nhau; nhánh sau chứa cả commit trước để kiểm tra bản tích hợp.

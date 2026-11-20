@@ -1,5 +1,10 @@
 # Nghiệm thu đề 32 và 33 — cập nhật 20/11/2026
 
+> Cập nhật thiết bị thật 21/11: đã cài release từ main 5aff6c3 trên OPPO Android 16,
+> thử luồng luyện/thi/làm lại/thẻ, lưu qua restart, timer ở nền, TTS English và
+> đặt/hủy lịch, từ chối thông báo. Xem [bảng ca thử đầy đủ](physical-device-acceptance-2026-11-21.md).
+> Thông báo phát thực/reboot, hết đủ 50 phút và API thật vẫn chưa được nghiệm thu.
+
 Trạng thái phân biệt bằng chứng tự động với nghiệm thu trên điện thoại.
 Không suy từ test pass thành mọi chức năng Android đều hoạt động.
 
