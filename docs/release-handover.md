@@ -12,6 +12,7 @@ Tác giả các commit mới: Duc Anh <ducanh.ptit.udu@gmail.com> theo yêu cầ
 | 2 | fix/ai-proxy-access-control | Chỉ nhận mã câu/ngôn ngữ, mã truy cập demo, quota, giới hạn đồng thời, test server trong CI |
 | 3 | fix/tts-language-and-lifecycle | Giọng en-US/vi-VN và ngăn tiếp tục đọc khi panel đóng |
 | 4 | docs/release-acceptance-handover | Bằng chứng, bảng nghiệm thu, hướng dẫn APK và tài liệu bảo vệ |
+| 5 | chore/ci-release-artifacts | Build release trên CI Linux và lưu APK, checksum, SHA source trong artifact |
 
 ## Kết quả kiểm tra
 
@@ -47,7 +48,7 @@ Từ thư mục chứa pubspec.yaml:
 
 ```powershell
 git fetch origin
-git switch docs/release-acceptance-handover
+git switch chore/ci-release-artifacts
 git pull --ff-only
 flutter pub get
 dart format --output=none --set-exit-if-changed lib test
@@ -64,6 +65,13 @@ adb shell am start -n vn.flutterlab.flutter_quiz_app/.MainActivity
 
 Không tự gỡ app để cài mới vì gỡ sẽ mất thẻ. Cài sạch chỉ thực hiện sau khi
 nhóm xác nhận có thể bỏ dữ liệu trên thiết bị thử riêng.
+
+CI trên nhánh cuối build debug ở cả Windows/Linux và release ở Linux. Khi tất
+cả job đạt, mở GitHub Actions → run tương ứng → Artifacts → flutter-lab-release-<SHA>.
+Artifact lưu 14 ngày, gồm APK, SHA256SUMS.txt và SOURCE_COMMIT.txt. APK CI dùng
+debug signing của runner nên có thể khác chữ ký APK cục bộ; không tự gỡ app
+nếu cài cập nhật báo không khớp chữ ký. Cần thiết bị thử riêng hoặc xác nhận
+chấp nhận mất dữ liệu trước khi gỡ/cài lại. Không commit APK vào Git.
 
 ## Nghiệm thu thủ công APK mới
 

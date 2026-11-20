@@ -92,6 +92,11 @@ Mỗi lần đẩy mã lên `main`, `feat/**`, `feature/**`, `fix/**`, `docs/**`
 | `Analyze + Test` | `dart format --set-exit-if-changed`, `flutter analyze`, `flutter test` trên Flutter 3.47.6 |
 | `Audit question bank` | `python tool/audit_question_bank.py assets/flutter_quiz_300.json` |
 | `Build APK` | Build APK từ checkout mới trên Windows và Linux, sau khi Analyze + Test đạt |
+| `AI proxy security tests` | Node.js 22 chạy test xác thực, phạm vi câu hỏi, quota và cache bằng upstream giả |
+
+Job Linux cũng build release và lưu artifact `flutter-lab-release-<SHA>` kèm
+checksum và commit source trong 14 ngày. APK hiện ký debug để demo; xem hướng
+dẫn tải và giới hạn chữ ký trong `docs/release-handover.md`.
 
 Đối chiếu kết quả từng job trong GitHub Actions. Job build kiểm tra khả năng
 biên dịch APK; chạy thử giao diện trên thiết bị được kiểm tra riêng.

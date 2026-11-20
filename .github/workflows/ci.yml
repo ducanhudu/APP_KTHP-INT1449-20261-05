@@ -117,3 +117,28 @@ jobs:
 
       - name: Build Android APK from clean checkout
         run: flutter build apk --debug
+
+      # Keep Flutter commands sequential: concurrent test/build can regenerate
+      # Android plugin registration for the wrong build mode.
+      - name: Build release APK
+        if: runner.os == 'Linux'
+        run: flutter build apk --release
+
+      - name: Record release checksum and source
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sha256sum build/app/outputs/flutter-apk/app-release.apk > build/app/outputs/flutter-apk/SHA256SUMS.txt
+          git rev-parse HEAD > build/app/outputs/flutter-apk/SOURCE_COMMIT.txt
+
+      - name: Upload release APK
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-lab-release-${{ github.sha }}
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/SHA256SUMS.txt
+            build/app/outputs/flutter-apk/SOURCE_COMMIT.txt
+          if-no-files-found: error
+          retention-days: 14
