@@ -20,6 +20,7 @@ class TodayOverview extends StatelessWidget {
     required this.onRetryCards,
     required this.reminder,
     this.language = QuestionLanguage.vietnamese,
+    this.onCameraRequested,
   });
 
   final List<Question> questions;
@@ -38,6 +39,7 @@ class TodayOverview extends StatelessWidget {
 
   /// Ngôn ngữ của nhãn giao diện.
   final QuestionLanguage language;
+  final VoidCallback? onCameraRequested;
 
   @override
   Widget build(BuildContext context) {
@@ -178,8 +180,14 @@ class TodayOverview extends StatelessWidget {
                 leading: const Icon(Icons.camera_alt_outlined),
                 title: Text(s.cameraTool),
                 subtitle: Text(s.cameraSubtitle),
-                trailing: Chip(label: Text(s.soon)),
-                onTap: () => showLearningTool(context, LearningTool.camera),
+                trailing: const Icon(Icons.chevron_right),
+                onTap:
+                    onCameraRequested ??
+                    () => showLearningTool(
+                      context,
+                      LearningTool.camera,
+                      language: language,
+                    ),
               ),
             ],
           ),

@@ -53,6 +53,7 @@ class Choice {
 class Question {
   Question.fromJson(Map<String, Object?> json)
     : id = json['id'] as int,
+      referenceCode = json['code'] as String? ?? '',
       topic = json['topic'] as int,
       level = json['level'] as String,
       vi = json['question_vi'] as String,
@@ -72,6 +73,7 @@ class Question {
       );
 
   final int id;
+  final String referenceCode;
   final int topic;
   final String level;
   final String vi;

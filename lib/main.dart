@@ -67,6 +67,7 @@ class _QuizHomeState extends State<QuizHome> {
   int selectedTab = 0;
   int topic = 0;
   int count = 10;
+  int _cameraRevision = 0;
 
   Future<List<Question>> _loadBank() async => decodeQuestions(
     await rootBundle.loadString('assets/flutter_quiz_300.json'),
@@ -79,6 +80,18 @@ class _QuizHomeState extends State<QuizHome> {
     setState(() {
       cardsFuture = widget.storage.loadCards();
     });
+  }
+
+  Future<void> _openCamera() async {
+    await showLearningTool(
+      context,
+      LearningTool.camera,
+      language: language,
+      storage: widget.storage,
+    );
+    if (!mounted) return;
+    setState(() => _cameraRevision++);
+    _refreshCards();
   }
 
   /// Đọc lại ngân hàng câu hỏi khi người dùng bấm "Thử lại" ở màn hình lỗi.
@@ -160,7 +173,7 @@ class _QuizHomeState extends State<QuizHome> {
       actions: [
         IconButton(
           tooltip: s.cameraTooltip,
-          onPressed: () => showLearningTool(context, LearningTool.camera),
+          onPressed: _openCamera,
           icon: const Icon(Icons.camera_alt_outlined),
         ),
         PopupMenuButton<QuestionLanguage>(
@@ -213,6 +226,7 @@ class _QuizHomeState extends State<QuizHome> {
           return TodayOverview(
             questions: questions,
             cardsFuture: cardsFuture,
+            onCameraRequested: _openCamera,
             onOpenCards: () => _openCards(questions),
             onQuickPractice: () => _start(questions, 10),
             onExam: () => _start(questions, 50, exam: true),
@@ -228,6 +242,7 @@ class _QuizHomeState extends State<QuizHome> {
         }
         if (selectedTab == 2) {
           return FlashcardPage(
+            key: ValueKey(_cameraRevision),
             allQuestions: questions,
             storage: widget.storage,
             language: language,
