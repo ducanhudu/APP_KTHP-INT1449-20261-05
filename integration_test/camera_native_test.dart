@@ -13,7 +13,8 @@ import 'package:integration_test/integration_test.dart';
 import 'camera_qr_fixtures.dart';
 
 /// Real Android ML Kit, using synthetic images rather than mock recognition.
-/// Run `flutter test integration_test/camera_native_test.dart -d DEVICE_ID`.
+/// Use a test device. Run with `--no-uninstall` to retain the application/data:
+/// `flutter test integration_test/camera_native_test.dart -d DEVICE_ID --no-uninstall`.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   for (final name in ['en', 'vi', 'qr', 'external']) {

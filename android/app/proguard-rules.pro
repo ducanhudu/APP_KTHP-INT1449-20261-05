@@ -10,3 +10,9 @@
 -dontwarn com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions$Builder
 -dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 -dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions$Builder
+
+# ML Kit discovers registrars reflectively from Android manifest metadata.
+# Older transitive firebase-components versions omit these constructor rules.
+# Keep only this reflective registration contract, not the entire ML Kit SDK.
+-keep class * implements com.google.firebase.components.ComponentRegistrar { void <init>(); }
+-keep,allowshrinking interface com.google.firebase.components.ComponentRegistrar
