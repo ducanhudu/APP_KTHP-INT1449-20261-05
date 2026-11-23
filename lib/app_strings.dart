@@ -103,6 +103,13 @@ class AppStrings {
     required this.historyExamLabel,
     required this.historyPracticeLabel,
     required this.historyDuration,
+    required this.weaknessHeading,
+    required this.weaknessSubtitle,
+    required this.practiceWeaknessBtn,
+    required this.noWeaknessData,
+    required this.noWeaknessHint,
+    required this.accuracyText,
+    required this.weakTopicBadge,
   });
 
   final String appTitle;
@@ -202,6 +209,13 @@ class AppStrings {
   final String historyExamLabel;
   final String historyPracticeLabel;
   final String Function(int minutes, int seconds) historyDuration;
+  final String weaknessHeading;
+  final String weaknessSubtitle;
+  final String practiceWeaknessBtn;
+  final String noWeaknessData;
+  final String noWeaknessHint;
+  final String Function(int percent) accuracyText;
+  final String weakTopicBadge;
 
   /// Chọn bộ chuỗi theo ngôn ngữ đang dùng. Chế độ song ngữ hiển thị tiếng Việt
   /// cho nhãn giao diện vì nội dung đã có cả hai thứ tiếng.
@@ -308,6 +322,13 @@ class AppStrings {
     historyExamLabel: 'Thi thử',
     historyPracticeLabel: 'Luyện tập',
     historyDuration: _viHistoryDuration,
+    weaknessHeading: 'Khối cần cải thiện',
+    weaknessSubtitle: 'Gợi ý luyện tập theo điểm yếu từ các bài làm của bạn',
+    practiceWeaknessBtn: 'Luyện 10 câu điểm yếu',
+    noWeaknessData: 'Chưa đủ dữ liệu điểm yếu',
+    noWeaknessHint: 'Hãy hoàn thành một bài luyện tập hoặc thi thử để hệ thống gợi ý khối yếu cho bạn.',
+    accuracyText: _viAccuracy,
+    weakTopicBadge: 'Cần củng cố',
   );
 
   static const AppStrings english = AppStrings(
@@ -409,6 +430,13 @@ class AppStrings {
     historyExamLabel: 'Mock Exam',
     historyPracticeLabel: 'Practice',
     historyDuration: _enHistoryDuration,
+    weaknessHeading: 'Areas to improve',
+    weaknessSubtitle: 'Personalized practice based on your weak areas',
+    practiceWeaknessBtn: 'Practice 10 weak questions',
+    noWeaknessData: 'Not enough data yet',
+    noWeaknessHint: 'Complete a practice quiz or mock exam to get personalized recommendations.',
+    accuracyText: _enAccuracy,
+    weakTopicBadge: 'Needs review',
   );
 
   static String _viCounter(int index, int total, int answered) =>
@@ -446,4 +474,6 @@ class AppStrings {
       minutes > 0 ? '$minutes phút $seconds giây' : '$seconds giây';
   static String _enHistoryDuration(int minutes, int seconds) =>
       minutes > 0 ? '$minutes min $seconds sec' : '$seconds sec';
+  static String _viAccuracy(int percent) => '$percent% chính xác';
+  static String _enAccuracy(int percent) => '$percent% accuracy';
 }

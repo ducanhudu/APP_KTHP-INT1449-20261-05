@@ -10,6 +10,7 @@ import 'history_page.dart';
 import 'history_storage.dart';
 import 'learning_tools.dart';
 import 'quiz_attempt.dart';
+import 'weakness_analyzer.dart';
 import 'today_overview.dart';
 import 'flashcard_page.dart';
 import 'error_state.dart';
@@ -71,6 +72,10 @@ class _QuizHomeState extends State<QuizHome> {
   /// Nạp một lần rồi dùng lại; chỉ đọc lại đĩa khi có thay đổi bộ thẻ.
   late Future<List<Sm2Item>> cardsFuture = widget.storage.loadCards();
 
+  /// Đọc lịch sử làm bài để phục vụ gợi ý điểm yếu.
+  late Future<List<QuizAttempt>> historyFuture = widget.historyStorage
+      .loadHistory();
+
   /// Chỉ tạo dịch vụ nhắc ôn khi thực sự dùng, để test truyền bản giả.
   late final ReminderService reminder =
       widget.reminder ?? NotificationReminderService();
@@ -83,13 +88,34 @@ class _QuizHomeState extends State<QuizHome> {
     await rootBundle.loadString('assets/flutter_quiz_300.json'),
   );
 
-  /// Đọc lại bộ thẻ sau khi người dùng lưu thẻ hoặc ôn tập.
+  /// Đọc lại bộ thẻ và lịch sử sau khi người dùng làm bài, lưu thẻ hoặc ôn tập.
   void _refreshCards() {
     if (!mounted) return;
     // Phải dùng thân hàm: setState không nhận callback trả về Future.
     setState(() {
       cardsFuture = widget.storage.loadCards();
+      historyFuture = widget.historyStorage.loadHistory();
     });
+  }
+
+  Future<void> _startAdaptivePractice(List<Question> questions) async {
+    final history = await widget.historyStorage.loadHistory();
+    final cards = await cardsFuture;
+    final analysis = WeaknessAnalyzer.analyze(
+      history: history,
+      bank: questions,
+      flashcards: cards,
+    );
+    final adaptive = WeaknessAnalyzer.selectAdaptiveQuestions(
+      analysis: analysis,
+      bank: questions,
+      history: history,
+      flashcards: cards,
+      count: 10,
+    );
+    if (adaptive.isEmpty) return;
+    await _runQuiz(adaptive, adaptive.length);
+    _refreshCards();
   }
 
   /// Đọc lại ngân hàng câu hỏi khi người dùng bấm "Thử lại" ở màn hình lỗi.
@@ -252,6 +278,8 @@ class _QuizHomeState extends State<QuizHome> {
           return TodayOverview(
             questions: questions,
             cardsFuture: cardsFuture,
+            historyFuture: historyFuture,
+            onAdaptivePractice: () => _startAdaptivePractice(questions),
             onOpenCards: () => _openCards(questions),
             onQuickPractice: () => _start(questions, 10),
             onExam: () => _start(questions, 50, exam: true),
@@ -348,6 +376,12 @@ class _QuizHomeState extends State<QuizHome> {
               },
               icon: const Icon(Icons.timer_outlined),
               label: Text(s.examButton),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.tonalIcon(
+              onPressed: () => _startAdaptivePractice(questions),
+              icon: const Icon(Icons.bolt),
+              label: Text(s.practiceWeaknessBtn),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
