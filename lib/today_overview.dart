@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'app_strings.dart';
 import 'learning_tools.dart';
 import 'question.dart';
+import 'quiz_attempt.dart';
 import 'reminder_service.dart';
 import 'reminder_tile.dart';
 import 'sm2.dart';
+import 'weakness_analyzer.dart';
 
 class TodayOverview extends StatelessWidget {
   const TodayOverview({
@@ -19,6 +21,8 @@ class TodayOverview extends StatelessWidget {
     required this.onPracticeSetup,
     required this.onRetryCards,
     required this.reminder,
+    this.historyFuture,
+    this.onAdaptivePractice,
     this.language = QuestionLanguage.vietnamese,
   });
 
@@ -35,6 +39,12 @@ class TodayOverview extends StatelessWidget {
 
   /// Dịch vụ nhắc ôn hằng ngày.
   final ReminderService reminder;
+
+  /// Tương lai đọc danh sách lịch sử để phân tích điểm yếu.
+  final Future<List<QuizAttempt>>? historyFuture;
+
+  /// Bắt đầu lượt luyện tập thích ứng theo điểm yếu.
+  final VoidCallback? onAdaptivePractice;
 
   /// Ngôn ngữ của nhãn giao diện.
   final QuestionLanguage language;
@@ -160,6 +170,106 @@ class TodayOverview extends StatelessWidget {
             ],
           ),
         ),
+        if (historyFuture != null && onAdaptivePractice != null) ...[
+          const SizedBox(height: 24),
+          Text(s.weaknessHeading, style: theme.textTheme.titleLarge),
+          const SizedBox(height: 6),
+          Text(s.weaknessSubtitle),
+          const SizedBox(height: 12),
+          FutureBuilder<List<QuizAttempt>>(
+            future: historyFuture,
+            builder: (context, snapshot) {
+              final history = snapshot.data ?? const [];
+              return FutureBuilder<List<Sm2Item>>(
+                future: cardsFuture,
+                builder: (context, cardSnap) {
+                  final cards = cardSnap.data ?? const [];
+                  final analysis = WeaknessAnalyzer.analyze(
+                    history: history,
+                    bank: questions,
+                    flashcards: cards,
+                  );
+                  final weak = analysis.topWeakTopics(3);
+                  if (!analysis.hasEnoughData || weak.isEmpty) {
+                    return Card(
+                      elevation: 0,
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.4),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.insights_outlined,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                s.noWeaknessHint,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final item in weak)
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: CircleAvatar(
+                                radius: 14,
+                                backgroundColor: item.accuracy < 0.6
+                                    ? Colors.red.shade100
+                                    : Colors.orange.shade100,
+                                child: Text(
+                                  'K${item.topic.toString().padLeft(2, '0')}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: item.accuracy < 0.6
+                                        ? Colors.red.shade900
+                                        : Colors.orange.shade900,
+                                  ),
+                                ),
+                              ),
+                              title: Text(topicNames[item.topic - 1]),
+                              subtitle: Text(
+                                item.totalAnswered > 0
+                                    ? s.accuracyText(item.accuracyPercent)
+                                    : s.weakTopicBadge,
+                              ),
+                              trailing: Chip(
+                                visualDensity: VisualDensity.compact,
+                                label: Text(s.weakTopicBadge),
+                              ),
+                              onTap: () => onTopic(item.topic),
+                            ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: onAdaptivePractice,
+                              icon: const Icon(Icons.bolt),
+                              label: Text(s.practiceWeaknessBtn),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
         const SizedBox(height: 24),
         Text(s.toolsHeading, style: theme.textTheme.titleLarge),
         const SizedBox(height: 12),
