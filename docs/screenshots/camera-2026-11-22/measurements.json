@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "ab73039",
+  "sha256": "f4a673f2eb9231c903f4c8cfc1fb79bf7466cc0272abad2c2936090b3df021dc",
+  "installedSha256": "f4a673f2eb9231c903f4c8cfc1fb79bf7466cc0272abad2c2936090b3df021dc",
+  "bytes": 101195789,
+  "unitWidgetTests": 67,
+  "nativeTests": 4,
+  "device": "OPPO CPH2599 Android 16"
+}

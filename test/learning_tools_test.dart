@@ -91,7 +91,7 @@ void main() {
   });
 
   testWidgets(
-    'Camera preview can be closed and capture actions stay inactive',
+    'Camera opens a working study scanner and returns to the home screen',
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -107,18 +107,20 @@ void main() {
         ),
       );
       await tester.tap(find.text('Mở camera'));
+      await tester.pump();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
       await tester.pumpAndSettle();
       expect(find.text('Camera học tập'), findsOneWidget);
-      expect(find.text('Sắp có'), findsOneWidget);
+      expect(find.text('Sắp có'), findsNothing);
       expect(
         tester
-            .widget<FilledButton>(
-              find.widgetWithText(FilledButton, 'Quét mã QR'),
-            )
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Chụp ảnh'))
             .onPressed,
-        isNull,
+        isNotNull,
       );
-      await tester.tap(find.text('Đóng'));
+      await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.text('Mở camera'), findsOneWidget);
       expect(find.text('Camera học tập'), findsNothing);

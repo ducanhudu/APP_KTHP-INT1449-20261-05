@@ -89,6 +89,27 @@ class AppStrings {
     required this.deleteBrokenCard,
     required this.retry,
     required this.errorBankLoad,
+    required this.historyTitle,
+    required this.historyTooltip,
+    required this.emptyHistory,
+    required this.clearHistory,
+    required this.confirmClearHistory,
+    required this.confirmClearHistoryContent,
+    required this.historyFilterAll,
+    required this.historyFilterPractice,
+    required this.historyFilterExam,
+    required this.historyDeleteAttempt,
+    required this.historyAttemptDeleted,
+    required this.historyExamLabel,
+    required this.historyPracticeLabel,
+    required this.historyDuration,
+    required this.weaknessHeading,
+    required this.weaknessSubtitle,
+    required this.practiceWeaknessBtn,
+    required this.noWeaknessData,
+    required this.noWeaknessHint,
+    required this.accuracyText,
+    required this.weakTopicBadge,
   });
 
   final String appTitle;
@@ -174,6 +195,27 @@ class AppStrings {
   final String deleteBrokenCard;
   final String retry;
   final String errorBankLoad;
+  final String historyTitle;
+  final String historyTooltip;
+  final String emptyHistory;
+  final String clearHistory;
+  final String confirmClearHistory;
+  final String confirmClearHistoryContent;
+  final String historyFilterAll;
+  final String historyFilterPractice;
+  final String historyFilterExam;
+  final String historyDeleteAttempt;
+  final String historyAttemptDeleted;
+  final String historyExamLabel;
+  final String historyPracticeLabel;
+  final String Function(int minutes, int seconds) historyDuration;
+  final String weaknessHeading;
+  final String weaknessSubtitle;
+  final String practiceWeaknessBtn;
+  final String noWeaknessData;
+  final String noWeaknessHint;
+  final String Function(int percent) accuracyText;
+  final String weakTopicBadge;
 
   /// Chọn bộ chuỗi theo ngôn ngữ đang dùng. Chế độ song ngữ hiển thị tiếng Việt
   /// cho nhãn giao diện vì nội dung đã có cả hai thứ tiếng.
@@ -185,7 +227,7 @@ class AppStrings {
     tabToday: 'Hôm nay',
     tabPractice: 'Luyện tập',
     tabCards: 'Thẻ ôn',
-    cameraTooltip: 'Camera học tập · Sắp có',
+    cameraTooltip: 'Camera học tập',
     languageTooltip: 'Ngôn ngữ câu hỏi',
     practiceHeading: 'Ôn thi Flutter và Dart',
     languageLabel: 'Ngôn ngữ câu hỏi',
@@ -265,6 +307,28 @@ class AppStrings {
     deleteBrokenCard: 'Xoá thẻ lỗi này',
     retry: 'Thử lại',
     errorBankLoad: 'Không đọc được ngân hàng câu hỏi.',
+    historyTitle: 'Lịch sử làm bài',
+    historyTooltip: 'Xem lịch sử làm bài',
+    emptyHistory: 'Chưa có lượt làm bài nào.',
+    clearHistory: 'Xoá lịch sử',
+    confirmClearHistory: 'Xoá lịch sử làm bài?',
+    confirmClearHistoryContent:
+        'Toàn bộ kết quả các lượt luyện tập và thi thử đã lưu sẽ bị xoá.',
+    historyFilterAll: 'Tất cả',
+    historyFilterPractice: 'Luyện tập',
+    historyFilterExam: 'Thi thử',
+    historyDeleteAttempt: 'Xoá lượt này',
+    historyAttemptDeleted: 'Đã xoá lượt làm bài khỏi lịch sử.',
+    historyExamLabel: 'Thi thử',
+    historyPracticeLabel: 'Luyện tập',
+    historyDuration: _viHistoryDuration,
+    weaknessHeading: 'Khối cần cải thiện',
+    weaknessSubtitle: 'Gợi ý luyện tập theo điểm yếu từ các bài làm của bạn',
+    practiceWeaknessBtn: 'Luyện 10 câu điểm yếu',
+    noWeaknessData: 'Chưa đủ dữ liệu điểm yếu',
+    noWeaknessHint: 'Hãy hoàn thành một bài luyện tập hoặc thi thử để hệ thống gợi ý khối yếu cho bạn.',
+    accuracyText: _viAccuracy,
+    weakTopicBadge: 'Cần củng cố',
   );
 
   static const AppStrings english = AppStrings(
@@ -272,7 +336,7 @@ class AppStrings {
     tabToday: 'Today',
     tabPractice: 'Practice',
     tabCards: 'Cards',
-    cameraTooltip: 'Study camera · Coming soon',
+    cameraTooltip: 'Study camera',
     languageTooltip: 'Question language',
     practiceHeading: 'Flutter and Dart exam practice',
     languageLabel: 'Question language',
@@ -351,6 +415,28 @@ class AppStrings {
     deleteBrokenCard: 'Delete this broken card',
     retry: 'Try again',
     errorBankLoad: 'Could not load the question bank.',
+    historyTitle: 'Quiz History',
+    historyTooltip: 'View quiz history',
+    emptyHistory: 'No quiz history yet.',
+    clearHistory: 'Clear history',
+    confirmClearHistory: 'Clear quiz history?',
+    confirmClearHistoryContent:
+        'All past practice and exam attempt records will be deleted.',
+    historyFilterAll: 'All',
+    historyFilterPractice: 'Practice',
+    historyFilterExam: 'Exam',
+    historyDeleteAttempt: 'Delete this attempt',
+    historyAttemptDeleted: 'Attempt record deleted.',
+    historyExamLabel: 'Mock Exam',
+    historyPracticeLabel: 'Practice',
+    historyDuration: _enHistoryDuration,
+    weaknessHeading: 'Areas to improve',
+    weaknessSubtitle: 'Personalized practice based on your weak areas',
+    practiceWeaknessBtn: 'Practice 10 weak questions',
+    noWeaknessData: 'Not enough data yet',
+    noWeaknessHint: 'Complete a practice quiz or mock exam to get personalized recommendations.',
+    accuracyText: _enAccuracy,
+    weakTopicBadge: 'Needs review',
   );
 
   static String _viCounter(int index, int total, int answered) =>
@@ -384,4 +470,10 @@ class AppStrings {
   static String _viCardNotFound(int code) =>
       'Không tìm thấy câu hỏi mã ID #$code';
   static String _enCardNotFound(int code) => 'Question #$code not found';
+  static String _viHistoryDuration(int minutes, int seconds) =>
+      minutes > 0 ? '$minutes phút $seconds giây' : '$seconds giây';
+  static String _enHistoryDuration(int minutes, int seconds) =>
+      minutes > 0 ? '$minutes min $seconds sec' : '$seconds sec';
+  static String _viAccuracy(int percent) => '$percent% chính xác';
+  static String _enAccuracy(int percent) => '$percent% accuracy';
 }

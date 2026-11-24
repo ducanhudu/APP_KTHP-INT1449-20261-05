@@ -6,7 +6,11 @@ import 'package:flutter/services.dart';
 import 'app_strings.dart';
 import 'app_theme.dart';
 import 'card_storage.dart';
+import 'history_page.dart';
+import 'history_storage.dart';
 import 'learning_tools.dart';
+import 'quiz_attempt.dart';
+import 'weakness_analyzer.dart';
 import 'today_overview.dart';
 import 'flashcard_page.dart';
 import 'error_state.dart';
@@ -23,10 +27,12 @@ class FlutterLab extends StatelessWidget {
   const FlutterLab({
     super.key,
     this.storage = const SharedPrefsCardStorage(),
+    this.historyStorage = const SharedPrefsHistoryStorage(),
     this.reminder,
   });
 
   final CardStorage storage;
+  final HistoryStorage historyStorage;
   final ReminderService? reminder;
 
   @override
@@ -34,7 +40,11 @@ class FlutterLab extends StatelessWidget {
     title: 'Flutter Lab',
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
-    home: QuizHome(storage: storage, reminder: reminder),
+    home: QuizHome(
+      storage: storage,
+      historyStorage: historyStorage,
+      reminder: reminder,
+    ),
   );
 }
 
@@ -42,10 +52,12 @@ class QuizHome extends StatefulWidget {
   const QuizHome({
     super.key,
     this.storage = const SharedPrefsCardStorage(),
+    this.historyStorage = const SharedPrefsHistoryStorage(),
     this.reminder,
   });
 
   final CardStorage storage;
+  final HistoryStorage historyStorage;
   final ReminderService? reminder;
 
   @override
@@ -60,6 +72,10 @@ class _QuizHomeState extends State<QuizHome> {
   /// Nạp một lần rồi dùng lại; chỉ đọc lại đĩa khi có thay đổi bộ thẻ.
   late Future<List<Sm2Item>> cardsFuture = widget.storage.loadCards();
 
+  /// Đọc lịch sử làm bài để phục vụ gợi ý điểm yếu.
+  late Future<List<QuizAttempt>> historyFuture = widget.historyStorage
+      .loadHistory();
+
   /// Chỉ tạo dịch vụ nhắc ôn khi thực sự dùng, để test truyền bản giả.
   late final ReminderService reminder =
       widget.reminder ?? NotificationReminderService();
@@ -67,18 +83,52 @@ class _QuizHomeState extends State<QuizHome> {
   int selectedTab = 0;
   int topic = 0;
   int count = 10;
+  int _deckRevision = 0;
 
   Future<List<Question>> _loadBank() async => decodeQuestions(
     await rootBundle.loadString('assets/flutter_quiz_300.json'),
   );
 
-  /// Đọc lại bộ thẻ sau khi người dùng lưu thẻ hoặc ôn tập.
+  /// Đọc lại bộ thẻ và lịch sử sau khi người dùng làm bài, lưu thẻ hoặc ôn tập.
   void _refreshCards() {
     if (!mounted) return;
     // Phải dùng thân hàm: setState không nhận callback trả về Future.
     setState(() {
       cardsFuture = widget.storage.loadCards();
+      historyFuture = widget.historyStorage.loadHistory();
     });
+  }
+
+  Future<void> _startAdaptivePractice(List<Question> questions) async {
+    final history = await widget.historyStorage.loadHistory();
+    final cards = await cardsFuture;
+    final analysis = WeaknessAnalyzer.analyze(
+      history: history,
+      bank: questions,
+      flashcards: cards,
+    );
+    final adaptive = WeaknessAnalyzer.selectAdaptiveQuestions(
+      analysis: analysis,
+      bank: questions,
+      history: history,
+      flashcards: cards,
+      count: 10,
+    );
+    if (adaptive.isEmpty) return;
+    await _runQuiz(adaptive, adaptive.length);
+    _refreshCards();
+  }
+
+  Future<void> _openCamera() async {
+    await showLearningTool(
+      context,
+      LearningTool.camera,
+      language: language,
+      storage: widget.storage,
+    );
+    if (!mounted) return;
+    setState(() => _deckRevision++);
+    _refreshCards();
   }
 
   /// Đọc lại ngân hàng câu hỏi khi người dùng bấm "Thử lại" ở màn hình lỗi.
@@ -108,6 +158,7 @@ class _QuizHomeState extends State<QuizHome> {
     var timed = exam;
     while (true) {
       if (!mounted) return;
+      final startTime = DateTime.now();
       final result = await Navigator.of(context).push<QuizResult>(
         MaterialPageRoute(
           builder: (_) => QuizPage(
@@ -119,6 +170,31 @@ class _QuizHomeState extends State<QuizHome> {
         ),
       );
       if (!mounted || result == null) return;
+      final duration = DateTime.now().difference(startTime).inSeconds;
+      final resultTopics = items.map((item) => item.question.topic).toSet();
+      final attempt = QuizAttempt.fromResult(
+        result: result,
+        isExam: timed,
+        topic: timed || resultTopics.length != 1 ? 0 : resultTopics.single,
+        durationSeconds: duration,
+      );
+      try {
+        await widget.historyStorage.saveAttempt(attempt);
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                language == QuestionLanguage.english
+                    ? 'Could not save history. Your result is still available.'
+                    : 'Chưa lưu được lịch sử. Bạn vẫn có thể xem kết quả.',
+              ),
+            ),
+          );
+        }
+      }
+      if (!mounted) return;
+
       final retry = await _showResult(result);
       if (retry != true) return;
       final wrong = result.wrongQuestions.toList();
@@ -159,8 +235,29 @@ class _QuizHomeState extends State<QuizHome> {
       ),
       actions: [
         IconButton(
+          tooltip: s.historyTooltip,
+          onPressed: () async {
+            final questions = await bank;
+            if (!context.mounted) return;
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => HistoryPage(
+                  historyStorage: widget.historyStorage,
+                  allQuestions: questions,
+                  language: language,
+                  cardStorage: widget.storage,
+                ),
+              ),
+            );
+            if (!mounted) return;
+            setState(() => _deckRevision++);
+            _refreshCards();
+          },
+          icon: const Icon(Icons.history),
+        ),
+        IconButton(
           tooltip: s.cameraTooltip,
-          onPressed: () => showLearningTool(context, LearningTool.camera),
+          onPressed: _openCamera,
           icon: const Icon(Icons.camera_alt_outlined),
         ),
         PopupMenuButton<QuestionLanguage>(
@@ -213,6 +310,9 @@ class _QuizHomeState extends State<QuizHome> {
           return TodayOverview(
             questions: questions,
             cardsFuture: cardsFuture,
+            historyFuture: historyFuture,
+            onAdaptivePractice: () => _startAdaptivePractice(questions),
+            onCameraRequested: _openCamera,
             onOpenCards: () => _openCards(questions),
             onQuickPractice: () => _start(questions, 10),
             onExam: () => _start(questions, 50, exam: true),
@@ -228,6 +328,7 @@ class _QuizHomeState extends State<QuizHome> {
         }
         if (selectedTab == 2) {
           return FlashcardPage(
+            key: ValueKey(_deckRevision),
             allQuestions: questions,
             storage: widget.storage,
             language: language,
@@ -309,6 +410,12 @@ class _QuizHomeState extends State<QuizHome> {
               },
               icon: const Icon(Icons.timer_outlined),
               label: Text(s.examButton),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.tonalIcon(
+              onPressed: () => _startAdaptivePractice(questions),
+              icon: const Icon(Icons.bolt),
+              label: Text(s.practiceWeaknessBtn),
             ),
             const SizedBox(height: 8),
             TextButton.icon(

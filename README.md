@@ -160,6 +160,26 @@ Nút "Hỏi AI về câu này" gọi `AiService` (`lib/ai_service.dart`):
 
 ## Phạm vi
 
+### Camera học tập
+
+Mở biểu tượng camera hoặc Hôm nay → Camera học tập. Chọn **Đọc chữ** hoặc
+**Mã QR**, sau đó **Chụp ảnh / Chọn ảnh**. Với OCR, sửa chữ rồi bấm **Tìm trong
+300 câu**, chọn một gợi ý để xem lời giải, lưu thẻ hoặc chủ động hỏi AI.
+
+Ảnh được xử lý trên thiết bị, không gửi tới backend AI. QR được đọc từ ảnh,
+chỉ hỗ trợ `flutterlab://question/81` hoặc mã câu có trong JSON như `K01-001`.
+Không tự mở website từ QR. Camera hệ thống và bộ chọn ảnh Android xử lý phần
+chụp/chọn; app không xin quyền đọc toàn bộ thư viện ảnh.
+
+Ảnh ngoài ngân hàng có thể không tìm thấy kết quả. Chữ viết tay, ảnh quá mờ,
+cắt/xoay ảnh và QR preview trực tiếp chưa thuộc bản đầu. Nếu Android thu hồi
+tiến trình lúc chụp, mở lại Camera để khôi phục ảnh có thể còn trong picker.
+
+Kế hoạch và tác dụng: [docs/camera-development-plan.md](docs/camera-development-plan.md).
+Kết quả kiểm tra: [docs/camera-validation.md](docs/camera-validation.md).
+
+### Ôn tập
+
 - Luyện theo khối, chọn số câu và xem lời giải sau khi trả lời.
 - Thi thử 50 câu từ toàn bộ ngân hàng, xáo trộn đáp án, đếm ngược 50 phút và tự
   nộp khi hết giờ.
