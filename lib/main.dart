@@ -83,6 +83,7 @@ class _QuizHomeState extends State<QuizHome> {
   int selectedTab = 0;
   int topic = 0;
   int count = 10;
+  int _cameraRevision = 0;
 
   Future<List<Question>> _loadBank() async => decodeQuestions(
     await rootBundle.loadString('assets/flutter_quiz_300.json'),
@@ -115,6 +116,18 @@ class _QuizHomeState extends State<QuizHome> {
     );
     if (adaptive.isEmpty) return;
     await _runQuiz(adaptive, adaptive.length);
+    _refreshCards();
+  }
+
+  Future<void> _openCamera() async {
+    await showLearningTool(
+      context,
+      LearningTool.camera,
+      language: language,
+      storage: widget.storage,
+    );
+    if (!mounted) return;
+    setState(() => _cameraRevision++);
     _refreshCards();
   }
 
@@ -225,7 +238,7 @@ class _QuizHomeState extends State<QuizHome> {
         ),
         IconButton(
           tooltip: s.cameraTooltip,
-          onPressed: () => showLearningTool(context, LearningTool.camera),
+          onPressed: _openCamera,
           icon: const Icon(Icons.camera_alt_outlined),
         ),
         PopupMenuButton<QuestionLanguage>(
@@ -280,6 +293,7 @@ class _QuizHomeState extends State<QuizHome> {
             cardsFuture: cardsFuture,
             historyFuture: historyFuture,
             onAdaptivePractice: () => _startAdaptivePractice(questions),
+            onCameraRequested: _openCamera,
             onOpenCards: () => _openCards(questions),
             onQuickPractice: () => _start(questions, 10),
             onExam: () => _start(questions, 50, exam: true),
@@ -295,6 +309,7 @@ class _QuizHomeState extends State<QuizHome> {
         }
         if (selectedTab == 2) {
           return FlashcardPage(
+            key: ValueKey(_cameraRevision),
             allQuestions: questions,
             storage: widget.storage,
             language: language,

@@ -1,26 +1,48 @@
 import 'package:flutter/material.dart';
 
 import 'ai_service.dart';
+import 'camera_study_page.dart';
+import 'card_storage.dart';
 import 'question.dart';
 import 'tts_service.dart';
 
 enum LearningTool { assistant, camera }
 
 /// Điểm mở giao diện AI và camera.
-/// AI đã được nối thật ở Ngày 3; camera vẫn là placeholder.
+/// AI giải thích theo câu hỏi; camera mở luồng nhận diện ảnh và QR.
 Future<void> showLearningTool(
   BuildContext context,
   LearningTool tool, {
   Question? question,
   QuestionLanguage language = QuestionLanguage.vietnamese,
-}) => showModalBottomSheet<void>(
-  context: context,
-  showDragHandle: true,
-  isScrollControlled: true,
-  useSafeArea: true,
-  builder: (context) =>
-      LearningToolPreview(tool: tool, question: question, language: language),
-);
+  CardStorage storage = const SharedPrefsCardStorage(),
+}) async {
+  if (tool == LearningTool.camera) {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => CameraStudyPage(
+          language: language,
+          storage: storage,
+          onExplain: (context, question, language) => showLearningTool(
+            context,
+            LearningTool.assistant,
+            question: question,
+            language: language,
+          ),
+        ),
+      ),
+    );
+    return;
+  }
+  await showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) =>
+        LearningToolPreview(tool: tool, question: question, language: language),
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AI Panel
@@ -127,7 +149,6 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.tool == LearningTool.camera) return _buildCameraPreview(context);
     return _buildAiPanel(context);
   }
 
@@ -292,74 +313,6 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
             child: Text(
               'Không có quyền audio. Hãy bật trong Cài đặt để nghe giọng đọc.',
               style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Camera placeholder ─────────────────────────────────────────────────────
-
-  Widget _buildCameraPreview(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        24,
-        0,
-        24,
-        24 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.camera_alt_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Camera học tập',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              const Chip(label: Text('Sắp có')),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text('Dự kiến quét mã QR và nhận câu hỏi từ ảnh chụp.'),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: null,
-              icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('Quét mã QR'),
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: null,
-              icon: const Icon(Icons.add_a_photo_outlined),
-              label: const Text('Chụp câu hỏi'),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Tính năng đang được chuẩn bị.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Đóng'),
             ),
           ),
         ],
