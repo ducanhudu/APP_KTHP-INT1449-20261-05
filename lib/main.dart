@@ -6,7 +6,10 @@ import 'package:flutter/services.dart';
 import 'app_strings.dart';
 import 'app_theme.dart';
 import 'card_storage.dart';
+import 'history_page.dart';
+import 'history_storage.dart';
 import 'learning_tools.dart';
+import 'quiz_attempt.dart';
 import 'today_overview.dart';
 import 'flashcard_page.dart';
 import 'error_state.dart';
@@ -23,10 +26,12 @@ class FlutterLab extends StatelessWidget {
   const FlutterLab({
     super.key,
     this.storage = const SharedPrefsCardStorage(),
+    this.historyStorage = const SharedPrefsHistoryStorage(),
     this.reminder,
   });
 
   final CardStorage storage;
+  final HistoryStorage historyStorage;
   final ReminderService? reminder;
 
   @override
@@ -34,7 +39,11 @@ class FlutterLab extends StatelessWidget {
     title: 'Flutter Lab',
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
-    home: QuizHome(storage: storage, reminder: reminder),
+    home: QuizHome(
+      storage: storage,
+      historyStorage: historyStorage,
+      reminder: reminder,
+    ),
   );
 }
 
@@ -42,10 +51,12 @@ class QuizHome extends StatefulWidget {
   const QuizHome({
     super.key,
     this.storage = const SharedPrefsCardStorage(),
+    this.historyStorage = const SharedPrefsHistoryStorage(),
     this.reminder,
   });
 
   final CardStorage storage;
+  final HistoryStorage historyStorage;
   final ReminderService? reminder;
 
   @override
@@ -108,6 +119,7 @@ class _QuizHomeState extends State<QuizHome> {
     var timed = exam;
     while (true) {
       if (!mounted) return;
+      final startTime = DateTime.now();
       final result = await Navigator.of(context).push<QuizResult>(
         MaterialPageRoute(
           builder: (_) => QuizPage(
@@ -119,6 +131,15 @@ class _QuizHomeState extends State<QuizHome> {
         ),
       );
       if (!mounted || result == null) return;
+      final duration = DateTime.now().difference(startTime).inSeconds;
+      final attempt = QuizAttempt.fromResult(
+        result: result,
+        isExam: timed,
+        topic: topic,
+        durationSeconds: duration,
+      );
+      await widget.historyStorage.saveAttempt(attempt);
+
       final retry = await _showResult(result);
       if (retry != true) return;
       final wrong = result.wrongQuestions.toList();
@@ -158,6 +179,24 @@ class _QuizHomeState extends State<QuizHome> {
         style: const TextStyle(fontWeight: FontWeight.w700),
       ),
       actions: [
+        IconButton(
+          tooltip: s.historyTooltip,
+          onPressed: () async {
+            final questions = await bank;
+            if (!context.mounted) return;
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => HistoryPage(
+                  historyStorage: widget.historyStorage,
+                  allQuestions: questions,
+                  language: language,
+                  cardStorage: widget.storage,
+                ),
+              ),
+            );
+          },
+          icon: const Icon(Icons.history),
+        ),
         IconButton(
           tooltip: s.cameraTooltip,
           onPressed: () => showLearningTool(context, LearningTool.camera),
