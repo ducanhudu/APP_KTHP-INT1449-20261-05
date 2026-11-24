@@ -140,7 +140,9 @@ class _HistoryPageState extends State<HistoryPage> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Row(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 ChoiceChip(
                   label: Text(s.historyFilterAll),
@@ -149,7 +151,6 @@ class _HistoryPageState extends State<HistoryPage> {
                     if (val) setState(() => _filter = HistoryFilter.all);
                   },
                 ),
-                const SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(s.historyFilterPractice),
                   selected: _filter == HistoryFilter.practice,
@@ -157,7 +158,6 @@ class _HistoryPageState extends State<HistoryPage> {
                     if (val) setState(() => _filter = HistoryFilter.practice);
                   },
                 ),
-                const SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(s.historyFilterExam),
                   selected: _filter == HistoryFilter.exam,

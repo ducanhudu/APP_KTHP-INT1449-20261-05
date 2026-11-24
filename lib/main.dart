@@ -83,7 +83,7 @@ class _QuizHomeState extends State<QuizHome> {
   int selectedTab = 0;
   int topic = 0;
   int count = 10;
-  int _cameraRevision = 0;
+  int _deckRevision = 0;
 
   Future<List<Question>> _loadBank() async => decodeQuestions(
     await rootBundle.loadString('assets/flutter_quiz_300.json'),
@@ -127,7 +127,7 @@ class _QuizHomeState extends State<QuizHome> {
       storage: widget.storage,
     );
     if (!mounted) return;
-    setState(() => _cameraRevision++);
+    setState(() => _deckRevision++);
     _refreshCards();
   }
 
@@ -171,13 +171,29 @@ class _QuizHomeState extends State<QuizHome> {
       );
       if (!mounted || result == null) return;
       final duration = DateTime.now().difference(startTime).inSeconds;
+      final resultTopics = items.map((item) => item.question.topic).toSet();
       final attempt = QuizAttempt.fromResult(
         result: result,
         isExam: timed,
-        topic: topic,
+        topic: timed || resultTopics.length != 1 ? 0 : resultTopics.single,
         durationSeconds: duration,
       );
-      await widget.historyStorage.saveAttempt(attempt);
+      try {
+        await widget.historyStorage.saveAttempt(attempt);
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                language == QuestionLanguage.english
+                    ? 'Could not save history. Your result is still available.'
+                    : 'Chưa lưu được lịch sử. Bạn vẫn có thể xem kết quả.',
+              ),
+            ),
+          );
+        }
+      }
+      if (!mounted) return;
 
       final retry = await _showResult(result);
       if (retry != true) return;
@@ -223,7 +239,7 @@ class _QuizHomeState extends State<QuizHome> {
           onPressed: () async {
             final questions = await bank;
             if (!context.mounted) return;
-            Navigator.of(context).push(
+            await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => HistoryPage(
                   historyStorage: widget.historyStorage,
@@ -233,6 +249,9 @@ class _QuizHomeState extends State<QuizHome> {
                 ),
               ),
             );
+            if (!mounted) return;
+            setState(() => _deckRevision++);
+            _refreshCards();
           },
           icon: const Icon(Icons.history),
         ),
@@ -309,7 +328,7 @@ class _QuizHomeState extends State<QuizHome> {
         }
         if (selectedTab == 2) {
           return FlashcardPage(
-            key: ValueKey(_cameraRevision),
+            key: ValueKey(_deckRevision),
             allQuestions: questions,
             storage: widget.storage,
             language: language,
