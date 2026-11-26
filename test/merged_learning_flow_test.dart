@@ -127,6 +127,49 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('English history shows English topic names and Cancel label', (
+    tester,
+  ) async {
+    final bank = decodeQuestions(
+      File('assets/flutter_quiz_300.json').readAsStringSync(),
+    );
+    final history = MemoryHistoryStorage([
+      QuizAttempt(
+        id: 'attempt_en',
+        timestamp: DateTime(2026, 11, 26, 20, 0),
+        isExam: false,
+        topic: 1,
+        totalQuestions: 1,
+        correct: 1,
+        wrong: 0,
+        skipped: 0,
+        durationSeconds: 42,
+        questionIds: [1],
+        answers: {1: 'C'},
+      ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HistoryPage(
+          historyStorage: history,
+          allQuestions: bank,
+          language: QuestionLanguage.english,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // Tên khối phải theo ngôn ngữ nhãn, không chỉ nội dung câu hỏi.
+    expect(find.textContaining('Dart basics'), findsOneWidget);
+    expect(find.textContaining('Dart căn bản'), findsNothing);
+
+    // Hộp thoại xoá lịch sử dùng nhãn theo ngôn ngữ, không so sánh chuỗi.
+    await tester.tap(find.byIcon(Icons.delete_sweep_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('Cancel'), findsOneWidget);
+    expect(find.text('Hủy'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Exam history ignores the selected practice topic', (
     tester,
   ) async {

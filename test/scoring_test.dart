@@ -145,14 +145,27 @@ void main() {
 
     test('Quy ước khối K01..K20 đồng nhất và đúng 20 chủ đề kiến thức', () {
       expect(topicNames, hasLength(20));
+      expect(topicNamesEn, hasLength(20));
       for (var i = 1; i <= 20; i++) {
-        final label = topicLabel(i);
         final expectedPrefix = 'K${i.toString().padLeft(2, '0')} · ';
-        expect(label.startsWith(expectedPrefix), isTrue);
-        expect(label, '$expectedPrefix${topicNames[i - 1]}');
+        final vi = topicLabel(i, QuestionLanguage.vietnamese);
+        final en = topicLabel(i, QuestionLanguage.english);
+        expect(vi.startsWith(expectedPrefix), isTrue);
+        expect(vi, '$expectedPrefix${topicNames[i - 1]}');
+        expect(en, '$expectedPrefix${topicNamesEn[i - 1]}');
+        // Nhãn song ngữ dùng tiếng Việt, giống cách AppStrings chọn bộ nhãn.
+        expect(topicLabel(i, QuestionLanguage.bilingual), vi);
       }
-      expect(topicLabel(1), 'K01 · Dart căn bản');
-      expect(topicLabel(20), 'K20 · Flutter và AI');
+      expect(topicLabel(1, QuestionLanguage.vietnamese), 'K01 · Dart căn bản');
+      expect(
+        topicLabel(20, QuestionLanguage.vietnamese),
+        'K20 · Flutter và AI',
+      );
+      expect(topicLabel(1, QuestionLanguage.english), 'K01 · Dart basics');
+      expect(topicLabel(20, QuestionLanguage.english), 'K20 · Flutter and AI');
+      // Khối ngoài 1..20 trả mã thay vì ném RangeError.
+      expect(topicLabel(0, QuestionLanguage.english), 'K00');
+      expect(topicLabel(21, QuestionLanguage.english), 'K21');
     });
   });
 }
