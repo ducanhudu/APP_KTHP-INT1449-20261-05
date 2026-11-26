@@ -187,6 +187,10 @@ Kết quả kiểm tra: [docs/camera-validation.md](docs/camera-validation.md).
   giữ nguyên.
 - Xem điểm, thống kê theo khối, lời giải và làm lại các câu đã trả lời sai.
 - Bộ thẻ ghi nhớ SM-2: lưu câu sai thành thẻ, ôn theo lịch đến hạn, đánh giá 1/3/4/5.
+- Lịch sử làm bài: mỗi lượt hoàn thành được lưu lại (tối đa 100 lượt), lọc theo
+  luyện tập/thi thử, xem lại điểm và xoá từng lượt hoặc xoá tất cả.
+- Luyện theo điểm yếu: tab Hôm nay gợi ý ba khối yếu nhất từ lịch sử và bộ thẻ,
+  nút "Luyện 10 câu điểm yếu" ưu tiên câu từng sai trong khối yếu.
 - Nhắc ôn hằng ngày bằng thông báo cục bộ, bật/tắt trong màn hình Hôm nay.
 - Giao diện hai ngôn ngữ: đổi sang English thì **nhãn giao diện** cũng đổi, không
   chỉ nội dung câu hỏi.
@@ -208,9 +212,18 @@ Kết quả kiểm tra: [docs/camera-validation.md](docs/camera-validation.md).
 ## Cấu trúc thư mục
 
 ```
-lib/main.dart              giao diện và luồng làm bài
-lib/question.dart          mô hình câu hỏi, chấm điểm, thống kê
-assets/flutter_quiz_300.json   300 câu song ngữ (20 khối K01–K20)
-test/widget_test.dart      kiểm thử chấm điểm và luồng luyện tập
-android/                   cấu hình Android (Kotlin DSL, Java 17)
+lib/main.dart                 giao diện, luồng luyện/thi, kết quả và xem lại
+lib/question.dart             mô hình câu hỏi, chấm điểm, thống kê, tên khối
+lib/camera_study_page.dart    màn camera: ảnh, OCR, QR, gợi ý câu
+lib/question_search.dart      chuẩn hoá chữ Việt/Anh, xếp hạng câu, kiểm mã QR
+lib/study_image_service.dart  chụp/chọn ảnh và gọi ML Kit (có bản giả cho test)
+lib/history_page.dart         màn lịch sử làm bài
+lib/history_storage.dart      lưu lượt làm bài (SharedPreferences + bản giả)
+lib/quiz_attempt.dart         bản ghi một lượt làm bài và JSON
+lib/weakness_analyzer.dart    phân tích khối yếu, chọn câu luyện thích ứng
+lib/app_strings.dart          nhãn giao diện Việt/Anh
+assets/flutter_quiz_300.json  300 câu song ngữ (20 khối K01–K20)
+test/                         kiểm thử unit và widget
+integration_test/             kiểm thử native trên thiết bị (camera OCR/QR)
+android/                      cấu hình Android (Kotlin DSL, Java 17)
 ```

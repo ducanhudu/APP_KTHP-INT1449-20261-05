@@ -4,6 +4,7 @@
 > điện thoại cập nhật 21/11, source 5aff6c3 và APK mới được ghi tại
 > [báo cáo OPPO](physical-device-acceptance-2026-11-21.md). Không dùng trạng thái
 > “chờ điện thoại”, checksum hoặc số test cũ dưới đây làm kết luận hiện tại.
+> Trạng thái mới nhất ngày 26/11 nằm ở mục kế tiếp.
 
 ## Các nhánh công việc
 
@@ -18,6 +19,28 @@ Tác giả các commit mới: Duc Anh <ducanh.ptit.udu@gmail.com> theo yêu cầ
 | 3 | fix/tts-language-and-lifecycle | Giọng en-US/vi-VN và ngăn tiếp tục đọc khi panel đóng |
 | 4 | docs/release-acceptance-handover | Bằng chứng, bảng nghiệm thu, hướng dẫn APK và tài liệu bảo vệ |
 | 5 | chore/ci-release-artifacts | Build release trên CI Linux và lưu APK, checksum, SHA source trong artifact |
+
+## Trạng thái 26/11/2026
+
+Main hiện ở `7d972a0`, đã merge ba nhánh tính năng mới:
+
+| Branch đã merge | Nội dung |
+| --- | --- |
+| feat/camera-question-scanner | OCR/QR xử lý trên thiết bị, tìm câu trong 300 câu, lưu thẻ, nối panel AI |
+| feat/quiz-history | Lưu lượt làm bài vào SharedPreferences, màn Lịch sử có lọc, xem lại và xoá |
+| feat/adaptive-weakness-practice | Phân tích khối yếu, nút "Luyện 10 câu điểm yếu" |
+
+Ba nhánh đang chờ review, **chưa merge** vào main:
+
+| Branch | Nội dung | Trạng thái |
+| --- | --- | --- |
+| feat/speech-input | Mic nhập câu hỏi qua `speech_to_text`; từ chối quyền vẫn nhập tay | CI 5/5 đạt (gồm build release); chờ thử micro thật |
+| fix/ai-panel-language | Panel AI song ngữ, sửa tràn layout 320 px | Chờ review |
+| fix/topic-labels-language | Tên khối theo ngôn ngữ ở 8 vị trí + bỏ hack so sánh chuỗi | Chờ review |
+
+Trên main ngày 26/11: `dart format --set-exit-if-changed` đạt, `flutter analyze`
+không issue, `flutter test` 83 test đạt. Số 56 test trong bảng dưới là mốc 20/11,
+không dùng thay số hiện tại.
 
 ## Kết quả kiểm tra
 
@@ -90,6 +113,10 @@ chấp nhận mất dữ liệu trước khi gỡ/cài lại. Không commit APK 
 | M06 | Thi đến hạn tự nộp; ở nền quá hạn rồi quay lại không làm thêm được | Chờ điện thoại; đã có test đồng hồ giả |
 | M07 | Không mạng/AI 401/429/502: xem được lời giải JSON và thoát panel | Chờ điện thoại; đã có mock |
 | M08 | AI thật giải thích đúng mã câu; đổi English, nghe/dừng, đóng panel hết tiếng | Chờ backend thật + điện thoại |
+| M09 | Làm xong một lượt, mở Lịch sử thấy lượt đó; lọc Luyện tập/Thi thử; mở lại đúng điểm; xoá một lượt và xoá tất cả | Chờ điện thoại; đã có test tự động |
+| M10 | Làm sai vài câu cùng một khối, tab Hôm nay hiện khối đó; bấm "Luyện 10 câu điểm yếu" trả câu thuộc khối yếu | Chờ điện thoại; đã có test tự động |
+| M11 | Ảnh mẫu Việt/Anh: OCR ra chữ, tìm đúng K01-001; QR mở đúng câu; QR/URL lạ không mở trình duyệt | Đã có kết quả OPPO 22–23/11 ([camera-validation.md](camera-validation.md)); cần thử ảnh chụp thật |
+| M12 | Micro: bấm nút, cấp quyền, nói câu tiếng Việt, chữ vào ô, sửa rồi tìm; từ chối quyền vẫn nhập tay | Chờ điện thoại; nhánh `feat/speech-input` chưa merge |
 
 Thông báo đang dùng inexactAllowWhileIdle nên thời điểm phát có thể bị Android
 trì hoãn, đặc biệt khi tiết kiệm pin. Không cam kết đúng từng giây. Để thử lịch
