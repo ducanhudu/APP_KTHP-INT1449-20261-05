@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'ai_service.dart';
+import 'app_strings.dart';
 import 'camera_study_page.dart';
 import 'card_storage.dart';
 import 'question.dart';
@@ -71,6 +72,9 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
   AiResult? _result;
   bool _loading = false;
 
+  /// Nhãn giao diện theo ngôn ngữ đang chọn; nội dung câu hỏi đã song ngữ sẵn.
+  AppStrings get s => AppStrings.of(widget.language);
+
   @override
   void initState() {
     super.initState();
@@ -121,23 +125,23 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
     final code = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mã truy cập AI / AI access code'),
+        title: Text(s.aiAccessCodeTitle),
         content: TextField(
           autofocus: true,
           obscureText: true,
           autocorrect: false,
           enableSuggestions: false,
           onChanged: (text) => value = text,
-          decoration: const InputDecoration(labelText: 'Mã do nhóm cung cấp'),
+          decoration: InputDecoration(labelText: s.aiAccessCodeHint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            child: Text(s.cancelButton),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, value.trim()),
-            child: const Text('Lưu'),
+            child: Text(s.saveButton),
           ),
         ],
       ),
@@ -169,18 +173,20 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Tiêu đề ──
-          Row(
+          // Dùng Wrap thay Row: nhãn "Original explanation" dài hơn bản tiếng
+          // Việt và làm tràn hàng trên máy hẹp 320 px.
+          Wrap(
+            spacing: 10,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Icon(Icons.auto_awesome, color: colors.primary),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Giải thích AI',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+              Text(
+                s.aiPanelTitle,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               if (_result?.fromFallback == true)
-                const Chip(label: Text('Lời giải gốc')),
+                Chip(label: Text(s.aiFallbackLabel)),
             ],
           ),
           const SizedBox(height: 12),
@@ -188,7 +194,7 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
           // ── Câu hỏi ──
           if (q != null) ...[
             Text(
-              'Câu #${q.id} · ${_topicShort(q.topic)}',
+              s.aiQuestionRef(q.id, s.topicShort(q.topic)),
               style: Theme.of(context).textTheme.labelLarge,
             ),
             const SizedBox(height: 6),
@@ -202,20 +208,20 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
 
           // ── Nội dung giải thích ──
           if (_loading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
               child: Column(
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 12),
-                  Text('Đang hỏi AI, có thể mất 10-60 giây…'),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 12),
+                  Text(s.aiLoading),
                 ],
               ),
             )
           else if (_result != null)
             _buildExplanationCard(context)
           else ...[
-            const Text('Chưa có câu hỏi để giải thích.'),
+            Text(s.aiNoQuestion),
             const SizedBox(height: 8),
           ],
 
@@ -228,7 +234,7 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Đóng'),
+              child: Text(s.closeButton),
             ),
           ),
         ],
@@ -257,7 +263,7 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'AI giải thích',
+                    s.aiGeneratedLabel,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                     ),
@@ -282,21 +288,21 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
           OutlinedButton.icon(
             onPressed: _loading ? null : _enterAccessCode,
             icon: const Icon(Icons.key),
-            label: const Text('Mã truy cập AI'),
+            label: Text(s.aiAccessCodeButton),
           ),
         // Nút TTS – ẩn nếu quyền bị từ chối
         if (!_tts.permissionDenied)
           OutlinedButton.icon(
             onPressed: _toggleTts,
             icon: Icon(playing ? Icons.stop : Icons.volume_up_outlined),
-            label: Text(playing ? 'Dừng đọc' : 'Nghe lời giải'),
+            label: Text(playing ? s.ttsStop : s.ttsListen),
           ),
         // Nút hỏi lại AI
         if (widget.question != null)
           OutlinedButton.icon(
             onPressed: _loading ? null : _fetchAi,
             icon: const Icon(Icons.refresh),
-            label: const Text('Hỏi lại'),
+            label: Text(s.aiAskAgain),
           ),
       ],
     );
@@ -311,41 +317,12 @@ class _LearningToolPreviewState extends State<LearningToolPreview> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Không có quyền audio. Hãy bật trong Cài đặt để nghe giọng đọc.',
+              s.ttsAudioPermission,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
         ],
       ),
     );
-  }
-
-  String _topicShort(int topic) {
-    const names = [
-      'Dart căn bản',
-      'Công cụ',
-      'Widget',
-      'Bố cục',
-      'Material',
-      'Thích ứng',
-      'Tương tác',
-      'Hình ảnh',
-      'Điều hướng',
-      'Hoạt ảnh',
-      'Trợ năng',
-      'Trạng thái',
-      'Dữ liệu',
-      'Kiến trúc',
-      'Package',
-      'Kiểm thử',
-      'Hiệu năng',
-      'Đa nền tảng',
-      'Cấu hình',
-      'AI',
-    ];
-    if (topic < 1 || topic > names.length) {
-      return 'K${topic.toString().padLeft(2, '0')}';
-    }
-    return 'K${topic.toString().padLeft(2, '0')} · ${names[topic - 1]}';
   }
 }
