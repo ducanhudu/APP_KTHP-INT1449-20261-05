@@ -42,15 +42,19 @@ void main() {
     // Giữ nguyên ngữ cảnh câu hỏi.
     expect(find.text(question.en), findsOneWidget);
     // Không cấu hình URL nên phải rơi về lời giải gốc, có nhãn nói rõ nguồn.
-    expect(find.text('Giải thích AI'), findsOneWidget);
-    expect(find.text('Lời giải gốc'), findsOneWidget);
+    // Nhãn giao diện phải theo ngôn ngữ đang chọn, không chỉ nội dung câu hỏi.
+    expect(find.text('AI explanation'), findsOneWidget);
+    expect(find.text('Giải thích AI'), findsNothing);
+    expect(find.text('Original explanation'), findsOneWidget);
     expect(find.text(question.explanationEn), findsOneWidget);
+    // Tên khối trong nhãn câu hỏi cũng phải là tiếng Anh.
+    expect(find.textContaining('Dart basics'), findsOneWidget);
     // Nút đọc lời giải và hỏi lại đều có mặt và bấm được.
     expect(
-      find.widgetWithText(OutlinedButton, 'Nghe lời giải'),
+      find.widgetWithText(OutlinedButton, 'Read explanation'),
       findsOneWidget,
     );
-    expect(find.widgetWithText(OutlinedButton, 'Hỏi lại'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'Ask again'), findsOneWidget);
     // Không còn ô nhập / nút gửi của bản giữ chỗ cũ.
     expect(find.byType(TextField), findsNothing);
     expect(find.text('Gửi câu hỏi'), findsNothing);

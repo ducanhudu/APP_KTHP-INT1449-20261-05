@@ -110,6 +110,23 @@ class AppStrings {
     required this.noWeaknessHint,
     required this.accuracyText,
     required this.weakTopicBadge,
+    required this.topicShort,
+    required this.aiPanelTitle,
+    required this.aiFallbackLabel,
+    required this.aiQuestionRef,
+    required this.aiLoading,
+    required this.aiNoQuestion,
+    required this.aiGeneratedLabel,
+    required this.aiAccessCodeTitle,
+    required this.aiAccessCodeHint,
+    required this.aiAccessCodeButton,
+    required this.aiAskAgain,
+    required this.ttsListen,
+    required this.ttsStop,
+    required this.ttsAudioPermission,
+    required this.cancelButton,
+    required this.saveButton,
+    required this.closeButton,
   });
 
   final String appTitle;
@@ -216,6 +233,25 @@ class AppStrings {
   final String noWeaknessHint;
   final String Function(int percent) accuracyText;
   final String weakTopicBadge;
+
+  /// Nhãn khối rút gọn cho panel AI: `K01 · Dart căn bản`.
+  final String Function(int topic) topicShort;
+  final String aiPanelTitle;
+  final String aiFallbackLabel;
+  final String Function(int id, String topic) aiQuestionRef;
+  final String aiLoading;
+  final String aiNoQuestion;
+  final String aiGeneratedLabel;
+  final String aiAccessCodeTitle;
+  final String aiAccessCodeHint;
+  final String aiAccessCodeButton;
+  final String aiAskAgain;
+  final String ttsListen;
+  final String ttsStop;
+  final String ttsAudioPermission;
+  final String cancelButton;
+  final String saveButton;
+  final String closeButton;
 
   /// Chọn bộ chuỗi theo ngôn ngữ đang dùng. Chế độ song ngữ hiển thị tiếng Việt
   /// cho nhãn giao diện vì nội dung đã có cả hai thứ tiếng.
@@ -329,6 +365,24 @@ class AppStrings {
     noWeaknessHint: 'Hãy hoàn thành một bài luyện tập hoặc thi thử để hệ thống gợi ý khối yếu cho bạn.',
     accuracyText: _viAccuracy,
     weakTopicBadge: 'Cần củng cố',
+    topicShort: _viTopicShort,
+    aiPanelTitle: 'Giải thích AI',
+    aiFallbackLabel: 'Lời giải gốc',
+    aiQuestionRef: _viAiQuestionRef,
+    aiLoading: 'Đang hỏi AI, có thể mất 10-60 giây…',
+    aiNoQuestion: 'Chưa có câu hỏi để giải thích.',
+    aiGeneratedLabel: 'AI giải thích',
+    aiAccessCodeTitle: 'Mã truy cập AI',
+    aiAccessCodeHint: 'Mã do nhóm cung cấp',
+    aiAccessCodeButton: 'Mã truy cập AI',
+    aiAskAgain: 'Hỏi lại',
+    ttsListen: 'Nghe lời giải',
+    ttsStop: 'Dừng đọc',
+    ttsAudioPermission:
+        'Không có quyền audio. Hãy bật trong Cài đặt để nghe giọng đọc.',
+    cancelButton: 'Hủy',
+    saveButton: 'Lưu',
+    closeButton: 'Đóng',
   );
 
   static const AppStrings english = AppStrings(
@@ -437,6 +491,24 @@ class AppStrings {
     noWeaknessHint: 'Complete a practice quiz or mock exam to get personalized recommendations.',
     accuracyText: _enAccuracy,
     weakTopicBadge: 'Needs review',
+    topicShort: _enTopicShort,
+    aiPanelTitle: 'AI explanation',
+    aiFallbackLabel: 'Original explanation',
+    aiQuestionRef: _enAiQuestionRef,
+    aiLoading: 'Asking AI, this can take 10-60 seconds…',
+    aiNoQuestion: 'No question to explain yet.',
+    aiGeneratedLabel: 'AI explanation',
+    aiAccessCodeTitle: 'AI access code',
+    aiAccessCodeHint: 'Code provided by your team',
+    aiAccessCodeButton: 'AI access code',
+    aiAskAgain: 'Ask again',
+    ttsListen: 'Read explanation',
+    ttsStop: 'Stop reading',
+    ttsAudioPermission:
+        'No audio permission. Enable it in Settings to hear the explanation.',
+    cancelButton: 'Cancel',
+    saveButton: 'Save',
+    closeButton: 'Close',
   );
 
   static String _viCounter(int index, int total, int answered) =>
@@ -476,4 +548,61 @@ class AppStrings {
       minutes > 0 ? '$minutes min $seconds sec' : '$seconds sec';
   static String _viAccuracy(int percent) => '$percent% chính xác';
   static String _enAccuracy(int percent) => '$percent% accuracy';
+
+  /// Tên khối rút gọn cho nhãn nhỏ ở panel AI, cùng thứ tự với `topicNames`.
+  static String _viTopicShort(int topic) => _shortTopic(topic, const [
+    'Dart căn bản',
+    'Công cụ',
+    'Widget',
+    'Bố cục',
+    'Material',
+    'Thích ứng',
+    'Tương tác',
+    'Hình ảnh',
+    'Điều hướng',
+    'Hoạt ảnh',
+    'Trợ năng',
+    'Trạng thái',
+    'Dữ liệu',
+    'Kiến trúc',
+    'Package',
+    'Kiểm thử',
+    'Hiệu năng',
+    'Đa nền tảng',
+    'Cấu hình',
+    'AI',
+  ]);
+
+  static String _enTopicShort(int topic) => _shortTopic(topic, const [
+    'Dart basics',
+    'Tooling',
+    'Widgets',
+    'Layout',
+    'Material',
+    'Responsive',
+    'Interaction',
+    'Images',
+    'Navigation',
+    'Animation',
+    'Accessibility',
+    'State',
+    'Data',
+    'Architecture',
+    'Packages',
+    'Testing',
+    'Performance',
+    'Cross-platform',
+    'Configuration',
+    'AI',
+  ]);
+
+  static String _shortTopic(int topic, List<String> names) {
+    final code = 'K${topic.toString().padLeft(2, '0')}';
+    if (topic < 1 || topic > names.length) return code;
+    return '$code · ${names[topic - 1]}';
+  }
+
+  static String _viAiQuestionRef(int id, String topic) => 'Câu #$id · $topic';
+  static String _enAiQuestionRef(int id, String topic) =>
+      'Question #$id · $topic';
 }

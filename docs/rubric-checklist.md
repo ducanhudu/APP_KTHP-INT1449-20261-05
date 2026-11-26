@@ -17,7 +17,7 @@ Không suy từ test pass thành mọi chức năng Android đều hoạt độn
 | Bộ thẻ, lịch SM-2, lưu sau mở lại | `test/sm2_test.dart`, `test/card_storage_prefs_test.dart` | Đạt tự động |
 | Nhắc ôn hằng ngày | `lib/reminder_service.dart`, receiver/boot permission trong manifest | Đã sửa cấu hình, build debug đạt; chờ thử phát thông báo và khởi động lại trên điện thoại |
 | Màn lỗi có thử lại | `test/error_state_test.dart` | Đạt tự động |
-| Nhãn Việt/Anh ở luồng chính | `test/quiz_flow_test.dart` | Đạt các màn có test; panel AI/camera còn nhãn Việt |
+| Nhãn Việt/Anh ở luồng chính | `test/quiz_flow_test.dart`, `test/learning_tools_test.dart` | Đạt các màn có test; màn camera và panel AI đã song ngữ |
 | AI giữ khóa ở server, chỉ giải thích câu trong ngân hàng | `server/server.test.js`, `test/ai_service_test.dart` | Đạt mock/stub; chưa nghiệm thu với API thật |
 | AI lỗi/mất mạng vẫn xem lời giải JSON | `test/ai_service_test.dart`, `test/learning_tools_test.dart` | Đạt tự động; chờ thử APK mất mạng |
 | Đọc tiếng Việt/Anh, đóng panel dừng đọc | `test/tts_service_test.dart` | Đạt kiểm thử channel; chờ nghe trên điện thoại có engine phù hợp |
