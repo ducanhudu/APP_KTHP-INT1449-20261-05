@@ -377,7 +377,10 @@ class _QuizHomeState extends State<QuizHome> {
               items: [
                 DropdownMenuItem(value: 0, child: Text(s.allTopics)),
                 for (var i = 1; i <= topicNames.length; i++)
-                  DropdownMenuItem(value: i, child: Text(topicLabel(i))),
+                  DropdownMenuItem(
+                    value: i,
+                    child: Text(topicLabel(i, language)),
+                  ),
               ],
               onChanged: (value) => setState(() => topic = value!),
             ),
@@ -563,7 +566,7 @@ class _QuizPageState extends State<QuizPage> {
           const SizedBox(height: 8),
           LinearProgressIndicator(value: answers.length / widget.items.length),
           const SizedBox(height: 16),
-          Text('${topicLabel(question.topic)} · ${question.level}'),
+          Text('${topicLabel(question.topic, language)} · ${question.level}'),
           const SizedBox(height: 8),
           QuestionPrompt(question: question, language: language),
           const SizedBox(height: 16),
@@ -719,7 +722,7 @@ class ResultPage extends StatelessWidget {
                 for (final entry in topics)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(topicLabel(entry.key)),
+                    title: Text(topicLabel(entry.key, language)),
                     subtitle: Text(
                       s.scoreLine(
                         entry.value.correct,
@@ -756,7 +759,7 @@ class ResultPage extends StatelessWidget {
             title: Text(
               s.reviewQuestionTitle(index, resolvedQuestion.id, status),
             ),
-            subtitle: Text(topicLabel(question.topic)),
+            subtitle: Text(topicLabel(question.topic, language)),
             trailing: IconButton(
               icon: const Icon(Icons.bookmark_border),
               tooltip: s.saveThisCard,

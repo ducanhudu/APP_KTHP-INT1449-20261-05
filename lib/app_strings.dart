@@ -48,6 +48,7 @@ class AppStrings {
     required this.correctAnswer,
     required this.correctAnswerChosen,
     required this.chosenOnly,
+    required this.cancelButton,
     required this.todaySubtitle,
     required this.todayHeading,
     required this.cardsTitle,
@@ -154,6 +155,7 @@ class AppStrings {
   final String correctAnswer;
   final String correctAnswerChosen;
   final String chosenOnly;
+  final String cancelButton;
   final String todaySubtitle;
   final String todayHeading;
   final String cardsTitle;
@@ -265,6 +267,7 @@ class AppStrings {
     correctAnswer: 'Đáp án đúng',
     correctAnswerChosen: 'Đáp án đúng · Bạn đã chọn',
     chosenOnly: 'Bạn đã chọn',
+    cancelButton: 'Hủy',
     todaySubtitle: 'Ôn Flutter và Dart',
     todayHeading: 'Hôm nay học gì?',
     cardsTitle: 'Ôn tập Flashcard (SM-2)',
@@ -374,6 +377,7 @@ class AppStrings {
     correctAnswer: 'Correct answer',
     correctAnswerChosen: 'Correct answer · Your choice',
     chosenOnly: 'Your choice',
+    cancelButton: 'Cancel',
     todaySubtitle: 'Practise Flutter and Dart',
     todayHeading: 'What will you study today?',
     cardsTitle: 'Flashcards (SM-2)',

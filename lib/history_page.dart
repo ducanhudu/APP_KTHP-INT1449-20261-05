@@ -55,7 +55,7 @@ class _HistoryPageState extends State<HistoryPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(s.retry == 'Try again' ? 'Cancel' : 'Hủy'),
+            child: Text(s.cancelButton),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
@@ -224,7 +224,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     );
                     final topicText = item.topic == 0
                         ? s.allTopics
-                        : topicLabel(item.topic);
+                        : topicLabel(item.topic, widget.language);
 
                     return Card(
                       elevation: 0,

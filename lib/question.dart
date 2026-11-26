@@ -40,8 +40,50 @@ const topicNames = [
   'Flutter và AI',
 ];
 
-String topicLabel(int topic) =>
-    'K${topic.toString().padLeft(2, '0')} · ${topicNames[topic - 1]}';
+/// Tên khối bằng tiếng Anh, cùng thứ tự với [topicNames].
+const topicNamesEn = [
+  'Dart basics',
+  'Tools and environment',
+  'Widgets and lifecycle',
+  'Layout',
+  'Material and Cupertino',
+  'Responsive design',
+  'Interaction and forms',
+  'Images and assets',
+  'Navigation',
+  'Animation',
+  'Accessibility',
+  'State management',
+  'Data and async',
+  'App architecture',
+  'Packages and plugins',
+  'Testing',
+  'Performance',
+  'Cross-platform Flutter',
+  'Configuration and security',
+  'Flutter and AI',
+];
+
+/// Tên khối theo ngôn ngữ nhãn giao diện. Chế độ song ngữ dùng tiếng Việt,
+/// giống cách [AppStrings] chọn bộ nhãn.
+String topicName(int topic, QuestionLanguage language) {
+  final names = language == QuestionLanguage.english
+      ? topicNamesEn
+      : topicNames;
+  if (topic < 1 || topic > names.length) {
+    return 'K${topic.toString().padLeft(2, '0')}';
+  }
+  return names[topic - 1];
+}
+
+String topicLabel(int topic, QuestionLanguage language) {
+  final code = 'K${topic.toString().padLeft(2, '0')}';
+  final names = language == QuestionLanguage.english
+      ? topicNamesEn
+      : topicNames;
+  if (topic < 1 || topic > names.length) return code;
+  return '$code · ${names[topic - 1]}';
+}
 
 class Choice {
   const Choice(this.id, this.vi, this.en);

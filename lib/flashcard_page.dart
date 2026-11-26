@@ -321,7 +321,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${topicLabel(question.topic)} · ${question.level}',
+                  '${topicLabel(question.topic, language)} · ${question.level}',
                   style: Theme.of(context).textTheme.labelMedium
                       ?.copyWith(color: Theme.of(context).colorScheme.primary),
                 ),

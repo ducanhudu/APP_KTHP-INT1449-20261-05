@@ -162,7 +162,7 @@ class TodayOverview extends StatelessWidget {
               for (final topic in [1, 3, 12])
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: Text(topicNames[topic - 1]),
+                  title: Text(topicName(topic, language)),
                   subtitle: Text(
                     '${questions.where((q) => q.topic == topic).length} ${s.unitQuestions}',
                   ),
@@ -242,7 +242,7 @@ class TodayOverview extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              title: Text(topicNames[item.topic - 1]),
+                              title: Text(topicName(item.topic, language)),
                               subtitle: Text(
                                 item.totalAnswered > 0
                                     ? s.accuracyText(item.accuracyPercent)
