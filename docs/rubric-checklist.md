@@ -17,11 +17,11 @@ Không suy từ test pass thành mọi chức năng Android đều hoạt độn
 | Bộ thẻ, lịch SM-2, lưu sau mở lại | `test/sm2_test.dart`, `test/card_storage_prefs_test.dart` | Đạt tự động |
 | Nhắc ôn hằng ngày | `lib/reminder_service.dart`, receiver/boot permission trong manifest | Đã sửa cấu hình, build debug đạt; chờ thử phát thông báo và khởi động lại trên điện thoại |
 | Màn lỗi có thử lại | `test/error_state_test.dart` | Đạt tự động |
-| Nhãn Việt/Anh ở luồng chính | `test/quiz_flow_test.dart` | Đạt các màn có test; panel AI/camera còn nhãn Việt |
+| Nhãn Việt/Anh ở luồng chính | `test/quiz_flow_test.dart` | Đạt các màn có test; màn camera đã song ngữ, panel AI còn nhãn Việt |
 | AI giữ khóa ở server, chỉ giải thích câu trong ngân hàng | `server/server.test.js`, `test/ai_service_test.dart` | Đạt mock/stub; chưa nghiệm thu với API thật |
 | AI lỗi/mất mạng vẫn xem lời giải JSON | `test/ai_service_test.dart`, `test/learning_tools_test.dart` | Đạt tự động; chờ thử APK mất mạng |
 | Đọc tiếng Việt/Anh, đóng panel dừng đọc | `test/tts_service_test.dart` | Đạt kiểm thử channel; chờ nghe trên điện thoại có engine phù hợp |
-| Mic: chép lời, sửa trước gửi, từ chối vẫn nhập tay | Chưa triển khai | Không đưa vào bản demo hiện tại |
+| Mic: chép lời, sửa trước gửi, từ chối vẫn nhập tay | `lib/speech_input_service.dart`, `test/speech_input_test.dart`, `docs/speech-input.md` | Đạt kiểm thử tự động bằng service giả; **chờ thử micro thật trên điện thoại** |
 | Camera/QR, đề 36, Blockchain | Ngoài phạm vi kế hoạch 4 ngày | Không công bố đã có |
 
 ## Điều kiện và gói nộp

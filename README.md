@@ -122,9 +122,11 @@ cài/mở trên OPPO CPH2599. Nghiệm thu APK mới và các ca còn chờ xem
 
 - **Ngân hàng câu hỏi**: tệp `assets/flutter_quiz_300.json` đóng gói trong APK,
   chỉ đọc, không sửa được lúc chạy.
-- **Phiên làm bài, điểm, danh sách câu sai**: chỉ nằm trong bộ nhớ (RAM) của
-  tiến trình. Đóng app là mất; **không có tệp nào được ghi ra**, không dùng cơ
-  sở dữ liệu.
+- **Phiên làm bài đang mở**: điểm và danh sách câu của lượt đang làm chỉ nằm trong
+  bộ nhớ (RAM) của tiến trình; đóng app giữa lượt là mất lượt đó.
+- **Lịch sử làm bài**: các lượt đã hoàn thành được lưu trong `SharedPreferences`
+  (key `flutter_lab_quiz_history_v1`, tối đa 100 lượt) để xem lại, xoá từng lượt
+  và phân tích điểm yếu. Đây là dữ liệu cục bộ, không gửi lên mạng.
 - **Bộ thẻ SM-2 và lịch ôn**: lưu trong `SharedPreferences` của Android
   (`FlutterSharedPreferences.xml`), gồm danh sách thẻ, số lần lặp, khoảng cách,
   hệ số dễ, ngày đến hạn và trạng thái bật/tắt nhắc ôn. Gỡ app là mất dữ liệu.
@@ -133,7 +135,11 @@ cài/mở trên OPPO CPH2599. Nghiệm thu APK mới và các ca còn chờ xem
     ngày", không hỏi khi mở app. Từ chối thì app vẫn dùng bình thường, chỉ không
     có thông báo.
   - `INTERNET` — chỉ dùng cho nút **"Hỏi AI"**. Không bấm thì không có request nào
-    rời khỏi máy: ngân hàng câu hỏi, bộ thẻ và điểm đều nằm trong app.
+    rời khỏi máy: ngân hàng câu hỏi, bộ thẻ, lịch sử và điểm đều nằm trong app.
+  - `RECORD_AUDIO` — chỉ xin khi người dùng bấm **"Nhập bằng giọng nói"**; không
+    hỏi lúc mở app. Từ chối thì vẫn nhập tay và tìm câu bình thường. Âm thanh do
+    bộ nhận dạng của hệ điều hành xử lý; app không gửi âm thanh hay bản chép lời
+    tới backend AI của nhóm.
   - `RECEIVE_BOOT_COMPLETED` — khôi phục lịch thông báo sau reboot/cập nhật APK,
     không có hộp thoại runtime riêng.
 
@@ -177,6 +183,21 @@ tiến trình lúc chụp, mở lại Camera để khôi phục ảnh có thể 
 
 Kế hoạch và tác dụng: [docs/camera-development-plan.md](docs/camera-development-plan.md).
 Kết quả kiểm tra: [docs/camera-validation.md](docs/camera-validation.md).
+
+### Nhập bằng giọng nói
+
+Trong Camera học tập → **Đọc chữ**, bấm **Nhập bằng giọng nói** rồi nói câu hỏi.
+Chữ nhận được điền vào ô nhập để bạn **kiểm tra và sửa trước khi** bấm *Tìm trong
+300 câu*: app không tự tìm, không tự gửi gì lên AI. Nội dung đã có trong ô được
+giữ lại và nối thêm, không bị xoá.
+
+Lần đầu dùng, Android hỏi quyền micro. **Từ chối thì vẫn nhập tay và tìm câu bình
+thường.** Ngôn ngữ nhận dạng đi theo ngôn ngữ giao diện (Việt/Anh); máy không có
+bộ nhận dạng tương ứng thì app báo rõ và vẫn cho nhập tay. Âm thanh do bộ nhận
+dạng của hệ điều hành xử lý (tuỳ thiết bị có thể là nhận dạng trên máy hoặc dịch
+vụ của Google); app không gửi âm thanh hay bản chép lời tới backend AI của nhóm.
+
+Phạm vi và cách nghiệm thu: [docs/speech-input.md](docs/speech-input.md).
 
 ### Ôn tập
 
