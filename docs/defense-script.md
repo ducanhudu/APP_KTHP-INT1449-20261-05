@@ -4,27 +4,34 @@
 
 | Thời gian | Người | Thao tác và nội dung |
 | --- | --- | --- |
-| 0:00–0:45 | Đức Anh | Giới thiệu Android Flutter, đề 32+33, 300 câu Việt–Anh; mở app trên thiết bị |
-| 0:45–1:45 | Huy | Chọn lượt luyện ngắn, chọn đúng/sai/bỏ trống, đổi ngôn ngữ giữ đáp án; nộp và xem tổng/khối |
-| 1:45–2:45 | Trí | Làm lại câu sai, lưu thẻ, lật và đánh giá nhớ; giải thích ngày đến hạn SM-2 và lưu sau mở lại |
-| 2:45–3:45 | Phúc | Mở giải thích AI đúng câu, nghe/dừng; thử fallback mất mạng hoặc server giả lập |
-| 3:45–5:00 | Cả nhóm | Đưa bằng chứng test hết giờ/SM-2, thông báo nếu đã thử thật; nêu giới hạn và phần việc từng người |
+| 0:00–0:40 | Đức Anh | Giới thiệu Android Flutter, đề 32+33, 300 câu Việt–Anh; mở app, chỉ tab Hôm nay có gợi ý khối yếu |
+| 0:40–1:40 | Huy | Luyện ngắn, đổi ngôn ngữ giữ đáp án, nộp và xem tổng/khối; mở **Lịch sử**, lọc Luyện tập/Thi thử, mở lại một lượt |
+| 1:40–2:40 | Trí | Làm lại câu sai, lưu thẻ, lật và đánh giá nhớ; giải thích ngày đến hạn SM-2; bấm **Luyện 10 câu điểm yếu** và nói rõ thứ tự chọn câu |
+| 2:40–3:50 | Phúc | **Camera học tập**: chọn ảnh mẫu, sửa chữ, tìm ra câu; thử QR; nêu giới hạn. Sau đó mở giải thích AI đúng câu, nghe/dừng, fallback |
+| 3:50–5:00 | Cả nhóm | Bằng chứng test; các ca còn chờ thiết bị thật (mic, thông báo, API thật); giới hạn và phần việc từng người |
 
 Không chờ thi đủ 50 phút hoặc nhắc ôn đến 20h trong buổi bảo vệ. Dùng bằng
 chứng kiểm thử tương ứng, nói rõ test đồng hồ giả và test thiết bị là hai loại.
 Chỉ demo AI thật sau khi nhóm đã cấu hình và thử trước; stub phải ghi rõ là stub.
-Không trình diễn camera/mic như tính năng hoạt động. Không chiếu khóa hay mã truy cập.
+Camera đã có kết quả trên OPPO ([camera-validation.md](camera-validation.md)) nên
+được demo, nhưng phải nói rõ ảnh mẫu dựng từ JSON chứ không phải ảnh chụp thật.
+Chưa demo **micro** như tính năng đã nghiệm thu: nếu chưa thử trên điện thoại, chỉ
+nêu đã có mã và test tự động, hoặc chuyển sang nhập tay.
+Không chiếu khóa hay mã truy cập.
 
-## Dàn ý 8 slide để nhóm đưa vào mẫu môn học
+## Dàn ý 10 slide để nhóm đưa vào mẫu môn học
 
 1. Bài toán, nhóm và phạm vi đề 32 + 33.
 2. Ngân hàng 300 câu, hai ngôn ngữ, topic và ID đáp án ổn định.
 3. Luồng luyện/thi → kết quả → làm lại sai → bộ thẻ.
 4. SM-2: trạng thái thẻ trước/sau đánh giá, lưu trữ và ngày đến hạn.
-5. Kiến trúc Flutter, storage, reminder, AI server và TTS.
-6. AI: prompt từ câu tin cậy, khóa server, mã truy cập demo, quota, fallback.
-7. Bằng chứng format/analyze/test/audit/build và các ca chờ thiết bị thật.
-8. Phân công thực tế, giới hạn và hướng phát triển.
+5. Lịch sử làm bài: bản ghi lưu gì, lưu ở đâu, xem lại và xoá.
+6. Luyện theo điểm yếu: cách tính khối yếu, thứ tự chọn câu, giới hạn của quy ước.
+7. Camera học tập: OCR/QR xử lý trên thiết bị, tìm câu, giới hạn đã biết.
+8. Kiến trúc Flutter, storage, reminder, AI server, TTS và mic.
+9. AI: prompt từ câu tin cậy, khóa server, mã truy cập demo, quota, fallback.
+10. Bằng chứng format/analyze/test/audit/build, các ca chờ thiết bị thật, phân công
+    thực tế, giới hạn và hướng phát triển.
 
 Đây là dàn ý, chưa phải file slide đã xuất. Nhóm chọn ảnh thật trong
 docs/screenshots và ghi đúng phiên bản ảnh. Không dùng ảnh bản cũ làm bằng
