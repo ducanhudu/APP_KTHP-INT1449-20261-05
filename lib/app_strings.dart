@@ -125,7 +125,6 @@ class AppStrings {
     required this.ttsListen,
     required this.ttsStop,
     required this.ttsAudioPermission,
-    required this.cancelButton,
     required this.saveButton,
     required this.closeButton,
   });
@@ -251,7 +250,6 @@ class AppStrings {
   final String ttsListen;
   final String ttsStop;
   final String ttsAudioPermission;
-  final String cancelButton;
   final String saveButton;
   final String closeButton;
 
@@ -383,7 +381,6 @@ class AppStrings {
     ttsStop: 'Dừng đọc',
     ttsAudioPermission:
         'Không có quyền audio. Hãy bật trong Cài đặt để nghe giọng đọc.',
-    cancelButton: 'Hủy',
     saveButton: 'Lưu',
     closeButton: 'Đóng',
   );
@@ -510,7 +507,6 @@ class AppStrings {
     ttsStop: 'Stop reading',
     ttsAudioPermission:
         'No audio permission. Enable it in Settings to hear the explanation.',
-    cancelButton: 'Cancel',
     saveButton: 'Save',
     closeButton: 'Close',
   );
