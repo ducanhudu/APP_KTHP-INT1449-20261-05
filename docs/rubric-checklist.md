@@ -5,7 +5,7 @@
 > đặt/hủy lịch, từ chối thông báo. Xem [bảng ca thử đầy đủ](physical-device-acceptance-2026-11-21.md).
 > Thông báo phát thực/reboot, hết đủ 50 phút và API thật vẫn chưa được nghiệm thu.
 > Cập nhật 26/11: main `7d972a0` đã merge camera học tập, lịch sử làm bài và luyện
-> theo điểm yếu; ba nhánh mic, panel AI song ngữ và tên khối song ngữ còn chờ merge.
+> theo điểm yếu; panel AI và tên khối đã song ngữ; nhánh mic còn chờ merge.
 
 Trạng thái phân biệt bằng chứng tự động với nghiệm thu trên điện thoại.
 Không suy từ test pass thành mọi chức năng Android đều hoạt động.

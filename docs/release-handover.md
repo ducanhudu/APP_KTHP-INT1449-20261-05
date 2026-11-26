@@ -20,27 +20,29 @@ Tác giả các commit mới: Duc Anh <ducanh.ptit.udu@gmail.com> theo yêu cầ
 | 4 | docs/release-acceptance-handover | Bằng chứng, bảng nghiệm thu, hướng dẫn APK và tài liệu bảo vệ |
 | 5 | chore/ci-release-artifacts | Build release trên CI Linux và lưu APK, checksum, SHA source trong artifact |
 
-## Trạng thái 26/11/2026
+## Trạng thái 27/11/2026
 
-Main hiện ở `7d972a0`, đã merge ba nhánh tính năng mới:
+Main đã merge sáu nhánh: ba tính năng mới và ba nhánh sửa lỗi/tài liệu.
 
 | Branch đã merge | Nội dung |
 | --- | --- |
 | feat/camera-question-scanner | OCR/QR xử lý trên thiết bị, tìm câu trong 300 câu, lưu thẻ, nối panel AI |
 | feat/quiz-history | Lưu lượt làm bài vào SharedPreferences, màn Lịch sử có lọc, xem lại và xoá |
 | feat/adaptive-weakness-practice | Phân tích khối yếu, nút "Luyện 10 câu điểm yếu" |
+| fix/topic-labels-language | Tên khối theo ngôn ngữ ở 8 vị trí, bỏ hack so sánh chuỗi ở màn Lịch sử |
+| fix/ai-panel-language | Panel AI song ngữ, sửa tràn layout 320 px |
+| docs/refresh-submission | Báo cáo, kịch bản bảo vệ và bảng nghiệm thu theo tính năng mới |
 
-Ba nhánh đang chờ review, **chưa merge** vào main:
+Một nhánh còn **chưa merge**:
 
 | Branch | Nội dung | Trạng thái |
 | --- | --- | --- |
-| feat/speech-input | Mic nhập câu hỏi qua `speech_to_text`; từ chối quyền vẫn nhập tay | CI 5/5 đạt (gồm build release); chờ thử micro thật |
-| fix/ai-panel-language | Panel AI song ngữ, sửa tràn layout 320 px | Chờ review |
-| fix/topic-labels-language | Tên khối theo ngôn ngữ ở 8 vị trí + bỏ hack so sánh chuỗi | Chờ review |
+| feat/speech-input | Mic nhập câu hỏi qua `speech_to_text`; từ chối quyền vẫn nhập tay | CI 5/5 đạt (gồm build release); chờ thử micro thật trên điện thoại rồi mới merge |
 
-Trên main ngày 26/11: `dart format --set-exit-if-changed` đạt, `flutter analyze`
-không issue, `flutter test` 83 test đạt. Số 56 test trong bảng dưới là mốc 20/11,
-không dùng thay số hiện tại.
+Trên main ngày 27/11: `dart format --set-exit-if-changed` đạt, `flutter analyze`
+không issue, `flutter test` 84 test đạt. Số 56 test trong bảng dưới là mốc 20/11,
+không dùng thay số hiện tại. Sau khi merge, một named argument `cancelButton` bị
+trùng do hai nhánh cùng thêm; đã xoá bản trùng và chạy lại toàn bộ kiểm tra.
 
 ## Kết quả kiểm tra
 

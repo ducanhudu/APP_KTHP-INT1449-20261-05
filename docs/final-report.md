@@ -114,7 +114,7 @@ Chạy format, flutter analyze, flutter test, node --test server/server.test.js 
 audit JSON. Test bao phủ chấm theo ID, xáo đáp án, đổi ngôn ngữ giữ lựa chọn,
 hết giờ, làm lại câu sai, lưu thẻ, SM-2, fallback AI, vòng đời TTS, lưu và đọc
 lịch sử, phân tích điểm yếu, tìm câu từ chữ OCR, mã QR hợp lệ/bị từ chối, và luồng
-mic với service giả. Bộ test trên main ngày 26/11 gồm 83 test.
+mic với service giả. Bộ test trên main ngày 27/11 gồm 84 test.
 Test server từ chối mã sai/prompt tùy ý/câu không tồn tại, kiểm quota và cache.
 
 Kết quả cuối và bảng nghiệm thu có trong release-handover.md. Cài và mở bản cũ
