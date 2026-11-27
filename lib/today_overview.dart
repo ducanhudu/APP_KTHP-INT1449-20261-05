@@ -185,6 +185,37 @@ class TodayOverview extends StatelessWidget {
           FutureBuilder<List<QuizAttempt>>(
             future: historyFuture,
             builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Card(
+                  elevation: 0,
+                  color: theme.colorScheme.errorContainer.withValues(
+                    alpha: 0.35,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: theme.colorScheme.error,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            s.errorHistoryLoad,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: onRetryCards,
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: Text(s.retry),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
               final history = snapshot.data ?? const [];
               return FutureBuilder<List<Sm2Item>>(
                 future: cardsFuture,
@@ -196,7 +227,7 @@ class TodayOverview extends StatelessWidget {
                     flashcards: cards,
                   );
                   final weak = analysis.topWeakTopics(3);
-                  if (!analysis.hasEnoughData || weak.isEmpty) {
+                  if (!analysis.hasEnoughData) {
                     return Card(
                       elevation: 0,
                       color: theme.colorScheme.surfaceContainerHighest
@@ -213,6 +244,32 @@ class TodayOverview extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 s.noWeaknessHint,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  if (weak.isEmpty) {
+                    return Card(
+                      elevation: 0,
+                      color: theme.colorScheme.primaryContainer.withValues(
+                        alpha: 0.4,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.verified_outlined,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                s.noWeaknessFound,
                                 style: theme.textTheme.bodyMedium,
                               ),
                             ),
@@ -250,7 +307,7 @@ class TodayOverview extends StatelessWidget {
                               subtitle: Text(
                                 item.totalAnswered > 0
                                     ? s.accuracyText(item.accuracyPercent)
-                                    : s.weakTopicBadge,
+                                    : s.dueCardsCount(item.cardCount),
                               ),
                               trailing: Chip(
                                 visualDensity: VisualDensity.compact,

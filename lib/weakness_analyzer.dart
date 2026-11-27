@@ -28,18 +28,24 @@ class TopicMastery {
   double get errorRate =>
       totalAnswered == 0 ? 0.0 : (wrongCount / totalAnswered);
 
-  /// Coi là khối yếu khi đã làm ít nhất 2 câu và tỷ lệ đúng dưới 70%,
-  /// hoặc có từ 2 thẻ flashcard cần ôn trong khối này.
+  /// Coi là khối yếu khi có dữ liệu quiz đạt tỷ lệ đúng thấp (< 70%, hoặc < 75%
+  /// nếu đã có câu trả lời sai/thẻ đến hạn), hoặc có từ 2 thẻ đến hạn cần ôn.
   bool get isWeak =>
       (totalAnswered >= 2 && accuracy < 0.7) ||
-      (cardCount >= 2 && accuracy < 0.75);
+      (totalAnswered > 0 && wrongCount > 0 && accuracy < 0.75) ||
+      (cardCount >= 2 && (totalAnswered == 0 || accuracy < 0.75));
 
   /// Điểm đánh giá mức độ yếu (càng cao càng cần ôn luyện).
+  ///
+  /// Không áp dụng phạt độ chính xác khi khối chưa có câu quiz nào được trả lời
+  /// (`totalAnswered == 0`), tránh xếp khối chỉ có thẻ ghi nhớ yếu hơn khối làm sai nhiều.
   double get weaknessScore {
     if (totalAnswered == 0 && cardCount == 0) return 0.0;
-    final accFactor = (1.0 - accuracy) * 0.6;
-    final errFactor = errorRate * 0.25;
-    final cardFactor = cardCount > 0 ? 0.15 : 0.0;
+    final accFactor = totalAnswered > 0 ? (1.0 - accuracy) * 0.6 : 0.0;
+    final errFactor = totalAnswered > 0 ? errorRate * 0.25 : 0.0;
+    final cardFactor = cardCount > 0
+        ? (cardCount.clamp(1, 5) / 5.0) * 0.15
+        : 0.0;
     return accFactor + errFactor + cardFactor;
   }
 }
@@ -73,7 +79,7 @@ class WeaknessAnalysisResult {
 class WeaknessAnalyzer {
   const WeaknessAnalyzer._();
 
-  /// Phân tích dữ liệu lịch sử làm bài và bộ thẻ flashcard.
+  /// Phân tích dữ liệu lịch sử làm bài và các thẻ flashcard còn đến hạn ôn.
   static WeaknessAnalysisResult analyze({
     required List<QuizAttempt> history,
     required List<Question> bank,
@@ -81,16 +87,20 @@ class WeaknessAnalyzer {
   }) {
     final questionMap = {for (final q in bank) q.id: q};
 
-    // Đếm số thẻ ghi nhớ theo từng khối
+    // Chỉ tính các thẻ còn đến hạn ôn (isDue) vào thống kê điểm yếu theo khối
+    final dueCards = [
+      for (final card in flashcards ?? const <Sm2Item>[])
+        if (card.isDue()) card,
+    ];
     final cardsPerTopic = <int, int>{};
-    for (final card in flashcards ?? const <Sm2Item>[]) {
+    for (final card in dueCards) {
       final q = questionMap[card.questionId];
       if (q != null) {
         cardsPerTopic.update(q.topic, (count) => count + 1, ifAbsent: () => 1);
       }
     }
 
-    // Tích lũy kết quả đúng / sai / bỏ trống theo từng khối
+    // Tích lũy kết quả đúng / sai / bỏ trống theo từng khối (không tính câu bỏ trống vào totalAnswered)
     final correctPerTopic = <int, int>{};
     final wrongPerTopic = <int, int>{};
     final skippedPerTopic = <int, int>{};
@@ -102,16 +112,17 @@ class WeaknessAnalyzer {
         final q = questionMap[qId];
         if (q == null) continue;
 
-        totalQuestionsAttempted++;
         final answer = attempt.answers[qId];
         if (answer == null) {
           skippedPerTopic.update(q.topic, (v) => v + 1, ifAbsent: () => 1);
-        } else if (answer == q.correctId) {
-          correctPerTopic.update(q.topic, (v) => v + 1, ifAbsent: () => 1);
-          totalPerTopic.update(q.topic, (v) => v + 1, ifAbsent: () => 1);
         } else {
-          wrongPerTopic.update(q.topic, (v) => v + 1, ifAbsent: () => 1);
+          totalQuestionsAttempted++;
           totalPerTopic.update(q.topic, (v) => v + 1, ifAbsent: () => 1);
+          if (answer == q.correctId) {
+            correctPerTopic.update(q.topic, (v) => v + 1, ifAbsent: () => 1);
+          } else {
+            wrongPerTopic.update(q.topic, (v) => v + 1, ifAbsent: () => 1);
+          }
         }
       }
     }
@@ -128,7 +139,6 @@ class WeaknessAnalyzer {
       );
     }
 
-    // Lọc và sắp xếp các khối có dữ liệu và có điểm yếu
     final activeTopics = stats.values
         .where((m) => m.totalAnswered > 0 || m.cardCount > 0)
         .toList();
@@ -136,14 +146,13 @@ class WeaknessAnalyzer {
     activeTopics.sort((a, b) => b.weaknessScore.compareTo(a.weaknessScore));
 
     final weakTopics = activeTopics
-        .where((m) => m.isWeak || m.accuracy < 0.75)
+        .where((m) => m.isWeak || (m.totalAnswered > 0 && m.accuracy < 0.75))
         .toList();
 
     return WeaknessAnalysisResult(
       topicStats: stats,
-      rankedWeakTopics: weakTopics.isNotEmpty ? weakTopics : activeTopics,
-      hasEnoughData:
-          totalQuestionsAttempted > 0 || (flashcards?.isNotEmpty ?? false),
+      rankedWeakTopics: weakTopics,
+      hasEnoughData: totalQuestionsAttempted > 0 || dueCards.isNotEmpty,
       totalQuestionsAttempted: totalQuestionsAttempted,
     );
   }
@@ -163,20 +172,26 @@ class WeaknessAnalyzer {
     // Xác định các khối mục tiêu
     final targetTopics = analysis.topWeakTopics(3).map((m) => m.topic).toSet();
 
-    // Thu thập các câu hỏi người dùng từng làm sai
-    final pastWrongIds = <int>{};
-    for (final attempt in history) {
+    // Chỉ xét kết quả trả lời gần nhất của từng câu hỏi để xác định câu từng làm sai
+    final sortedHistory = [...history]
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    final latestAnswerByQuestion = <int, String>{};
+    for (final attempt in sortedHistory) {
       for (final entry in attempt.answers.entries) {
-        final q = questionMap[entry.key];
-        if (q != null && entry.value != q.correctId) {
-          pastWrongIds.add(q.id);
-        }
+        latestAnswerByQuestion.putIfAbsent(entry.key, () => entry.value);
       }
     }
+    final pastWrongIds = <int>{
+      for (final entry in latestAnswerByQuestion.entries)
+        if (questionMap[entry.key] != null &&
+            entry.value != questionMap[entry.key]!.correctId)
+          entry.key,
+    };
 
-    // Thu thập ID các câu trong bộ thẻ flashcard
+    // Thu thập ID các câu còn đến hạn ôn trong bộ thẻ flashcard
     final cardIds = {
-      for (final card in flashcards ?? const <Sm2Item>[]) card.questionId,
+      for (final card in flashcards ?? const <Sm2Item>[])
+        if (card.isDue()) card.questionId,
     };
 
     final selectedQuestions = <Question>[];
@@ -188,7 +203,7 @@ class WeaknessAnalyzer {
       }
     }
 
-    // Ưu tiên 1: Câu hỏi từng làm sai thuộc khối yếu mục tiêu
+    // Ưu tiên 1: Câu hỏi có lần trả lời gần nhất bị sai thuộc khối yếu mục tiêu
     final targetPool =
         bank.where((q) => targetTopics.contains(q.topic)).toList()
           ..shuffle(rng);
@@ -197,7 +212,7 @@ class WeaknessAnalyzer {
       if (pastWrongIds.contains(q.id)) addQuestion(q);
     }
 
-    // Ưu tiên 2: Câu hỏi có trong bộ thẻ ghi nhớ thuộc khối yếu
+    // Ưu tiên 2: Câu hỏi có trong bộ thẻ ghi nhớ đến hạn thuộc khối yếu
     for (final q in targetPool) {
       if (cardIds.contains(q.id)) addQuestion(q);
     }

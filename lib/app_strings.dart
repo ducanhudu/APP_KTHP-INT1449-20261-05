@@ -111,7 +111,9 @@ class AppStrings {
     required this.practiceWeaknessBtn,
     required this.noWeaknessData,
     required this.noWeaknessHint,
+    required this.noWeaknessFound,
     required this.accuracyText,
+    required this.dueCardsCount,
     required this.weakTopicBadge,
     required this.topicShort,
     required this.aiPanelTitle,
@@ -238,7 +240,9 @@ class AppStrings {
   final String practiceWeaknessBtn;
   final String noWeaknessData;
   final String noWeaknessHint;
+  final String noWeaknessFound;
   final String Function(int percent) accuracyText;
+  final String Function(int count) dueCardsCount;
   final String weakTopicBadge;
 
   /// Nhãn khối rút gọn cho panel AI: `K01 · Dart căn bản`.
@@ -374,7 +378,10 @@ class AppStrings {
     practiceWeaknessBtn: 'Luyện 10 câu điểm yếu',
     noWeaknessData: 'Chưa đủ dữ liệu điểm yếu',
     noWeaknessHint: 'Hãy hoàn thành một bài luyện tập hoặc thi thử để hệ thống gợi ý khối yếu cho bạn.',
+    noWeaknessFound:
+        'Phong độ rất tốt! Hiện chưa ghi nhận khối kiến thức nào cần củng cố.',
     accuracyText: _viAccuracy,
+    dueCardsCount: _viDueCardsCount,
     weakTopicBadge: 'Cần củng cố',
     topicShort: _viTopicShort,
     aiPanelTitle: 'Giải thích AI',
@@ -506,7 +513,9 @@ class AppStrings {
     practiceWeaknessBtn: 'Practice 10 weak questions',
     noWeaknessData: 'Not enough data yet',
     noWeaknessHint: 'Complete a practice quiz or mock exam to get personalized recommendations.',
+    noWeaknessFound: 'Great job! No weak topics detected so far.',
     accuracyText: _enAccuracy,
+    dueCardsCount: _enDueCardsCount,
     weakTopicBadge: 'Needs review',
     topicShort: _enTopicShort,
     aiPanelTitle: 'AI explanation',
@@ -566,6 +575,8 @@ class AppStrings {
       minutes > 0 ? '$minutes min $seconds sec' : '$seconds sec';
   static String _viAccuracy(int percent) => '$percent% chính xác';
   static String _enAccuracy(int percent) => '$percent% accuracy';
+  static String _viDueCardsCount(int count) => '$count thẻ đến hạn cần ôn';
+  static String _enDueCardsCount(int count) => '$count cards due for review';
 
   /// Tên khối rút gọn cho nhãn nhỏ ở panel AI, cùng thứ tự với `topicNames`.
   static String _viTopicShort(int topic) => _shortTopic(topic, const [
