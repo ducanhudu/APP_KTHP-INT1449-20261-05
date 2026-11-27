@@ -111,7 +111,7 @@ void main() {
     );
 
     // Chọn đáp án A của câu 1.
-    await tester.tap(find.byType(ChoiceChip).first);
+    await tester.tap(find.byType(QuizOptionTile).first);
     await tester.pumpAndSettle();
     expect(find.text('Câu 1/3 · Đã chọn 1'), findsOneWidget);
 
@@ -122,9 +122,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Question 1/3 · Answered 1'), findsOneWidget);
-    final chips = tester.widgetList<ChoiceChip>(find.byType(ChoiceChip));
+    final options = tester.widgetList<QuizOptionTile>(
+      find.byType(QuizOptionTile),
+    );
     expect(
-      chips.where((chip) => chip.selected).length,
+      options.where((option) => option.selected).length,
       1,
       reason: 'đáp án đã chọn vẫn phải ở trạng thái chọn sau khi đổi ngôn ngữ',
     );
