@@ -75,7 +75,18 @@ Từ bản này, APK release được ký bằng keystore của nhóm thay cho d
 | Bản sao ngoài Git | `C:\Users\Admin\flutterlab-release-signing.txt` trên máy phát triển |
 | Chứng chỉ | `CN=Flutter Lab, OU=INT1449, O=Flutter Lab Team, L=Ha Noi, ST=Ha Noi, C=VN` |
 | SHA-256 chứng chỉ | `d08e4f7d745d5521d5dd9f4b56884b20d3c8d36601ca907f17c98e5e3f36cc38` |
-| APK release | 101.705.273 bytes; `apksigner verify --print-certs` đạt, không còn "Android Debug" |
+| APK release | 102.770.233 bytes (có `AI_API_URL` trỏ tới proxy đã deploy); `apksigner verify --print-certs` đạt, không còn "Android Debug" |
+| SHA-256 APK | `683AE87EAD85FCF07E4A51058A3F00619764B4C879303D8CE50925707EA877F2` |
+
+APK này build bằng:
+
+```powershell
+flutter build apk --release --dart-define=AI_API_URL=https://flutterlab-ai-proxy.onrender.com/explain
+```
+
+Đã kiểm tra chuỗi `flutterlab-ai-proxy.onrender.com` có trong gói APK, nên bản nộp
+không cần build lại mới dùng được AI. Mã truy cập vẫn phải nhập trong panel AI;
+không nằm trong APK.
 
 Kiểm tra lại:
 
