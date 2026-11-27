@@ -157,6 +157,9 @@ Nút "Hỏi AI về câu này" gọi `AiService` (`lib/ai_service.dart`):
 - **Proxy giữ khoá** có sẵn trong `server/`: không cần `npm install`, chạy bằng
   `node server/server.js`, đọc khoá từ biến môi trường `GEMINI_API_KEY`. Xem
   `server/README.md` để biết cách chạy thử bằng stub, chạy thật và đưa lên host.
+- **Deploy lên mạng**: `Dockerfile` ở gốc repo chạy được trên Render, Railway,
+  Cloud Run hoặc VPS có TLS; hướng dẫn từng bước và cách kiểm tra trong
+  `docs/deploy-ai.md`.
 - Server yêu cầu `AI_ACCESS_CODE`; nhập mã nhóm qua nút "Mã truy cập AI" trong
   panel. App chỉ gửi mã câu/ngôn ngữ, server tạo prompt từ dữ liệu tin cậy.
   Mã nhập chỉ ở RAM, không đóng gói trong APK. Xem giới hạn demo trong server/README.

@@ -1,0 +1,5 @@
+# Git trên Windows đang bật core.autocrlf; các tệp chạy trên Linux (Docker,
+# script) phải giữ LF, nếu không container có thể lỗi "\r: not found".
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+*.sh text eol=lf

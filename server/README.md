@@ -67,3 +67,9 @@ chia sẻ giữa nhiều instance. Khi mở cho nhiều người dùng, cần t�
 được xác thực, bộ đếm dùng chung và giới hạn ngân sách phía nhà cung cấp. Với
 reverse proxy, các người dùng có thể cùng chịu giới hạn IP của proxy. Không xem
 mã dùng chung là phương án xác thực người dùng cho sản phẩm công khai.
+
+## Triển khai lên mạng (PaaS/VPS)
+
+`Dockerfile` ở gốc repo đã gói server + ngân hàng câu hỏi; hướng dẫn Render,
+Railway, Cloud Run, VPS và cách kiểm tra nằm trong
+[`docs/deploy-ai.md`](../docs/deploy-ai.md). APK release phải trỏ tới URL HTTPS.

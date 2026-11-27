@@ -1,0 +1,13 @@
+{
+  "name": "flutter-lab-ai-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Proxy giữ khoá Gemini cho app Flutter Lab",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test server.test.js"
+  }
+}
