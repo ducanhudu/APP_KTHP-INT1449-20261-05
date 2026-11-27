@@ -76,7 +76,7 @@ Từ bản này, APK release được ký bằng keystore của nhóm thay cho d
 | Chứng chỉ | `CN=Flutter Lab, OU=INT1449, O=Flutter Lab Team, L=Ha Noi, ST=Ha Noi, C=VN` |
 | SHA-256 chứng chỉ | `d08e4f7d745d5521d5dd9f4b56884b20d3c8d36601ca907f17c98e5e3f36cc38` |
 | APK release | 102.770.233 bytes (có `AI_API_URL` trỏ tới proxy đã deploy); `apksigner verify --print-certs` đạt, không còn "Android Debug" |
-| SHA-256 APK | `683AE87EAD85FCF07E4A51058A3F00619764B4C879303D8CE50925707EA877F2` |
+| SHA-256 APK | `5AEC3E2EDD2F3A0D6C52311B4347F9AD63565B070D60C808ABC79794A7A48D3E` |
 
 APK này build bằng:
 

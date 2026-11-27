@@ -25,6 +25,7 @@ class TodayOverview extends StatelessWidget {
     this.onAdaptivePractice,
     this.language = QuestionLanguage.vietnamese,
     this.onCameraRequested,
+    this.onAiTutor,
   });
 
   final List<Question> questions;
@@ -50,6 +51,9 @@ class TodayOverview extends StatelessWidget {
   /// Ngôn ngữ của nhãn giao diện.
   final QuestionLanguage language;
   final VoidCallback? onCameraRequested;
+
+  /// Mở panel Gia sư AI với danh sách câu đã làm sai (do màn chính cung cấp).
+  final VoidCallback? onAiTutor;
 
   @override
   Widget build(BuildContext context) {
@@ -282,8 +286,14 @@ class TodayOverview extends StatelessWidget {
                 leading: const Icon(Icons.auto_awesome_outlined),
                 title: Text(s.aiTutor),
                 subtitle: Text(s.aiTutorSubtitle),
-                trailing: Chip(label: Text(s.soon)),
-                onTap: () => showLearningTool(context, LearningTool.assistant),
+                trailing: const Icon(Icons.chevron_right),
+                onTap:
+                    onAiTutor ??
+                    () => showLearningTool(
+                      context,
+                      LearningTool.assistant,
+                      language: language,
+                    ),
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
               ListTile(

@@ -127,6 +127,8 @@ class AppStrings {
     required this.ttsAudioPermission,
     required this.saveButton,
     required this.closeButton,
+    required this.aiTutorPickTitle,
+    required this.aiTutorNoHistory,
   });
 
   final String appTitle;
@@ -252,6 +254,8 @@ class AppStrings {
   final String ttsAudioPermission;
   final String saveButton;
   final String closeButton;
+  final String aiTutorPickTitle;
+  final String aiTutorNoHistory;
 
   /// Chọn bộ chuỗi theo ngôn ngữ đang dùng. Chế độ song ngữ hiển thị tiếng Việt
   /// cho nhãn giao diện vì nội dung đã có cả hai thứ tiếng.
@@ -383,6 +387,9 @@ class AppStrings {
         'Không có quyền audio. Hãy bật trong Cài đặt để nghe giọng đọc.',
     saveButton: 'Lưu',
     closeButton: 'Đóng',
+    aiTutorPickTitle: 'Chọn câu để hỏi AI',
+    aiTutorNoHistory:
+        'Chưa có câu nào làm sai để hỏi AI. Hãy làm một lượt luyện tập trước.',
   );
 
   static const AppStrings english = AppStrings(
@@ -509,6 +516,8 @@ class AppStrings {
         'No audio permission. Enable it in Settings to hear the explanation.',
     saveButton: 'Save',
     closeButton: 'Close',
+    aiTutorPickTitle: 'Pick a question to ask AI',
+    aiTutorNoHistory: 'No wrong answers yet. Finish a practice round first.',
   );
 
   static String _viCounter(int index, int total, int answered) =>
