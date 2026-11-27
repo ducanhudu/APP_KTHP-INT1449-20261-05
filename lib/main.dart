@@ -700,37 +700,80 @@ class _QuizPageState extends State<QuizPage> {
         ),
         child: SafeArea(
           top: false,
+          minimum: const EdgeInsets.only(bottom: 12),
           child: Center(
             heightFactor: 1,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 720),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      tooltip: s.prevQuestion,
-                      onPressed: index == 0 ? null : () => _goTo(index - 1),
-                      icon: const Icon(Icons.navigate_before),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Tooltip(
+                            message: s.prevQuestion,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(0, 44),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                              ),
+                              onPressed: index == 0
+                                  ? null
+                                  : () => _goTo(index - 1),
+                              icon: const Icon(Icons.navigate_before),
+                              label: Text(
+                                s.prevQuestion,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Tooltip(
+                            message: s.nextQuestion,
+                            child: FilledButton.tonalIcon(
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size(0, 44),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                              ),
+                              onPressed: index == widget.items.length - 1
+                                  ? null
+                                  : () => _goTo(index + 1),
+                              icon: const Icon(Icons.navigate_next),
+                              iconAlignment: IconAlignment.end,
+                              label: Text(
+                                s.nextQuestion,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Flexible(
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
                       child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 44),
+                        ),
                         onPressed: () {
                           if (!_tick()) _submit();
                         },
                         child: Text(s.submit),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: s.nextQuestion,
-                      onPressed: index == widget.items.length - 1
-                          ? null
-                          : () => _goTo(index + 1),
-                      icon: const Icon(Icons.navigate_next),
                     ),
                   ],
                 ),

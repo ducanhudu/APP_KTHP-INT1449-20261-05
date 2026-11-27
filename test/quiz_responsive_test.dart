@@ -170,9 +170,64 @@ void main() {
         );
 
         // Chuyển sang câu 2 và chọn đáp án.
-        await tester.tap(find.byTooltip('Câu tiếp theo'));
+        final nextButton = find.byTooltip('Câu tiếp theo');
+        final nextRect = tester.getRect(nextButton);
+        expect(
+          640.0 - nextRect.bottom,
+          greaterThanOrEqualTo(60.0),
+          reason: 'Nút Câu tiếp theo phải nằm cách xa cạnh dưới để tránh chạm nhầm thanh điều hướng hệ thống',
+        );
+        await tester.tap(nextButton);
         await tester.pumpAndSettle();
         expect(find.text('Câu 2/2 · Đã chọn 1'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'Tôn trọng safe area dưới khi thiết bị có thanh điều hướng hệ thống (48px)',
+      (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.padding = const FakeViewPadding(bottom: 48);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+          tester.view.resetPadding();
+        });
+
+        final items = [
+          QuizItem(makeLongQuestion(1), Random(0)),
+          QuizItem(makeShortQuestion(2), Random(0)),
+        ];
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(),
+            home: QuizPage(
+              items: items,
+              language: QuestionLanguage.vietnamese,
+              timed: false,
+              onLanguageChanged: (_) {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final nextRect = tester.getRect(find.byTooltip('Câu tiếp theo'));
+        final submitRect = tester.getRect(find.text('Nộp bài'));
+
+        // Thanh điều hướng hệ thống chiếm 48px từ 796..844.
+        expect(submitRect.bottom, lessThanOrEqualTo(796.0));
+        expect(
+          796.0 - nextRect.bottom,
+          greaterThanOrEqualTo(52.0),
+          reason: 'Nút Câu tiếp theo phải nằm phía trên nút Nộp bài và vùng điều hướng 48px',
+        );
+
+        await tester.tap(find.byTooltip('Câu tiếp theo'));
+        await tester.pumpAndSettle();
+        expect(find.text('Câu 2/2 · Đã chọn 0'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
