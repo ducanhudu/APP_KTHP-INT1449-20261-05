@@ -16,10 +16,12 @@ import 'flashcard_page.dart';
 import 'error_state.dart';
 import 'question.dart';
 import 'question_prompt.dart';
+import 'quiz_option_tile.dart';
 import 'reminder_service.dart';
 import 'sm2.dart';
 
 export 'question_prompt.dart';
+export 'quiz_option_tile.dart';
 
 void main() => runApp(const FlutterLab());
 
@@ -311,6 +313,7 @@ class _QuizHomeState extends State<QuizHome> {
                   allQuestions: questions,
                   language: language,
                   cardStorage: widget.storage,
+                  onRetryWrong: (wrong) => _runQuiz(wrong, wrong.length),
                 ),
               ),
             );
@@ -624,84 +627,225 @@ class _QuizPageState extends State<QuizPage> {
           ),
         ],
       ),
-      body: ListView(
-        key: ValueKey(index),
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(s.quizCounter(index + 1, widget.items.length, answers.length)),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(value: answers.length / widget.items.length),
-          const SizedBox(height: 16),
-          Text('${topicLabel(question.topic, language)} · ${question.level}'),
-          const SizedBox(height: 8),
-          QuestionPrompt(question: question, language: language),
-          const SizedBox(height: 16),
-          for (final (position, choice) in item.choices.indexed)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: ChoiceChip(
-                showCheckmark: false,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                label: Text(
-                  '${String.fromCharCode(65 + position)}. '
-                  '${language.display(choice.vi, choice.en)}',
-                ),
-                selected: answers[question.id] == choice.id,
-                onSelected: (selected) {
-                  if (_tick()) return;
-                  setState(() {
-                    if (selected) {
-                      answers[question.id] = choice.id;
-                    } else {
-                      answers.remove(question.id);
-                    }
-                  });
-                },
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const maxContentWidth = 720.0;
+            final basePadding = constraints.maxWidth < 380 ? 16.0 : 20.0;
+            final horizontalPadding =
+                constraints.maxWidth > maxContentWidth + basePadding * 2
+                ? (constraints.maxWidth - maxContentWidth) / 2
+                : basePadding;
+            final theme = Theme.of(context);
+            final colors = theme.colorScheme;
+            final selectedChoiceId = answers[question.id];
+            final isCorrect = selectedChoiceId == question.correctId;
+
+            return ListView(
+              key: ValueKey(index),
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                16,
+                horizontalPadding,
+                32,
               ),
-            ),
-          if (!widget.timed && answers[question.id] != null)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  '${answers[question.id] == question.correctId ? s.verdictCorrect : s.verdictReview}\n'
-                  '${language.display(question.explanationVi, question.explanationEn)}',
+              children: [
+                Text(
+                  s.quizCounter(index + 1, widget.items.length, answers.length),
                 ),
-              ),
-            ),
-        ],
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: answers.length / widget.items.length,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '${topicLabel(question.topic, language)} · ${question.level}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                QuestionPrompt(question: question, language: language),
+                const SizedBox(height: 16),
+                for (final (position, choice) in item.choices.indexed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: QuizOptionTile(
+                      label: String.fromCharCode(65 + position),
+                      text: language.display(choice.vi, choice.en),
+                      selected: selectedChoiceId == choice.id,
+                      onTap: () {
+                        if (_tick()) return;
+                        setState(() {
+                          if (selectedChoiceId == choice.id) {
+                            answers.remove(question.id);
+                          } else {
+                            answers[question.id] = choice.id;
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                if (!widget.timed && selectedChoiceId != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Card(
+                      color: isCorrect
+                          ? colors.primaryContainer.withValues(alpha: 0.45)
+                          : colors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: isCorrect
+                              ? colors.primary.withValues(alpha: 0.4)
+                              : colors.outlineVariant,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  isCorrect
+                                      ? Icons.check_circle_outline
+                                      : Icons.info_outline,
+                                  size: 20,
+                                  color: isCorrect
+                                      ? colors.primary
+                                      : colors.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    isCorrect
+                                        ? s.verdictCorrect
+                                        : s.verdictReview,
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: isCorrect
+                                          ? colors.onPrimaryContainer
+                                          : colors.onSurface,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              language.display(
+                                question.explanationVi,
+                                question.explanationEn,
+                              ),
+                              softWrap: true,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                tooltip: s.prevQuestion,
-                onPressed: index == 0 ? null : () => _goTo(index - 1),
-                icon: const Icon(Icons.navigate_before),
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: 12),
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Tooltip(
+                            message: s.prevQuestion,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(0, 44),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                              ),
+                              onPressed: index == 0
+                                  ? null
+                                  : () => _goTo(index - 1),
+                              icon: const Icon(Icons.navigate_before),
+                              label: Text(
+                                s.prevQuestion,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Tooltip(
+                            message: s.nextQuestion,
+                            child: FilledButton.tonalIcon(
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size(0, 44),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                              ),
+                              onPressed: index == widget.items.length - 1
+                                  ? null
+                                  : () => _goTo(index + 1),
+                              icon: const Icon(Icons.navigate_next),
+                              iconAlignment: IconAlignment.end,
+                              label: Text(
+                                s.nextQuestion,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 44),
+                        ),
+                        onPressed: () {
+                          if (!_tick()) _submit();
+                        },
+                        child: Text(s.submit),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              FilledButton(
-                onPressed: () {
-                  if (!_tick()) _submit();
-                },
-                child: Text(s.submit),
-              ),
-              IconButton(
-                tooltip: s.nextQuestion,
-                onPressed: index == widget.items.length - 1
-                    ? null
-                    : () => _goTo(index + 1),
-                icon: const Icon(Icons.navigate_next),
-              ),
-            ],
+            ),
           ),
         ),
       ),

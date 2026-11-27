@@ -104,6 +104,8 @@ class AppStrings {
     required this.historyExamLabel,
     required this.historyPracticeLabel,
     required this.historyDuration,
+    required this.errorHistoryLoad,
+    required this.historyReviewUnavailable,
     required this.weaknessHeading,
     required this.weaknessSubtitle,
     required this.practiceWeaknessBtn,
@@ -229,6 +231,8 @@ class AppStrings {
   final String historyExamLabel;
   final String historyPracticeLabel;
   final String Function(int minutes, int seconds) historyDuration;
+  final String errorHistoryLoad;
+  final String historyReviewUnavailable;
   final String weaknessHeading;
   final String weaknessSubtitle;
   final String practiceWeaknessBtn;
@@ -363,6 +367,8 @@ class AppStrings {
     historyExamLabel: 'Thi thử',
     historyPracticeLabel: 'Luyện tập',
     historyDuration: _viHistoryDuration,
+    errorHistoryLoad: 'Không đọc được lịch sử làm bài.',
+    historyReviewUnavailable: 'Không thể ôn lại vì câu hỏi không còn khả dụng.',
     weaknessHeading: 'Khối cần cải thiện',
     weaknessSubtitle: 'Gợi ý luyện tập theo điểm yếu từ các bài làm của bạn',
     practiceWeaknessBtn: 'Luyện 10 câu điểm yếu',
@@ -492,6 +498,9 @@ class AppStrings {
     historyExamLabel: 'Mock Exam',
     historyPracticeLabel: 'Practice',
     historyDuration: _enHistoryDuration,
+    errorHistoryLoad: 'Could not load quiz history.',
+    historyReviewUnavailable:
+        'Cannot review because these questions are no longer available.',
     weaknessHeading: 'Areas to improve',
     weaknessSubtitle: 'Personalized practice based on your weak areas',
     practiceWeaknessBtn: 'Practice 10 weak questions',

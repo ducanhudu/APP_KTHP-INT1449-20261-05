@@ -97,7 +97,7 @@ void main() {
     );
     await tester.tap(find.text('Mở bài'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(ChoiceChip).first);
+    await tester.tap(find.byType(QuizOptionTile).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Nộp bài'));
     await tester.pumpAndSettle();

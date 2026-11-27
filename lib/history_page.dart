@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'app_strings.dart';
 import 'card_storage.dart';
+import 'error_state.dart';
 import 'history_storage.dart';
 import 'main.dart';
 import 'question.dart';
@@ -18,12 +19,16 @@ class HistoryPage extends StatefulWidget {
     required this.allQuestions,
     required this.language,
     this.cardStorage = const SharedPrefsCardStorage(),
+    this.onRetryWrong,
   });
 
   final HistoryStorage historyStorage;
   final List<Question> allQuestions;
   final QuestionLanguage language;
   final CardStorage cardStorage;
+
+  /// Callback tùy chọn khi người dùng chọn "Làm lại X câu sai" từ màn xem lại.
+  final Future<void> Function(List<Question> wrongQuestions)? onRetryWrong;
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();
@@ -82,9 +87,7 @@ class _HistoryPageState extends State<HistoryPage> {
     _reload();
   }
 
-  void _reviewAttempt(QuizAttempt attempt) {
-    if (widget.allQuestions.isEmpty || attempt.questionIds.isEmpty) return;
-
+  Future<void> _reviewAttempt(QuizAttempt attempt) async {
     final questionMap = {for (final q in widget.allQuestions) q.id: q};
     final quizItems = <QuizItem>[];
     for (final qId in attempt.questionIds) {
@@ -93,7 +96,11 @@ class _HistoryPageState extends State<HistoryPage> {
         quizItems.add(QuizItem(question, Random(qId)));
       }
     }
-    if (quizItems.isEmpty) return;
+    if (quizItems.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.historyReviewUnavailable)));
+      return;
+    }
 
     final result = QuizResult(
       quizItems,
@@ -101,7 +108,7 @@ class _HistoryPageState extends State<HistoryPage> {
       expired: attempt.expired,
     );
 
-    Navigator.of(context).push(
+    final retry = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => ResultPage(
           result: result,
@@ -110,6 +117,65 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
       ),
     );
+    if (!mounted) return;
+
+    if (retry == true) {
+      final wrong = result.wrongQuestions.toList();
+      if (wrong.isNotEmpty) {
+        if (widget.onRetryWrong != null) {
+          await widget.onRetryWrong!(wrong);
+        } else {
+          await _runStandaloneRetry(wrong);
+        }
+      }
+    }
+
+    if (!mounted) return;
+    _reload();
+  }
+
+  Future<void> _runStandaloneRetry(List<Question> wrongQuestions) async {
+    var pool = wrongQuestions;
+    var activeLanguage = widget.language;
+    while (pool.isNotEmpty) {
+      if (!mounted) return;
+      final items = createQuiz(pool, pool.length);
+      final startTime = DateTime.now();
+      final quizResult = await Navigator.of(context).push<QuizResult>(
+        MaterialPageRoute(
+          builder: (_) => QuizPage(
+            items: items,
+            language: activeLanguage,
+            timed: false,
+            onLanguageChanged: (value) => activeLanguage = value,
+          ),
+        ),
+      );
+      if (!mounted || quizResult == null) return;
+      final duration = DateTime.now().difference(startTime).inSeconds;
+      final topics = items.map((item) => item.question.topic).toSet();
+      final attempt = QuizAttempt.fromResult(
+        result: quizResult,
+        isExam: false,
+        topic: topics.length == 1 ? topics.single : 0,
+        durationSeconds: duration,
+      );
+      try {
+        await widget.historyStorage.saveAttempt(attempt);
+      } catch (_) {}
+      if (!mounted) return;
+      final retryAgain = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => ResultPage(
+            result: quizResult,
+            language: activeLanguage,
+            storage: widget.cardStorage,
+          ),
+        ),
+      );
+      if (retryAgain != true) return;
+      pool = quizResult.wrongQuestions.toList();
+    }
   }
 
   String _formatDate(DateTime dt) {
@@ -175,6 +241,13 @@ class _HistoryPageState extends State<HistoryPage> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return ErrorState(
+                    message: s.errorHistoryLoad,
+                    retryLabel: s.retry,
+                    onRetry: _reload,
+                  );
                 }
                 final list = snapshot.data ?? const [];
                 final filtered = list.where((item) {
