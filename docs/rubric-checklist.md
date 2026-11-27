@@ -37,8 +37,12 @@ Không suy từ test pass thành mọi chức năng Android đều hoạt độn
 - APK debug đã build; bản cũ đã cài/mở trên OPPO CPH2599 trước đợt sửa này.
   Không dùng kết quả đó để nghiệm thu APK mới.
 - APK release: xem kết quả cuối cùng tại `docs/release-handover.md`.
-- APK release hiện dùng debug signing theo cấu hình có sẵn. Không đủ bằng chứng
-  cho tiêu chí ký khóa riêng. Không đưa keystore hoặc mật khẩu vào Git.
+- Từ 27/11, APK release build trên máy có `android/key.properties` được ký bằng
+  **keystore riêng của nhóm** (`CN=Flutter Lab, OU=INT1449`), không còn debug key.
+  Bằng chứng: `apksigner verify --print-certs` ghi SHA-256 chứng chỉ trong
+  `docs/release-handover.md`. Keystore và mật khẩu **không** nằm trong Git; bản
+  sao ngoài repo do nhóm giữ. APK do CI tạo vẫn dùng debug signing vì runner
+  không có khoá — nộp APK build cục bộ nếu tiêu chí yêu cầu đúng chữ ký.
 - Tài liệu báo cáo, kịch bản và phân công: `docs/release-handover.md`,
   `docs/final-report.md`, `docs/defense-script.md`.
 - Video thật, phản hồi người dùng ngoài nhóm, tổng duyệt cả bốn: chờ nhóm thực hiện.

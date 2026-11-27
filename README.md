@@ -95,8 +95,9 @@ Mỗi lần đẩy mã lên `main`, `feat/**`, `feature/**`, `fix/**`, `docs/**`
 | `AI proxy security tests` | Node.js 22 chạy test xác thực, phạm vi câu hỏi, quota và cache bằng upstream giả |
 
 Job Linux cũng build release và lưu artifact `flutter-lab-release-<SHA>` kèm
-checksum và commit source trong 14 ngày. APK hiện ký debug để demo; xem hướng
-dẫn tải và giới hạn chữ ký trong `docs/release-handover.md`.
+checksum và commit source trong 14 ngày. APK build trên máy có `android/key.properties`
+được ký bằng keystore của nhóm; APK do CI tạo dùng debug signing vì runner không
+có khoá. Xem hướng dẫn và cách kiểm chứng chữ ký trong `docs/release-handover.md`.
 
 Đối chiếu kết quả từng job trong GitHub Actions. Job build kiểm tra khả năng
 biên dịch APK; chạy thử giao diện trên thiết bị được kiểm tra riêng.

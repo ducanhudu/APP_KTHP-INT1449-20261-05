@@ -53,3 +53,9 @@ app.*.map.json
 .env.*
 server/.env
 server/.env.*
+
+# Bí mật ký release: keystore và mật khẩu không bao giờ commit.
+# Giữ bản sao ngoài Git (xem docs/release-handover.md).
+android/key.properties
+*.jks
+*.keystore
