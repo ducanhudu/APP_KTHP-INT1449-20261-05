@@ -61,7 +61,38 @@ trùng do hai nhánh cùng thêm; đã xoá bản trùng và chạy lại toàn 
 APK cục bộ: `build/app/outputs/flutter-apk/app-release.apk`.
 Source chức năng: `4e44ab537931540b0f9a6f54e7d97744aca4c69a`.
 SHA256: `5A9A7DD338761101EE523721323F04A384863003369A6988EBFA79345B3C9EC2`.
-Chữ ký debug chỉ dùng cài/demo, chưa đáp ứng ký bằng khóa riêng để phát hành.
+
+### Ký release bằng khoá riêng (27/11/2026)
+
+Từ bản này, APK release được ký bằng keystore của nhóm thay cho debug key.
+
+| Hạng mục | Giá trị |
+| --- | --- |
+| Keystore | `android/app/upload-keystore.jks` — PKCS12, RSA 2048, hiệu lực 10.000 ngày |
+| Alias | `flutterlab` |
+| Cấu hình | `android/key.properties` — **đã gitignore**, không có trong Git |
+| Bản sao ngoài Git | `C:\Users\Admin\flutterlab-release-signing.txt` trên máy phát triển |
+| Chứng chỉ | `CN=Flutter Lab, OU=INT1449, O=Flutter Lab Team, L=Ha Noi, ST=Ha Noi, C=VN` |
+| SHA-256 chứng chỉ | `d08e4f7d745d5521d5dd9f4b56884b20d3c8d36601ca907f17c98e5e3f36cc38` |
+| APK release | 101.705.273 bytes; `apksigner verify --print-certs` đạt, không còn "Android Debug" |
+
+Kiểm tra lại:
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+flutter build apk --release
+& "$env:LOCALAPPDATA\Android\sdk\build-tools\37.0.0\apksigner.bat" verify --print-certs build\app\outputs\flutter-apk\app-release.apk
+```
+
+Không có `android/key.properties` (ví dụ trên CI) thì Gradle tự quay về debug
+signing để build vẫn chạy — đã kiểm tra cấu hình Gradle không lỗi khi thiếu tệp.
+Vì vậy APK do CI tạo vẫn khác chữ ký với APK build cục bộ; muốn nộp bản ký khoá
+riêng thì nộp APK build trên máy có keystore.
+
+Mất keystore hoặc mật khẩu thì **không thể cập nhật đè** bản đã phát hành: phải
+tạo khoá mới và người dùng phải gỡ app trước khi cài. Keystore và mật khẩu không
+được commit; khi chuyển máy, chép `upload-keystore.jks` và `key.properties` theo
+cách an toàn (ví dụ USB, trình quản lý mật khẩu).
 
 Build release và flutter test phải chạy tuần tự. Trong lần kiểm tra này, chạy
 song song làm file GeneratedPluginRegistrant chứa integration_test lúc release
