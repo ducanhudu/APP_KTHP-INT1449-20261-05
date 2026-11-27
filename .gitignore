@@ -48,14 +48,17 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
-# Bí mật cấu hình AI: khoá chỉ nằm ở server/host, không bao giờ commit.
+# BÃ­ máº­t cáº¥u hÃ¬nh AI: khoÃ¡ chá»‰ náº±m á»Ÿ server/host, khÃ´ng bao giá» commit.
 .env
 .env.*
 server/.env
 server/.env.*
 
-# Bí mật ký release: keystore và mật khẩu không bao giờ commit.
-# Giữ bản sao ngoài Git (xem docs/release-handover.md).
+# BÃ­ máº­t kÃ½ release: keystore vÃ  máº­t kháº©u khÃ´ng bao giá» commit.
+# Giá»¯ báº£n sao ngoÃ i Git (xem docs/release-handover.md).
 android/key.properties
 *.jks
 *.keystore
+
+# Dữ liệu sao lưu từ thiết bị (thẻ SM-2, lịch sử) — không commit.
+backup/

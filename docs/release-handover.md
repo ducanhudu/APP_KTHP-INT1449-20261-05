@@ -135,6 +135,25 @@ có TLS), đúng như `server/README.md`.
 **Chưa** chứng minh nhà cung cấp AI thật: cần `GEMINI_API_KEY` của nhóm, chạy
 server **không** đặt `AI_UPSTREAM`, rồi gọi lại để có bằng chứng API thật.
 
+### Giữ dữ liệu khi đổi chữ ký (28/11/2026)
+
+Bản debug đang cài và bản release ký khoá nhóm **khác chữ ký**, nên cài bản này
+lên bản kia buộc phải gỡ app → mất thẻ SM-2 và lịch sử. Ba cách xử lý:
+
+| Tình huống | Việc làm | Giữ dữ liệu |
+| --- | --- | --- |
+| Test hằng ngày vẫn cần AI | `flutter build apk --debug --dart-define=AI_API_URL=https://flutterlab-ai-proxy.onrender.com/explain` rồi `adb install -r` (cùng chữ ký debug) | Có |
+| Chuyển sang bản ký khoá nhóm | `./tool/backup_app_data.ps1 -Action export` trước, gỡ app, cài `app-release.apk` | Không tự động — chỉ khôi phục được khi cài lại bản debug/profile rồi `-Action import` |
+| Chuyển sang máy khác | export ở máy cũ, cài bản debug ở máy mới, `-Action import` | Có |
+
+Script `tool/backup_app_data.ps1` đọc/ghi `shared_prefs/FlutterSharedPreferences.xml`
+qua `run-as`, nên **chỉ hoạt động với bản debug/profile**; bản release không
+debuggable nên không dùng được. Tệp xuất nằm trong `backup/` và đã được gitignore
+vì chứa tiến độ học của người dùng.
+
+Với bài nộp, dữ liệu trên máy thử không quan trọng: giảng viên cài bản release
+trên máy sạch. Chỉ cần giữ dữ liệu khi bạn muốn tiếp tục test trên máy mình.
+
 ### AI thật đã deploy — 28/11/2026
 
 Proxy đã chạy công khai bằng gói free của Render, tách khỏi repo nhóm:
