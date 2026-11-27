@@ -185,41 +185,30 @@ class TodayOverview extends StatelessWidget {
           FutureBuilder<List<QuizAttempt>>(
             future: historyFuture,
             builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return _WeaknessDataStatus(message: s.loadingWeakness);
+              }
               if (snapshot.hasError) {
-                return Card(
-                  elevation: 0,
-                  color: theme.colorScheme.errorContainer.withValues(
-                    alpha: 0.35,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: theme.colorScheme.error,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            s.errorHistoryLoad,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: onRetryCards,
-                          icon: const Icon(Icons.refresh, size: 18),
-                          label: Text(s.retry),
-                        ),
-                      ],
-                    ),
-                  ),
+                return _WeaknessDataStatus(
+                  message: s.errorHistoryLoad,
+                  onRetry: onRetryCards,
+                  retryLabel: s.retry,
                 );
               }
               final history = snapshot.data ?? const [];
               return FutureBuilder<List<Sm2Item>>(
                 future: cardsFuture,
                 builder: (context, cardSnap) {
+                  if (cardSnap.connectionState != ConnectionState.done) {
+                    return _WeaknessDataStatus(message: s.loadingWeakness);
+                  }
+                  if (cardSnap.hasError) {
+                    return _WeaknessDataStatus(
+                      message: s.errorWeaknessCardsLoad,
+                      onRetry: onRetryCards,
+                      retryLabel: s.retry,
+                    );
+                  }
                   final cards = cardSnap.data ?? const [];
                   final analysis = WeaknessAnalyzer.analyze(
                     history: history,
@@ -227,7 +216,8 @@ class TodayOverview extends StatelessWidget {
                     flashcards: cards,
                   );
                   final weak = analysis.topWeakTopics(3);
-                  if (!analysis.hasEnoughData) {
+                  if (!analysis.hasEnoughData ||
+                      (weak.isEmpty && analysis.totalQuestionsAttempted == 0)) {
                     return Card(
                       elevation: 0,
                       color: theme.colorScheme.surfaceContainerHighest
@@ -370,6 +360,64 @@ class TodayOverview extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Avoid displaying a verdict while either input is unavailable or refreshing.
+class _WeaknessDataStatus extends StatelessWidget {
+  const _WeaknessDataStatus({
+    required this.message,
+    this.onRetry,
+    this.retryLabel,
+  });
+
+  final String message;
+  final VoidCallback? onRetry;
+  final String? retryLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final failed = onRetry != null;
+    return Card(
+      elevation: 0,
+      color: failed
+          ? theme.colorScheme.errorContainer.withValues(alpha: 0.35)
+          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                if (failed)
+                  Icon(Icons.error_outline, color: theme.colorScheme.error)
+                else
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(message, style: theme.textTheme.bodyMedium),
+                ),
+              ],
+            ),
+            if (failed)
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: Text(retryLabel!),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

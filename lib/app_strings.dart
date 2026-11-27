@@ -112,6 +112,8 @@ class AppStrings {
     required this.noWeaknessData,
     required this.noWeaknessHint,
     required this.noWeaknessFound,
+    required this.loadingWeakness,
+    required this.errorWeaknessCardsLoad,
     required this.accuracyText,
     required this.dueCardsCount,
     required this.weakTopicBadge,
@@ -241,6 +243,8 @@ class AppStrings {
   final String noWeaknessData;
   final String noWeaknessHint;
   final String noWeaknessFound;
+  final String loadingWeakness;
+  final String errorWeaknessCardsLoad;
   final String Function(int percent) accuracyText;
   final String Function(int count) dueCardsCount;
   final String weakTopicBadge;
@@ -380,6 +384,9 @@ class AppStrings {
     noWeaknessHint: 'Hãy hoàn thành một bài luyện tập hoặc thi thử để hệ thống gợi ý khối yếu cho bạn.',
     noWeaknessFound:
         'Phong độ rất tốt! Hiện chưa ghi nhận khối kiến thức nào cần củng cố.',
+    loadingWeakness: 'Đang tải dữ liệu để phân tích điểm yếu…',
+    errorWeaknessCardsLoad:
+        'Chưa đọc được bộ thẻ để phân tích điểm yếu. Hãy thử lại.',
     accuracyText: _viAccuracy,
     dueCardsCount: _viDueCardsCount,
     weakTopicBadge: 'Cần củng cố',
@@ -514,6 +521,9 @@ class AppStrings {
     noWeaknessData: 'Not enough data yet',
     noWeaknessHint: 'Complete a practice quiz or mock exam to get personalized recommendations.',
     noWeaknessFound: 'Great job! No weak topics detected so far.',
+    loadingWeakness: 'Loading data to assess your weak areas…',
+    errorWeaknessCardsLoad:
+        'Could not load your cards to assess weak areas. Please try again.',
     accuracyText: _enAccuracy,
     dueCardsCount: _enDueCardsCount,
     weakTopicBadge: 'Needs review',
