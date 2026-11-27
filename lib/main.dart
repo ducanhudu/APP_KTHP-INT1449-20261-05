@@ -119,6 +119,71 @@ class _QuizHomeState extends State<QuizHome> {
     _refreshCards();
   }
 
+  /// Mở Gia sư AI với một câu người dùng đã làm sai gần đây.
+  ///
+  /// Panel AI cần câu hỏi cụ thể, còn nút ở tab Hôm nay không có ngữ cảnh, nên
+  /// phải cho chọn. Chưa có câu sai nào thì hướng dẫn làm một lượt luyện tập.
+  Future<void> _openAiTutor(List<Question> questions) async {
+    final history = await widget.historyStorage.loadHistory();
+    final bank = {for (final question in questions) question.id: question};
+    final wrong = <Question>[];
+    final seen = <int>{};
+    for (final attempt in history) {
+      for (final entry in attempt.answers.entries) {
+        final question = bank[entry.key];
+        if (question == null || entry.value == question.correctId) continue;
+        if (seen.add(question.id)) wrong.add(question);
+        if (wrong.length >= 10) break;
+      }
+      if (wrong.length >= 10) break;
+    }
+    if (!mounted) return;
+    if (wrong.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.aiTutorNoHistory)));
+      return;
+    }
+    final picked = await showModalBottomSheet<Question>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              s.aiTutorPickTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+          for (final question in wrong)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                language.display(question.vi, question.en),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                '${topicLabel(question.topic, language)} · #${question.id}',
+              ),
+              onTap: () => Navigator.pop(context, question),
+            ),
+        ],
+      ),
+    );
+    if (picked == null || !mounted) return;
+    await showLearningTool(
+      context,
+      LearningTool.assistant,
+      question: picked,
+      language: language,
+    );
+  }
+
   Future<void> _openCamera() async {
     await showLearningTool(
       context,
@@ -313,6 +378,7 @@ class _QuizHomeState extends State<QuizHome> {
             historyFuture: historyFuture,
             onAdaptivePractice: () => _startAdaptivePractice(questions),
             onCameraRequested: _openCamera,
+            onAiTutor: () => _openAiTutor(questions),
             onOpenCards: () => _openCards(questions),
             onQuickPractice: () => _start(questions, 10),
             onExam: () => _start(questions, 50, exam: true),

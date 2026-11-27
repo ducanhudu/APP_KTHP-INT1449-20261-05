@@ -170,6 +170,59 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Gia sư AI mở danh sách câu đã sai rồi mở panel giải thích', (
+    tester,
+  ) async {
+    final history = MemoryHistoryStorage([
+      QuizAttempt(
+        id: 'ai_seed',
+        timestamp: DateTime(2026, 11, 27, 19, 0),
+        isExam: false,
+        topic: 1,
+        totalQuestions: 1,
+        correct: 0,
+        wrong: 1,
+        skipped: 0,
+        durationSeconds: 12,
+        questionIds: [1],
+        answers: {1: 'D'},
+      ),
+    ]);
+    await open(tester, history);
+    final tile = find.text('Gia sư AI');
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    // Nút phải có ngữ cảnh câu hỏi, không mở panel rỗng.
+    expect(find.text('Chọn câu để hỏi AI'), findsOneWidget);
+    expect(find.textContaining('#1'), findsWidgets);
+    expect(find.text('Sắp có'), findsNothing);
+
+    await tester.tap(find.textContaining('#1').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Giải thích AI'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Gia sư AI hướng dẫn khi chưa có câu sai nào', (tester) async {
+    await open(tester, MemoryHistoryStorage());
+    final tile = find.text('Gia sư AI');
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Chưa có câu nào làm sai'), findsOneWidget);
+    expect(find.text('Chọn câu để hỏi AI'), findsNothing);
+  });
+
   testWidgets('Exam history ignores the selected practice topic', (
     tester,
   ) async {
