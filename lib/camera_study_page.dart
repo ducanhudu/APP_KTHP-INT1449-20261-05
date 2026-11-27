@@ -51,6 +51,19 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
   bool _searched = false;
   bool _listening = false;
 
+  /// Đang chờ plugin bật micro: chặn bấm lặp để `stop()` không chạy trước khi
+  /// `listen()` kịp bắt đầu.
+  bool _starting = false;
+
+  /// Mỗi phiên nghe có một số thứ tự; callback của phiên cũ bị bỏ qua.
+  int _listenGeneration = 0;
+
+  /// Tự thoát trạng thái "Đang nghe…" nếu plugin không phát sự kiện nào.
+  Timer? _listenWatchdog;
+
+  /// Nội dung đã dùng cho lần tìm gần nhất, để biết khi nào kết quả cũ hết đúng.
+  String _searchedText = '';
+
   String _t(String vi, String en) =>
       widget.language == QuestionLanguage.english ? en : vi;
 
@@ -120,7 +133,7 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
   }
 
   Future<void> _pick(ImageSource source) async {
-    if (_busy || _loadingBank) return;
+    if (_busy || _starting || _loadingBank) return;
     await _stopListening();
     setState(() {
       _busy = true;
@@ -182,16 +195,47 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
   void _search() {
     FocusScope.of(context).unfocus();
     unawaited(_stopListening());
+    final query = _text.text;
     setState(() {
       _error = null;
       _searched = true;
-      _matches = searchStudyQuestions(_bank, _text.text);
+      _searchedText = query.trim();
+      _matches = searchStudyQuestions(_bank, query);
+    });
+  }
+
+  void _cancelListenWatchdog() {
+    _listenWatchdog?.cancel();
+    _listenWatchdog = null;
+  }
+
+  /// Nếu plugin trả về mà không phát sự kiện nào (ví dụ bộ nhận dạng đang bận
+  /// nên `listen()` trả `false` và phía Dart bỏ qua), UI sẽ kẹt ở "Đang nghe…".
+  /// Hẹn giờ để tự thoát và báo lỗi thay vì treo.
+  void _armListenWatchdog(int generation) {
+    _cancelListenWatchdog();
+    _listenWatchdog = Timer(const Duration(seconds: 10), () {
+      if (!mounted || generation != _listenGeneration || !_listening) return;
+      unawaited(_stopListening());
+      setState(() {
+        _listening = false;
+        _error = _t(
+          'Micro không phản hồi. Hãy thử lại hoặc nhập tay.',
+          'The microphone did not respond. Try again or type the question.',
+        );
+      });
     });
   }
 
   /// Dừng micro nếu đang nghe, không xóa chữ đã nhận.
+  ///
+  /// Tăng [_listenGeneration] để bỏ callback đến muộn của phiên vừa dừng: khi
+  /// người dùng đã chuyển sang tìm câu/chọn ảnh/đổi chế độ, kết quả nhận dạng
+  /// về sau không được ghi đè nội dung mới.
   Future<void> _stopListening() async {
     if (!_listening) return;
+    _cancelListenWatchdog();
+    _listenGeneration++;
     if (mounted) setState(() => _listening = false);
     await _speech.stop();
   }
@@ -200,24 +244,50 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
   ///
   /// Cố ý **không** tự tìm câu: người dùng phải kiểm tra, sửa chữ rồi mới
   /// bấm "Tìm trong 300 câu".
+  ///
+  /// Mỗi lần bấm là một phiên nghe mới. Nếu lần trước đã tìm bằng chữ hiện tại
+  /// thì câu mới **thay thế** câu cũ; nếu người dùng đang soạn dở thì vẫn nối
+  /// thêm để không mất phần đã gõ.
   Future<void> _toggleMic() async {
+    // Đang bật micro: bỏ qua lần bấm nữa, tránh stop() chạy trước listen().
+    if (_starting) return;
     if (_listening) {
+      _cancelListenWatchdog();
       setState(() => _listening = false);
       await _speech.stop();
       return;
     }
     FocusScope.of(context).unfocus();
-    // Giữ phần chữ đã có để người dùng nói thêm thay vì bị xóa mất.
-    final base = _text.text.trim();
+    final base = _searched ? '' : _text.text.trim();
+    final generation = ++_listenGeneration;
+
     setState(() {
       _listening = true;
+      _starting = true;
       _speechNotice = null;
       _error = null;
     });
 
     void applyWords(String words, bool isFinal) {
-      if (!mounted) return;
+      if (!mounted || generation != _listenGeneration) return;
+      _cancelListenWatchdog();
       final spoken = words.trim();
+
+      // Không nghe được gì mà ô nhập đang trống: giữ nguyên nội dung cũ.
+      if (spoken.isEmpty && base.isEmpty) {
+        if (isFinal && mounted) {
+          setState(() {
+            _listening = false;
+            _starting = false;
+            _speechNotice = _t(
+              'Không nghe được nội dung. Hãy thử lại hoặc nhập tay.',
+              'Nothing was recognized. Try again or type the question.',
+            );
+          });
+        }
+        return;
+      }
+
       final combined = [
         if (base.isNotEmpty) base,
         if (spoken.isNotEmpty) spoken,
@@ -225,10 +295,15 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
       setState(() {
         _text.text = combined;
         _text.selection = TextSelection.collapsed(offset: combined.length);
-        _searched = false;
-        _matches = [];
         if (isFinal) {
           _listening = false;
+          _starting = false;
+          // Chỉ bỏ kết quả cũ khi nội dung khác lần tìm trước. Trong lúc đang
+          // nói (partial) giữ nguyên để trang không bị reset/nhảy lên đầu.
+          if (combined.trim() != _searchedText) {
+            _searched = false;
+            _matches = [];
+          }
           _speechNotice = spoken.isEmpty
               ? _t(
                   'Không nghe được nội dung. Hãy thử lại hoặc nhập tay.',
@@ -243,9 +318,11 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
     }
 
     void fail(SpeechInputFailure failure) {
-      if (!mounted) return;
+      if (!mounted || generation != _listenGeneration) return;
+      _cancelListenWatchdog();
       setState(() {
         _listening = false;
+        _starting = false;
         _error = _speechMessage(failure);
       });
     }
@@ -256,14 +333,25 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
         onWords: applyWords,
         onFailure: fail,
         onDone: () {
-          if (mounted && _listening) setState(() => _listening = false);
+          if (!mounted || generation != _listenGeneration) return;
+          _cancelListenWatchdog();
+          if (_listening) setState(() => _listening = false);
         },
       );
     } on SpeechInputException catch (error) {
       fail(error.failure);
+      return;
     } catch (_) {
       fail(SpeechInputFailure.failed);
+      return;
     }
+
+    if (!mounted) return;
+    // `listen()` đã trả về (thành công hoặc bị plugin từ chối).
+    setState(() => _starting = false);
+    if (generation != _listenGeneration || !_listening) return;
+    // Plugin có thể không phát sự kiện nào: hẹn giờ để không kẹt "Đang nghe…".
+    _armListenWatchdog(generation);
   }
 
   String _speechMessage(SpeechInputFailure failure) {
@@ -313,6 +401,7 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
 
   @override
   void dispose() {
+    _cancelListenWatchdog();
     _text.dispose();
     unawaited(_speech.dispose());
     super.dispose();
@@ -360,7 +449,7 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
               ),
             ],
             selected: {_mode},
-            onSelectionChanged: disabled
+            onSelectionChanged: disabled || _starting
                 ? null
                 : (values) {
                     unawaited(_stopListening());
@@ -463,7 +552,9 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
                 _listening ? Icons.stop_circle_outlined : Icons.mic_none,
               ),
               label: Text(
-                _listening
+                _starting
+                    ? _t('Đang bật micro…', 'Starting microphone…')
+                    : _listening
                     ? _t('Dừng ghi âm', 'Stop recording')
                     : _t('Nhập bằng giọng nói', 'Speak the question'),
               ),
@@ -485,7 +576,9 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
               ),
             const SizedBox(height: 12),
             FilledButton.icon(
-              onPressed: disabled || _text.text.trim().isEmpty ? null : _search,
+              onPressed: disabled || _listening || _text.text.trim().isEmpty
+                  ? null
+                  : _search,
               icon: const Icon(Icons.search),
               label: Text(_t('Tìm trong 300 câu', 'Search 300 questions')),
             ),
