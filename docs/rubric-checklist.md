@@ -20,8 +20,8 @@ Không suy từ test pass thành mọi chức năng Android đều hoạt độn
 | Nhắc ôn hằng ngày | `lib/reminder_service.dart`, receiver/boot permission trong manifest | Đã sửa cấu hình, build debug đạt; chờ thử phát thông báo và khởi động lại trên điện thoại |
 | Màn lỗi có thử lại | `test/error_state_test.dart` | Đạt tự động |
 | Nhãn Việt/Anh ở luồng chính | `test/quiz_flow_test.dart`, `test/learning_tools_test.dart` | Đạt các màn có test; màn camera và panel AI đã song ngữ |
-| AI giữ khóa ở server, chỉ giải thích câu trong ngân hàng | `server/server.test.js`, `test/ai_service_test.dart` | Đạt mock/stub; chưa nghiệm thu với API thật |
-| AI lỗi/mất mạng vẫn xem lời giải JSON | `test/ai_service_test.dart`, `test/learning_tools_test.dart` | Đạt tự động; chờ thử APK mất mạng |
+| AI giữ khóa ở server, chỉ giải thích câu trong ngân hàng | `server/server.test.js`, `test/ai_service_test.dart`, `integration_test/ai_proxy_native_test.dart` | Đạt tự động; đạt trên Android với proxy→upstream giả. **API nhà cung cấp thật chưa chạy** |
+| AI lỗi/mất mạng vẫn xem lời giải JSON | `test/ai_service_test.dart`, `integration_test/ai_proxy_native_test.dart` | Đạt tự động và trên Android: sai mã (401) và mất server đều rơi về lời giải JSON |
 | Đọc tiếng Việt/Anh, đóng panel dừng đọc | `test/tts_service_test.dart` | Đạt kiểm thử channel; chờ nghe trên điện thoại có engine phù hợp |
 | Lịch sử làm bài, lưu qua mở lại app | `test/history_storage_test.dart`, `test/merged_learning_flow_test.dart` | Đạt tự động; chờ thử trên máy thật |
 | Luyện theo điểm yếu từ lịch sử và bộ thẻ | `test/weakness_analyzer_test.dart` | Đạt tự động; chờ thử trên máy thật |

@@ -95,6 +95,35 @@ tạo khoá mới và người dùng phải gỡ app trước khi cài. Keystore
 được commit; khi chuyển máy, chép `upload-keystore.jks` và `key.properties` theo
 cách an toàn (ví dụ USB, trình quản lý mật khẩu).
 
+### AI qua proxy: kiểm tra trên Android (27/11/2026)
+
+`integration_test/ai_proxy_native_test.dart` chạy trên emulator Android 37.2, gọi
+thẳng `AiService.explain` qua HTTP tới proxy nội bộ (`10.0.2.2:8787`) với upstream
+là `server/stub-upstream.js`:
+
+| Ca | Kỳ vọng | Kết quả |
+| --- | --- | --- |
+| Proxy + upstream trả lời | Dùng nội dung AI, không fallback | Đạt — nhận `[Stub AI] …`, `fromFallback = false` |
+| Sai mã truy cập (401) | Rơi về lời giải JSON | Đạt — `fromFallback = true` |
+| Không có server | Rơi về lời giải JSON, không treo | Đạt — `fromFallback = true` |
+
+Chạy lại (cần hai tiến trình Node trên host):
+
+```powershell
+node server/stub-upstream.js
+$env:AI_UPSTREAM='http://127.0.0.1:9999/explain'; $env:GEMINI_API_KEY='demo'
+$env:AI_ACCESS_CODE='probe123'; $env:PORT='8787'; node server/server.js
+flutter test integration_test/ai_proxy_native_test.dart -d emulator-5554 --no-uninstall
+```
+
+Kết quả này chứng minh chuỗi app → proxy → phản hồi chạy **thật trên Android** và
+cơ chế fallback hoạt động ngoài test giả. Ghi nhận thêm: build debug gọi được HTTP
+tới `10.0.2.2`/`127.0.0.1`, còn APK release vẫn phải dùng HTTPS (tunnel hoặc host
+có TLS), đúng như `server/README.md`.
+
+**Chưa** chứng minh nhà cung cấp AI thật: cần `GEMINI_API_KEY` của nhóm, chạy
+server **không** đặt `AI_UPSTREAM`, rồi gọi lại để có bằng chứng API thật.
+
 Build release và flutter test phải chạy tuần tự. Trong lần kiểm tra này, chạy
 song song làm file GeneratedPluginRegistrant chứa integration_test lúc release
 biên dịch và gây lỗi. Chạy lại riêng bằng `flutter build apk --release` đã đạt;
