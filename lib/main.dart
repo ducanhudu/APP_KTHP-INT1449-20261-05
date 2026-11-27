@@ -248,6 +248,7 @@ class _QuizHomeState extends State<QuizHome> {
                   allQuestions: questions,
                   language: language,
                   cardStorage: widget.storage,
+                  onRetryWrong: (wrong) => _runQuiz(wrong, wrong.length),
                 ),
               ),
             );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -33,9 +34,24 @@ class SharedPrefsCardStorage implements CardStorage {
   const SharedPrefsCardStorage();
 
   static const String storageKey = 'flutter_quiz_cards_sm2';
+  static final Map<String, Future<void>> _queues = {};
 
-  @override
-  Future<List<Sm2Item>> loadCards() async {
+  /// Tuần tự hoá mọi thao tác ghi đọc-sửa-ghi theo [storageKey] để tránh race condition.
+  Future<T> _synchronized<T>(Future<T> Function() action) {
+    final previous = _queues[storageKey] ?? Future<void>.value();
+    final completer = Completer<void>();
+    _queues[storageKey] = completer.future;
+    return previous.catchError((_) {}).then((_) => action()).whenComplete(() {
+      if (identical(_queues[storageKey], completer.future)) {
+        _queues.remove(storageKey);
+      }
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    });
+  }
+
+  Future<List<Sm2Item>> _loadCardsUnlocked() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(storageKey);
@@ -46,10 +62,14 @@ class SharedPrefsCardStorage implements CardStorage {
 
       final cards = <Sm2Item>[];
       for (final element in decoded) {
-        if (element is Map<String, Object?>) {
-          cards.add(Sm2Item.fromJson(element));
-        } else if (element is Map) {
-          cards.add(Sm2Item.fromJson(Map<String, Object?>.from(element)));
+        try {
+          if (element is Map<String, Object?>) {
+            cards.add(Sm2Item.fromJson(element));
+          } else if (element is Map) {
+            cards.add(Sm2Item.fromJson(Map<String, Object?>.from(element)));
+          }
+        } catch (e) {
+          debugPrint('Bỏ qua thẻ ghi nhớ bị lỗi: $e');
         }
       }
       return cards;
@@ -59,57 +79,64 @@ class SharedPrefsCardStorage implements CardStorage {
     }
   }
 
-  @override
-  Future<void> saveCards(List<Sm2Item> cards) async {
+  Future<void> _saveCardsUnlocked(List<Sm2Item> cards) async {
     final prefs = await SharedPreferences.getInstance();
     final data = jsonEncode(cards.map((c) => c.toJson()).toList());
     await prefs.setString(storageKey, data);
   }
 
   @override
-  Future<int> addCards(Iterable<int> questionIds, {DateTime? now}) async {
-    final cards = await loadCards();
-    final existingIds = cards.map((c) => c.questionId).toSet();
-    var added = 0;
-
-    for (final qId in questionIds) {
-      if (!existingIds.contains(qId)) {
-        cards.add(Sm2Item.initial(questionId: qId, now: now));
-        existingIds.add(qId);
-        added++;
-      }
-    }
-
-    if (added > 0) {
-      await saveCards(cards);
-    }
-    return added;
-  }
+  Future<List<Sm2Item>> loadCards() => _loadCardsUnlocked();
 
   @override
-  Future<void> updateCard(Sm2Item item) async {
-    final cards = await loadCards();
+  Future<void> saveCards(List<Sm2Item> cards) =>
+      _synchronized(() => _saveCardsUnlocked(cards));
+
+  @override
+  Future<int> addCards(Iterable<int> questionIds, {DateTime? now}) =>
+      _synchronized(() async {
+        final cards = await _loadCardsUnlocked();
+        final existingIds = cards.map((c) => c.questionId).toSet();
+        var added = 0;
+
+        for (final qId in questionIds) {
+          if (!existingIds.contains(qId)) {
+            cards.add(Sm2Item.initial(questionId: qId, now: now));
+            existingIds.add(qId);
+            added++;
+          }
+        }
+
+        if (added > 0) {
+          await _saveCardsUnlocked(cards);
+        }
+        return added;
+      });
+
+  @override
+  Future<void> updateCard(Sm2Item item) => _synchronized(() async {
+    final cards = await _loadCardsUnlocked();
     final index = cards.indexWhere((c) => c.questionId == item.questionId);
     if (index != -1) {
       cards[index] = item;
     } else {
       cards.add(item);
     }
-    await saveCards(cards);
-  }
+    await _saveCardsUnlocked(cards);
+  });
 
   @override
-  Future<void> removeCard(int questionId) async {
-    final cards = await loadCards();
+  Future<void> removeCard(int questionId) => _synchronized(() async {
+    final cards = await _loadCardsUnlocked();
     cards.removeWhere((c) => c.questionId == questionId);
-    await saveCards(cards);
-  }
+    await _saveCardsUnlocked(cards);
+  });
 
   @override
-  Future<void> clear() async {
+  Future<void> clear() => _synchronized(() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(storageKey);
-  }
+  });
 }
 
 /// Hiện thực lưu trữ trong RAM dùng cho Unit Test và Widget Test.
@@ -123,42 +150,55 @@ class MemoryCardStorage implements CardStorage {
   }
 
   final Map<int, Sm2Item> _cards = {};
+  Future<void> _queue = Future<void>.value();
+
+  Future<T> _synchronized<T>(Future<T> Function() action) {
+    final previous = _queue;
+    final completer = Completer<void>();
+    _queue = completer.future;
+    return previous.catchError((_) {}).then((_) => action()).whenComplete(() {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    });
+  }
 
   @override
   Future<List<Sm2Item>> loadCards() async => _cards.values.toList();
 
   @override
-  Future<void> saveCards(List<Sm2Item> cards) async {
+  Future<void> saveCards(List<Sm2Item> cards) => _synchronized(() async {
     _cards.clear();
     for (final card in cards) {
       _cards[card.questionId] = card;
     }
-  }
+  });
 
   @override
-  Future<int> addCards(Iterable<int> questionIds, {DateTime? now}) async {
-    var added = 0;
-    for (final qId in questionIds) {
-      if (!_cards.containsKey(qId)) {
-        _cards[qId] = Sm2Item.initial(questionId: qId, now: now);
-        added++;
-      }
-    }
-    return added;
-  }
+  Future<int> addCards(Iterable<int> questionIds, {DateTime? now}) =>
+      _synchronized(() async {
+        var added = 0;
+        for (final qId in questionIds) {
+          if (!_cards.containsKey(qId)) {
+            _cards[qId] = Sm2Item.initial(questionId: qId, now: now);
+            added++;
+          }
+        }
+        return added;
+      });
 
   @override
-  Future<void> updateCard(Sm2Item item) async {
+  Future<void> updateCard(Sm2Item item) => _synchronized(() async {
     _cards[item.questionId] = item;
-  }
+  });
 
   @override
-  Future<void> removeCard(int questionId) async {
+  Future<void> removeCard(int questionId) => _synchronized(() async {
     _cards.remove(questionId);
-  }
+  });
 
   @override
-  Future<void> clear() async {
+  Future<void> clear() => _synchronized(() async {
     _cards.clear();
-  }
+  });
 }
