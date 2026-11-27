@@ -22,7 +22,7 @@ Tác giả các commit mới: Duc Anh <ducanh.ptit.udu@gmail.com> theo yêu cầ
 
 ## Trạng thái 27/11/2026
 
-Main đã merge sáu nhánh trước đợt tích hợp mic. Bản tích hợp ngày 27/11 bổ sung `feat/speech-input`; xem mục bên dưới.
+Main đã merge sáu nhánh trước đợt tích hợp mic. Bản tích hợp ngày 27/11 bổ sung `feat/speech-input`; sau đó là `chore/release-signing` (ký release bằng khoá riêng); xem mục bên dưới.
 
 | Branch đã merge | Nội dung |
 | --- | --- |
@@ -38,6 +38,7 @@ Tích hợp bổ sung ngày 27/11:
 | Branch | Nội dung | Trạng thái |
 | --- | --- | --- |
 | feat/speech-input | Mic nhập câu hỏi qua `speech_to_text`; từ chối quyền vẫn nhập tay | Đã tích hợp; 89 test Flutter đạt, analyze sạch; nghiệm thu micro thật được ghi riêng |
+| chore/release-signing | Ký APK release bằng keystore riêng; thiếu `key.properties` thì Gradle quay về debug signing | Đã merge; `apksigner` xác nhận `CN=Flutter Lab` thay cho Android Debug |
 
 Trên main ngày 27/11: `dart format --set-exit-if-changed` đạt, `flutter analyze`
 không issue, `flutter test` 89 test đạt sau tích hợp mic. Số 56 test trong bảng dưới là mốc 20/11,
