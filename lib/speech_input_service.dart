@@ -51,6 +51,7 @@ abstract class SpeechInputService {
 class NativeSpeechInputService implements SpeechInputService {
   final SpeechToText _speech = SpeechToText();
   bool _initialized = false;
+  List<LocaleName>? _cachedLocales;
   void Function(SpeechInputFailure failure)? _onFailure;
   void Function()? _onDone;
 
@@ -110,9 +111,12 @@ class NativeSpeechInputService implements SpeechInputService {
   }
 
   /// Chọn ngôn ngữ nhận dạng theo ngôn ngữ giao diện; `null` để hệ thống quyết.
+  ///
+  /// Danh sách locale được cache lại vì mỗi lần `locales()` là một lời gọi
+  /// platform, gọi lại trước mỗi phiên làm micro khởi động chậm.
   Future<String?> _localeId(bool english) async {
     try {
-      final locales = await _speech.locales();
+      final locales = _cachedLocales ??= await _speech.locales();
       final prefix = english ? 'en' : 'vi';
       for (final locale in locales) {
         final id = locale.localeId.replaceAll('_', '-').toLowerCase();
@@ -132,7 +136,10 @@ class NativeSpeechInputService implements SpeechInputService {
   }
 
   void _handleStatus(String status) {
-    if (status == 'done' || status == 'notListening') _onDone?.call();
+    // Chỉ 'done' mới là kết thúc phiên. 'notListening' được phát ngay khi bộ
+    // nhận dạng ngừng nghe, trước khi kết quả cuối về; coi nó là kết thúc sẽ
+    // tắt cờ sớm và cho phép mở phiên mới trong lúc phiên cũ còn đang đóng.
+    if (status == SpeechToText.doneStatus) _onDone?.call();
   }
 
   static SpeechInputFailure _mapError(String message) {
