@@ -1,0 +1,18 @@
+# Chỉ giữ thứ server cần: assets + server. Giảm thời gian build trên PaaS.
+.git
+.github
+build
+.dart_tool
+.gradle
+android
+ios
+web
+windows
+linux
+macos
+test
+integration_test
+docs
+node_modules
+*.md
+!server/*.js
