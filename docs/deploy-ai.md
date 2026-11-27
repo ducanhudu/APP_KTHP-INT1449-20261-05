@@ -3,6 +3,11 @@
 App chỉ cần **một URL HTTPS** trỏ tới `POST /explain`; khoá Gemini ở lại server.
 Tài liệu này dùng cho bản demo/nộp bài, không phải hạ tầng sản phẩm.
 
+> **Đã deploy (28/11/2026):** `https://flutterlab-ai-proxy.onrender.com` — Render
+> gói Free, repo riêng `4lanP/flutterlab-ai-proxy`, bí mật đặt trong Environment.
+> Bằng chứng gọi thật và các ca kiểm tra nằm trong `docs/release-handover.md`.
+> Gói free ngủ sau 15 phút; mở `/health` trước demo khoảng 2 phút.
+
 ## Cần deploy cái gì
 
 | Thành phần | Ghi chú |
