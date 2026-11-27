@@ -115,14 +115,40 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Android APK from clean checkout
+      # Maven Central và Gradle Plugin Portal trả 429 khi IP dùng chung bị giới
+      # hạn tần suất; Linux thử lại vài lần thay vì đánh đỏ cả build. Windows
+      # giữ lệnh đơn giản như trước để không đổi shell đang chạy tốt.
+      - name: Build Android APK from clean checkout (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if flutter build apk --debug; then
+              exit 0
+            fi
+            echo "Lần $attempt thất bại, chờ 30 giây rồi thử lại…"
+            sleep 30
+          done
+          exit 1
+
+      - name: Build Android APK from clean checkout (Windows)
+        if: runner.os == 'Windows'
         run: flutter build apk --debug
 
       # Keep Flutter commands sequential: concurrent test/build can regenerate
       # Android plugin registration for the wrong build mode.
       - name: Build release APK
         if: runner.os == 'Linux'
-        run: flutter build apk --release
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if flutter build apk --release; then
+              exit 0
+            fi
+            echo "Lần $attempt thất bại, chờ 30 giây rồi thử lại…"
+            sleep 30
+          done
+          exit 1
 
       - name: Record release checksum and source
         if: runner.os == 'Linux'
