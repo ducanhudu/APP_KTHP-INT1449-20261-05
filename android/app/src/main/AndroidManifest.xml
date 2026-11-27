@@ -5,6 +5,9 @@
     <!-- INTERNET chỉ dùng cho nút "Hỏi AI"; app không gửi dữ liệu nào khác ra ngoài.
          Bản debug tự có quyền này do Flutter chèn vào, nên thiếu nó chỉ lộ ra ở APK release. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- RECORD_AUDIO chỉ xin khi người dùng bấm "Nhập bằng giọng nói"; không hỏi lúc mở app.
+         Âm thanh do bộ nhận dạng của hệ điều hành xử lý, app không gửi tới backend AI. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <application
         android:label="Flutter Lab"
         android:name="${applicationName}"
@@ -63,6 +66,10 @@
         <!-- flutter_tts cần khai báo để Android 11+ tìm thấy engine đọc tiếng. -->
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
+        <!-- speech_to_text cần khai báo để Android 11+ tìm thấy bộ nhận dạng giọng nói. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
         </intent>
     </queries>
 </manifest>

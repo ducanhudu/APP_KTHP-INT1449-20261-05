@@ -5,7 +5,7 @@
 > đặt/hủy lịch, từ chối thông báo. Xem [bảng ca thử đầy đủ](physical-device-acceptance-2026-11-21.md).
 > Thông báo phát thực/reboot, hết đủ 50 phút và API thật vẫn chưa được nghiệm thu.
 > Cập nhật 26/11: main `7d972a0` đã merge camera học tập, lịch sử làm bài và luyện
-> theo điểm yếu; panel AI và tên khối đã song ngữ; nhánh mic còn chờ merge.
+> theo điểm yếu; panel AI và tên khối đã song ngữ; mic được tích hợp ngày 27/11; nghiệm thu micro thật theo bản APK mới.
 
 Trạng thái phân biệt bằng chứng tự động với nghiệm thu trên điện thoại.
 Không suy từ test pass thành mọi chức năng Android đều hoạt động.
@@ -26,7 +26,7 @@ Không suy từ test pass thành mọi chức năng Android đều hoạt độn
 | Lịch sử làm bài, lưu qua mở lại app | `test/history_storage_test.dart`, `test/merged_learning_flow_test.dart` | Đạt tự động; chờ thử trên máy thật |
 | Luyện theo điểm yếu từ lịch sử và bộ thẻ | `test/weakness_analyzer_test.dart` | Đạt tự động; chờ thử trên máy thật |
 | Camera/QR nhận câu hỏi từ ảnh | `test/question_search_test.dart`, `test/camera_study_page_test.dart`, `integration_test/camera_native_test.dart` | Đạt tự động và native trên OPPO 22–23/11 ([camera-validation.md](camera-validation.md)); ảnh chụp thật và quét QR trực tiếp chưa có |
-| Mic: chép lời, sửa trước gửi, từ chối vẫn nhập tay | Chưa triển khai | Không đưa vào bản demo hiện tại |
+| Mic: chép lời, sửa trước gửi, từ chối vẫn nhập tay | `lib/speech_input_service.dart`, `test/speech_input_test.dart`, `docs/speech-input.md` | Đã tích hợp; kiểm thử fake service và micro thật phải được phân biệt |
 | Đề 36 và Blockchain | Ngoài phạm vi kế hoạch | Không công bố đã có |
 
 ## Điều kiện và gói nộp

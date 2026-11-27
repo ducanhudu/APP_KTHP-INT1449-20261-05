@@ -22,7 +22,7 @@ Tác giả các commit mới: Duc Anh <ducanh.ptit.udu@gmail.com> theo yêu cầ
 
 ## Trạng thái 27/11/2026
 
-Main đã merge sáu nhánh: ba tính năng mới và ba nhánh sửa lỗi/tài liệu.
+Main đã merge sáu nhánh trước đợt tích hợp mic. Bản tích hợp ngày 27/11 bổ sung `feat/speech-input`; xem mục bên dưới.
 
 | Branch đã merge | Nội dung |
 | --- | --- |
@@ -33,14 +33,14 @@ Main đã merge sáu nhánh: ba tính năng mới và ba nhánh sửa lỗi/tài
 | fix/ai-panel-language | Panel AI song ngữ, sửa tràn layout 320 px |
 | docs/refresh-submission | Báo cáo, kịch bản bảo vệ và bảng nghiệm thu theo tính năng mới |
 
-Một nhánh còn **chưa merge**:
+Tích hợp bổ sung ngày 27/11:
 
 | Branch | Nội dung | Trạng thái |
 | --- | --- | --- |
-| feat/speech-input | Mic nhập câu hỏi qua `speech_to_text`; từ chối quyền vẫn nhập tay | CI 5/5 đạt (gồm build release); chờ thử micro thật trên điện thoại rồi mới merge |
+| feat/speech-input | Mic nhập câu hỏi qua `speech_to_text`; từ chối quyền vẫn nhập tay | Đã tích hợp; 89 test Flutter đạt, analyze sạch; nghiệm thu micro thật được ghi riêng |
 
 Trên main ngày 27/11: `dart format --set-exit-if-changed` đạt, `flutter analyze`
-không issue, `flutter test` 84 test đạt. Số 56 test trong bảng dưới là mốc 20/11,
+không issue, `flutter test` 89 test đạt sau tích hợp mic. Số 56 test trong bảng dưới là mốc 20/11,
 không dùng thay số hiện tại. Sau khi merge, một named argument `cancelButton` bị
 trùng do hai nhánh cùng thêm; đã xoá bản trùng và chạy lại toàn bộ kiểm tra.
 
@@ -118,7 +118,7 @@ chấp nhận mất dữ liệu trước khi gỡ/cài lại. Không commit APK 
 | M09 | Làm xong một lượt, mở Lịch sử thấy lượt đó; lọc Luyện tập/Thi thử; mở lại đúng điểm; xoá một lượt và xoá tất cả | Chờ điện thoại; đã có test tự động |
 | M10 | Làm sai vài câu cùng một khối, tab Hôm nay hiện khối đó; bấm "Luyện 10 câu điểm yếu" trả câu thuộc khối yếu | Chờ điện thoại; đã có test tự động |
 | M11 | Ảnh mẫu Việt/Anh: OCR ra chữ, tìm đúng K01-001; QR mở đúng câu; QR/URL lạ không mở trình duyệt | Đã có kết quả OPPO 22–23/11 ([camera-validation.md](camera-validation.md)); cần thử ảnh chụp thật |
-| M12 | Micro: bấm nút, cấp quyền, nói câu tiếng Việt, chữ vào ô, sửa rồi tìm; từ chối quyền vẫn nhập tay | Chờ điện thoại; nhánh `feat/speech-input` chưa merge |
+| M12 | Micro: bấm nút, cấp quyền, nói câu tiếng Việt, chữ vào ô, sửa rồi tìm; từ chối quyền vẫn nhập tay | Đã tích hợp; chờ nghiệm thu nhận chữ bằng micro thật |
 
 Thông báo đang dùng inexactAllowWhileIdle nên thời điểm phát có thể bị Android
 trì hoãn, đặc biệt khi tiết kiệm pin. Không cam kết đúng từng giây. Để thử lịch

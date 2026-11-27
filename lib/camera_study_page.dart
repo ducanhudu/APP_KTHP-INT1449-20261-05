@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'card_storage.dart';
 import 'question.dart';
 import 'question_prompt.dart';
 import 'question_search.dart';
+import 'speech_input_service.dart';
 import 'study_image_service.dart';
 
 class CameraStudyPage extends StatefulWidget {
@@ -15,6 +17,7 @@ class CameraStudyPage extends StatefulWidget {
     super.key,
     this.language = QuestionLanguage.vietnamese,
     this.imageService,
+    this.speechService,
     this.questions,
     this.storage = const SharedPrefsCardStorage(),
     this.onExplain,
@@ -22,6 +25,7 @@ class CameraStudyPage extends StatefulWidget {
 
   final QuestionLanguage language;
   final StudyImageService? imageService;
+  final SpeechInputService? speechService;
   final List<Question>? questions;
   final CardStorage storage;
   final void Function(BuildContext, Question, QuestionLanguage)? onExplain;
@@ -33,15 +37,19 @@ class CameraStudyPage extends StatefulWidget {
 class _CameraStudyPageState extends State<CameraStudyPage> {
   late final StudyImageService _service =
       widget.imageService ?? NativeStudyImageService();
+  late final SpeechInputService _speech =
+      widget.speechService ?? NativeSpeechInputService();
   final _text = TextEditingController();
   List<Question> _bank = [];
   List<QuestionMatch> _matches = [];
   StudyScanMode _mode = StudyScanMode.text;
   String? _path;
   String? _error;
+  String? _speechNotice;
   bool _loadingBank = true;
   bool _busy = false;
   bool _searched = false;
+  bool _listening = false;
 
   String _t(String vi, String en) =>
       widget.language == QuestionLanguage.english ? en : vi;
@@ -113,6 +121,7 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
 
   Future<void> _pick(ImageSource source) async {
     if (_busy || _loadingBank) return;
+    await _stopListening();
     setState(() {
       _busy = true;
       _error = null;
@@ -172,11 +181,119 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
 
   void _search() {
     FocusScope.of(context).unfocus();
+    unawaited(_stopListening());
     setState(() {
       _error = null;
       _searched = true;
       _matches = searchStudyQuestions(_bank, _text.text);
     });
+  }
+
+  /// Dừng micro nếu đang nghe, không xóa chữ đã nhận.
+  Future<void> _stopListening() async {
+    if (!_listening) return;
+    if (mounted) setState(() => _listening = false);
+    await _speech.stop();
+  }
+
+  /// Bật/tắt micro và chép lời vào ô nhập.
+  ///
+  /// Cố ý **không** tự tìm câu: người dùng phải kiểm tra, sửa chữ rồi mới
+  /// bấm "Tìm trong 300 câu".
+  Future<void> _toggleMic() async {
+    if (_listening) {
+      setState(() => _listening = false);
+      await _speech.stop();
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    // Giữ phần chữ đã có để người dùng nói thêm thay vì bị xóa mất.
+    final base = _text.text.trim();
+    setState(() {
+      _listening = true;
+      _speechNotice = null;
+      _error = null;
+    });
+
+    void applyWords(String words, bool isFinal) {
+      if (!mounted) return;
+      final spoken = words.trim();
+      final combined = [
+        if (base.isNotEmpty) base,
+        if (spoken.isNotEmpty) spoken,
+      ].join(' ');
+      setState(() {
+        _text.text = combined;
+        _text.selection = TextSelection.collapsed(offset: combined.length);
+        _searched = false;
+        _matches = [];
+        if (isFinal) {
+          _listening = false;
+          _speechNotice = spoken.isEmpty
+              ? _t(
+                  'Không nghe được nội dung. Hãy thử lại hoặc nhập tay.',
+                  'Nothing was recognized. Try again or type the question.',
+                )
+              : _t(
+                  'Đã chép lời. Kiểm tra, sửa rồi bấm Tìm trong 300 câu.',
+                  'Transcribed. Review, edit, then search the 300 questions.',
+                );
+        }
+      });
+    }
+
+    void fail(SpeechInputFailure failure) {
+      if (!mounted) return;
+      setState(() {
+        _listening = false;
+        _error = _speechMessage(failure);
+      });
+    }
+
+    try {
+      await _speech.listen(
+        english: widget.language == QuestionLanguage.english,
+        onWords: applyWords,
+        onFailure: fail,
+        onDone: () {
+          if (mounted && _listening) setState(() => _listening = false);
+        },
+      );
+    } on SpeechInputException catch (error) {
+      fail(error.failure);
+    } catch (_) {
+      fail(SpeechInputFailure.failed);
+    }
+  }
+
+  String _speechMessage(SpeechInputFailure failure) {
+    switch (failure) {
+      case SpeechInputFailure.permissionDenied:
+        return _t(
+          'Chưa được phép dùng micro. Hãy cấp quyền trong Cài đặt hoặc nhập câu hỏi bên dưới.',
+          'Microphone access was denied. Enable it in Settings or type the question below.',
+        );
+      case SpeechInputFailure.noMatch:
+        return _t(
+          'Không nghe rõ nội dung. Hãy thử lại gần micro hơn hoặc nhập tay.',
+          'Speech was not clear. Try again closer to the microphone or type it.',
+        );
+      case SpeechInputFailure.busy:
+        return _t(
+          'Bộ nhận dạng đang bận. Đợi một chút rồi thử lại hoặc nhập tay.',
+          'The recognizer is busy. Wait a moment and try again, or type it.',
+        );
+      case SpeechInputFailure.unavailable:
+        return _t(
+          'Thiết bị chưa có bộ nhận dạng giọng nói phù hợp. Hãy nhập câu hỏi bên dưới.',
+          'No speech recognizer is available on this device. Type the question below.',
+        );
+      case SpeechInputFailure.failed:
+        return _t(
+          'Không dùng được micro lúc này. Hãy thử lại hoặc nhập tay.',
+          'Speech input failed. Try again or type the question.',
+        );
+    }
   }
 
   Future<void> _openQuestion(Question question) async {
@@ -197,6 +314,7 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
   @override
   void dispose() {
     _text.dispose();
+    unawaited(_speech.dispose());
     super.dispose();
   }
 
@@ -223,8 +341,8 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
           const SizedBox(height: 12),
           Text(
             _t(
-              'Chụp hoặc chọn ảnh. Chữ và QR được xử lý trên thiết bị; ảnh không gửi lên backend AI.',
-              'Take or choose a photo. Text and QR processing happens on your device; images are not sent to the AI backend.',
+              'Chụp hoặc chọn ảnh, hay nói câu hỏi bằng micro. Chữ và QR được xử lý trên thiết bị; ảnh không gửi lên backend AI.',
+              'Take or choose a photo, or speak the question. Text and QR processing happens on your device; images are not sent to the AI backend.',
             ),
           ),
           const SizedBox(height: 20),
@@ -244,13 +362,17 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
             selected: {_mode},
             onSelectionChanged: disabled
                 ? null
-                : (values) => setState(() {
-                    _mode = values.single;
-                    _text.clear();
-                    _matches = [];
-                    _searched = false;
-                    _error = null;
-                  }),
+                : (values) {
+                    unawaited(_stopListening());
+                    setState(() {
+                      _mode = values.single;
+                      _text.clear();
+                      _matches = [];
+                      _searched = false;
+                      _error = null;
+                      _speechNotice = null;
+                    });
+                  },
           ),
           const SizedBox(height: 16),
           Wrap(
@@ -318,6 +440,7 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
               onChanged: (_) => setState(() {
                 _searched = false;
                 _matches = [];
+                _speechNotice = null;
               }),
               decoration: InputDecoration(
                 labelText: _t('Nội dung câu hỏi', 'Question text'),
@@ -333,6 +456,33 @@ class _CameraStudyPageState extends State<CameraStudyPage> {
                 border: const OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: disabled ? null : _toggleMic,
+              icon: Icon(
+                _listening ? Icons.stop_circle_outlined : Icons.mic_none,
+              ),
+              label: Text(
+                _listening
+                    ? _t('Dừng ghi âm', 'Stop recording')
+                    : _t('Nhập bằng giọng nói', 'Speak the question'),
+              ),
+            ),
+            if (_listening)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _t(
+                    'Đang nghe… Nói câu hỏi rồi kiểm tra lại chữ trước khi tìm.',
+                    'Listening… Say the question, then review the text before searching.',
+                  ),
+                ),
+              ),
+            if (_speechNotice != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(_speechNotice!),
+              ),
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: disabled || _text.text.trim().isEmpty ? null : _search,
