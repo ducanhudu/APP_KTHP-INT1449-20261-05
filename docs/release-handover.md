@@ -124,6 +124,31 @@ có TLS), đúng như `server/README.md`.
 **Chưa** chứng minh nhà cung cấp AI thật: cần `GEMINI_API_KEY` của nhóm, chạy
 server **không** đặt `AI_UPSTREAM`, rồi gọi lại để có bằng chứng API thật.
 
+### AI thật đã deploy — 28/11/2026
+
+Proxy đã chạy công khai bằng gói free của Render, tách khỏi repo nhóm:
+
+| Hạng mục | Giá trị |
+| --- | --- |
+| URL | `https://flutterlab-ai-proxy.onrender.com` |
+| Repo deploy | `github.com/4lanP/flutterlab-ai-proxy` (chỉ `server/`, `assets/`, `Dockerfile`) |
+| `GEMINI_API_KEY` | Secret trên Render, **không** nằm trong Git hay APK |
+| `AI_ACCESS_CODE` | Secret trên Render; **không** ghi vào Git, nhóm tự giữ |
+| Health | `{"ok":true,"configured":true}` |
+
+Bằng chứng đã chạy:
+
+| Ca | Kết quả |
+| --- | --- |
+| `GET /health` | Đạt — `ok=true`, `configured=true` |
+| Mã truy cập sai | Đạt — HTTP **401** |
+| Câu #1 tiếng Việt qua Gemini thật | Đạt — HTTP 200, 792 ký tự, giải thích đúng `const` vs `final`; **12 s** lần đầu, **1,6 s** khi trúng cache 30 phút |
+| Từ app Android (emulator) qua HTTPS | Đạt — `integration_test/ai_real_provider_probe_test.dart` trả `fromFallback=false` |
+
+Lưu ý vận hành: Render free **ngủ sau 15 phút** không có request, đánh thức mất
+khoảng 1 phút — dài hơn timeout 65 giây của app. Trước buổi demo mở `/health`
+trước khoảng 2 phút. Khi ngủ, app tự rơi về lời giải JSON nên không hỏng luồng.
+
 Build release và flutter test phải chạy tuần tự. Trong lần kiểm tra này, chạy
 song song làm file GeneratedPluginRegistrant chứa integration_test lúc release
 biên dịch và gây lỗi. Chạy lại riêng bằng `flutter build apk --release` đã đạt;
