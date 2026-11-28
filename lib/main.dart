@@ -12,6 +12,7 @@ import 'learning_tools.dart';
 import 'quiz_attempt.dart';
 import 'weakness_analyzer.dart';
 import 'today_overview.dart';
+import 'statistics_page.dart';
 import 'flashcard_page.dart';
 import 'error_state.dart';
 import 'question.dart';
@@ -260,6 +261,18 @@ class _QuizHomeState extends State<QuizHome> {
     _refreshCards();
   }
 
+  Future<void> _openStatistics(List<Question> questions) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => StatisticsPage(
+          historyStorage: widget.historyStorage,
+          questions: questions,
+          language: language,
+        ),
+      ),
+    );
+  }
+
   /// Đọc lại ngân hàng câu hỏi khi người dùng bấm "Thử lại" ở màn hình lỗi.
   void _retryBank() {
     setState(() {
@@ -454,6 +467,7 @@ class _QuizHomeState extends State<QuizHome> {
             onAdaptivePractice: () => _startAdaptivePractice(questions),
             onCameraRequested: _openCamera,
             onAiTutor: () => _openAiTutor(questions),
+            onStatistics: () => _openStatistics(questions),
             onOpenCards: () => _openCards(questions),
             onQuickPractice: () => _start(questions, 10),
             onExam: () => _start(questions, 50, exam: true),

@@ -106,6 +106,20 @@ class AppStrings {
     required this.historyDuration,
     required this.errorHistoryLoad,
     required this.historyReviewUnavailable,
+    required this.statisticsTitle,
+    required this.statisticsSummary,
+    required this.statisticsAttempts,
+    required this.statisticsQuestions,
+    required this.statisticsAverage,
+    required this.statisticsAnswerBreakdown,
+    required this.statisticsTrend,
+    required this.statisticsTrendSubtitle,
+    required this.statisticsByTopic,
+    required this.statisticsEmpty,
+    required this.statisticsTopicsUnavailable,
+    required this.statisticsTopicBreakdown,
+    required this.homeStatisticsTitle,
+    required this.homeStatisticsSubtitle,
     required this.weaknessHeading,
     required this.weaknessSubtitle,
     required this.practiceWeaknessBtn,
@@ -247,6 +261,22 @@ class AppStrings {
   final String Function(int minutes, int seconds) historyDuration;
   final String errorHistoryLoad;
   final String historyReviewUnavailable;
+  final String statisticsTitle;
+  final String statisticsSummary;
+  final String statisticsAttempts;
+  final String statisticsQuestions;
+  final String statisticsAverage;
+  final String Function(int correct, int wrong, int skipped)
+  statisticsAnswerBreakdown;
+  final String statisticsTrend;
+  final String statisticsTrendSubtitle;
+  final String statisticsByTopic;
+  final String statisticsEmpty;
+  final String statisticsTopicsUnavailable;
+  final String Function(int correct, int total, int wrong, int skipped)
+  statisticsTopicBreakdown;
+  final String homeStatisticsTitle;
+  final String homeStatisticsSubtitle;
   final String weaknessHeading;
   final String weaknessSubtitle;
   final String practiceWeaknessBtn;
@@ -397,6 +427,22 @@ class AppStrings {
     historyDuration: _viHistoryDuration,
     errorHistoryLoad: 'Không đọc được lịch sử làm bài.',
     historyReviewUnavailable: 'Không thể ôn lại vì câu hỏi không còn khả dụng.',
+    statisticsTitle: 'Thống kê tiến độ',
+    statisticsSummary: 'Tổng quan học tập',
+    statisticsAttempts: 'lượt làm',
+    statisticsQuestions: 'câu đã làm',
+    statisticsAverage: 'điểm trung bình',
+    statisticsAnswerBreakdown: _viStatisticsAnswerBreakdown,
+    statisticsTrend: 'Điểm 7 lượt gần nhất',
+    statisticsTrendSubtitle: 'Theo dõi kết quả qua từng bài làm.',
+    statisticsByTopic: 'Kết quả theo chủ đề',
+    statisticsEmpty:
+        'Chưa có dữ liệu. Hãy hoàn thành một bài luyện tập để xem tiến độ.',
+    statisticsTopicsUnavailable:
+        'Chưa có dữ liệu câu hỏi để thống kê theo chủ đề.',
+    statisticsTopicBreakdown: _viStatisticsTopicBreakdown,
+    homeStatisticsTitle: 'Thống kê tiến độ',
+    homeStatisticsSubtitle: 'Xem điểm số theo thời gian và chủ đề',
     weaknessHeading: 'Khối cần cải thiện',
     weaknessSubtitle: 'Gợi ý luyện tập theo điểm yếu từ các bài làm của bạn',
     practiceWeaknessBtn: 'Luyện 10 câu điểm yếu',
@@ -545,6 +591,22 @@ class AppStrings {
     errorHistoryLoad: 'Could not load quiz history.',
     historyReviewUnavailable:
         'Cannot review because these questions are no longer available.',
+    statisticsTitle: 'Study progress',
+    statisticsSummary: 'Learning summary',
+    statisticsAttempts: 'attempts',
+    statisticsQuestions: 'questions',
+    statisticsAverage: 'average score',
+    statisticsAnswerBreakdown: _enStatisticsAnswerBreakdown,
+    statisticsTrend: 'Scores from your last 7 attempts',
+    statisticsTrendSubtitle: 'Track your results across completed quizzes.',
+    statisticsByTopic: 'Results by topic',
+    statisticsEmpty:
+        'No data yet. Complete a practice quiz to see your progress.',
+    statisticsTopicsUnavailable:
+        'No question details are available for topic statistics.',
+    statisticsTopicBreakdown: _enStatisticsTopicBreakdown,
+    homeStatisticsTitle: 'Study progress',
+    homeStatisticsSubtitle: 'View scores over time and by topic',
     weaknessHeading: 'Areas to improve',
     weaknessSubtitle: 'Personalized practice based on your weak areas',
     practiceWeaknessBtn: 'Practice 10 weak questions',
@@ -635,6 +697,28 @@ class AppStrings {
       minutes > 0 ? '$minutes phút $seconds giây' : '$seconds giây';
   static String _enHistoryDuration(int minutes, int seconds) =>
       minutes > 0 ? '$minutes min $seconds sec' : '$seconds sec';
+  static String _viStatisticsAnswerBreakdown(
+    int correct,
+    int wrong,
+    int skipped,
+  ) => '$correct đúng · $wrong sai · $skipped bỏ trống';
+  static String _viStatisticsTopicBreakdown(
+    int correct,
+    int total,
+    int wrong,
+    int skipped,
+  ) => '$correct/$total đúng · $wrong sai · $skipped bỏ trống';
+  static String _enStatisticsTopicBreakdown(
+    int correct,
+    int total,
+    int wrong,
+    int skipped,
+  ) => '$correct/$total correct · $wrong wrong · $skipped skipped';
+  static String _enStatisticsAnswerBreakdown(
+    int correct,
+    int wrong,
+    int skipped,
+  ) => '$correct correct · $wrong wrong · $skipped skipped';
   static String _viAccuracy(int percent) => '$percent% chính xác';
   static String _enAccuracy(int percent) => '$percent% accuracy';
   static String _viDueCardsCount(int count) => '$count thẻ đến hạn cần ôn';
