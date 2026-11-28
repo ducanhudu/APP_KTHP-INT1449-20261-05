@@ -53,6 +53,7 @@ app.*.map.json
 .env.*
 server/.env
 server/.env.*
+server/data/
 
 # BÃ­ máº­t kÃ½ release: keystore vÃ  máº­t kháº©u khÃ´ng bao giá» commit.
 # Giá»¯ báº£n sao ngoÃ i Git (xem docs/release-handover.md).

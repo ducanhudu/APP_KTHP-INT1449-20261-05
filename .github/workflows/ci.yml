@@ -25,15 +25,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ai-proxy-test:
-    name: AI proxy security tests
+  backend-test:
+    name: Backend API security tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: node --test server/server.test.js
+      - run: npm --prefix server test
 
   analyze-and-test:
     name: Analyze + Test (Flutter 3.47.6)

@@ -2,7 +2,7 @@
     <!-- Chỉ xin quyền thông báo; quyền runtime được hỏi lúc người dùng bật nhắc ôn. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- INTERNET chỉ dùng cho nút "Hỏi AI"; app không gửi dữ liệu nào khác ra ngoài.
+    <!-- INTERNET dùng cho Hỏi AI và đồng bộ backend chỉ sau khi người dùng đăng nhập.
          Bản debug tự có quyền này do Flutter chèn vào, nên thiếu nó chỉ lộ ra ở APK release. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- RECORD_AUDIO chỉ xin khi người dùng bấm "Nhập bằng giọng nói"; không hỏi lúc mở app.

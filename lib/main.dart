@@ -1,10 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app_strings.dart';
 import 'app_theme.dart';
+import 'account_service.dart';
+import 'backend_auth_service.dart';
+import 'auth_controller.dart';
+import 'auth_pages.dart';
+import 'auth_service.dart';
+import 'auth_user.dart';
+import 'profile_page.dart';
 import 'card_storage.dart';
 import 'history_page.dart';
 import 'history_storage.dart';
@@ -34,12 +42,14 @@ class FlutterLab extends StatelessWidget {
     this.historyStorage = const SharedPrefsHistoryStorage(),
     this.streakStorage = const SharedPrefsStreakStorage(),
     this.reminder,
+    this.authService,
   });
 
   final CardStorage storage;
   final HistoryStorage historyStorage;
   final StreakStorage streakStorage;
   final ReminderService? reminder;
+  final AuthService? authService;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -51,6 +61,7 @@ class FlutterLab extends StatelessWidget {
       historyStorage: historyStorage,
       streakStorage: streakStorage,
       reminder: reminder,
+      authService: authService,
     ),
   );
 }
@@ -62,12 +73,14 @@ class QuizHome extends StatefulWidget {
     this.historyStorage = const SharedPrefsHistoryStorage(),
     this.streakStorage = const SharedPrefsStreakStorage(),
     this.reminder,
+    this.authService,
   });
 
   final CardStorage storage;
   final HistoryStorage historyStorage;
   final StreakStorage streakStorage;
   final ReminderService? reminder;
+  final AuthService? authService;
 
   @override
   State<QuizHome> createState() => _QuizHomeState();
@@ -76,13 +89,39 @@ class QuizHome extends StatefulWidget {
 class _QuizHomeState extends State<QuizHome> {
   /// Nhãn giao diện theo ngôn ngữ đang chọn.
   AppStrings get s => AppStrings.of(language);
+
+  /// Quản lý trạng thái đăng nhập/hồ sơ thành viên (chế độ demo mặc định).
+  late final AuthController _auth = AuthController(
+    widget.authService ??
+        (_accountService.isConfigured
+            ? BackendAuthService(_accountService)
+            : DemoAuthService()),
+  );
+
+  AccountSession? _accountSession;
+  AccountService get _accountService => AccountService.instance;
+  HistoryStorage get _activeHistoryStorage {
+    final session = _accountSession;
+    if (session == null) return widget.historyStorage;
+    return AccountHistoryStorage(
+      session: () {
+        final current = _accountSession;
+        return current?.id == session.id ? current : null;
+      },
+      api: _accountService,
+      local: SharedPrefsHistoryStorage(
+        key: 'flutter_lab_quiz_history_user_${session.id}',
+      ),
+    );
+  }
+
   late Future<List<Question>> bank = _loadBank();
 
   /// Nạp một lần rồi dùng lại; chỉ đọc lại đĩa khi có thay đổi bộ thẻ.
   late Future<List<Sm2Item>> cardsFuture = widget.storage.loadCards();
 
   /// Đọc lịch sử làm bài để phục vụ gợi ý điểm yếu.
-  late Future<List<QuizAttempt>> historyFuture = widget.historyStorage
+  late Future<List<QuizAttempt>> historyFuture = _activeHistoryStorage
       .loadHistory();
 
   /// Trạng thái chuỗi học theo ngày, đọc một lần rồi cập nhật sau mỗi lượt.
@@ -102,6 +141,40 @@ class _QuizHomeState extends State<QuizHome> {
   int topic = 0;
   int count = 10;
   int _deckRevision = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth.addListener(_onAuthChanged);
+    unawaited(_auth.restore());
+  }
+
+  @override
+  void dispose() {
+    _auth.removeListener(_onAuthChanged);
+    _auth.dispose();
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    if (!_accountService.isConfigured) return;
+    unawaited(_syncAccountSession());
+  }
+
+  Future<void> _syncAccountSession() async {
+    final session = await _accountService.loadSession();
+    if (!mounted) return;
+    final current = _accountSession;
+    if (current?.token == session?.token &&
+        current?.displayName == session?.displayName &&
+        current?.avatarBase64 == session?.avatarBase64) {
+      return;
+    }
+    setState(() {
+      _accountSession = session;
+      historyFuture = _activeHistoryStorage.loadHistory();
+    });
+  }
 
   Future<List<Question>> _loadBank() async => decodeQuestions(
     await rootBundle.loadString('assets/flutter_quiz_300.json'),
@@ -160,12 +233,12 @@ class _QuizHomeState extends State<QuizHome> {
     // Phải dùng thân hàm: setState không nhận callback trả về Future.
     setState(() {
       cardsFuture = widget.storage.loadCards();
-      historyFuture = widget.historyStorage.loadHistory();
+      historyFuture = _activeHistoryStorage.loadHistory();
     });
   }
 
   Future<void> _startAdaptivePractice(List<Question> questions) async {
-    final history = await widget.historyStorage.loadHistory();
+    final history = await _activeHistoryStorage.loadHistory();
     final cards = await cardsFuture;
     final analysis = WeaknessAnalyzer.analyze(
       history: history,
@@ -189,7 +262,7 @@ class _QuizHomeState extends State<QuizHome> {
   /// Panel AI cần câu hỏi cụ thể, còn nút ở tab Hôm nay không có ngữ cảnh, nên
   /// phải cho chọn. Chưa có câu sai nào thì hướng dẫn làm một lượt luyện tập.
   Future<void> _openAiTutor(List<Question> questions) async {
-    final history = await widget.historyStorage.loadHistory();
+    final history = await _activeHistoryStorage.loadHistory();
     final bank = {for (final question in questions) question.id: question};
     final wrong = <Question>[];
     final seen = <int>{};
@@ -265,7 +338,7 @@ class _QuizHomeState extends State<QuizHome> {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => StatisticsPage(
-          historyStorage: widget.historyStorage,
+          historyStorage: _activeHistoryStorage,
           questions: questions,
           language: language,
         ),
@@ -321,7 +394,7 @@ class _QuizHomeState extends State<QuizHome> {
         durationSeconds: duration,
       );
       try {
-        await widget.historyStorage.saveAttempt(attempt);
+        await _activeHistoryStorage.saveAttempt(attempt);
       } catch (_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -369,6 +442,18 @@ class _QuizHomeState extends State<QuizHome> {
     await _maybeCelebrateStreak();
   }
 
+  Future<void> _openMemberProfile() async {
+    final route = _auth.isAuthenticated
+        ? MaterialPageRoute<void>(
+            builder: (_) => ProfilePage(controller: _auth, language: language),
+          )
+        : MaterialPageRoute<void>(
+            builder: (_) => LoginPage(controller: _auth, language: language),
+          );
+    await Navigator.of(context).push(route);
+    if (mounted) setState(() {});
+  }
+
   Future<void> _start(
     List<Question> pool,
     int size, {
@@ -386,6 +471,14 @@ class _QuizHomeState extends State<QuizHome> {
         style: const TextStyle(fontWeight: FontWeight.w700),
       ),
       actions: [
+        ListenableBuilder(
+          listenable: _auth,
+          builder: (context, _) => IconButton(
+            tooltip: s.profileTitle,
+            onPressed: _openMemberProfile,
+            icon: _AccountAvatar(user: _auth.user),
+          ),
+        ),
         IconButton(
           tooltip: s.historyTooltip,
           onPressed: () async {
@@ -394,7 +487,7 @@ class _QuizHomeState extends State<QuizHome> {
             await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => HistoryPage(
-                  historyStorage: widget.historyStorage,
+                  historyStorage: _activeHistoryStorage,
                   allQuestions: questions,
                   language: language,
                   cardStorage: widget.storage,
@@ -1119,6 +1212,42 @@ class ResultPage extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Ảnh đại diện nhỏ trên thanh tiêu đề: hiện ảnh/chữ cái khi đã đăng nhập,
+/// biểu tượng người khi chưa đăng nhập.
+class _AccountAvatar extends StatelessWidget {
+  const _AccountAvatar({this.user});
+
+  final AuthUser? user;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final current = user;
+    if (current == null) {
+      return CircleAvatar(
+        backgroundColor: colors.primaryContainer,
+        child: Icon(Icons.person_outline, color: colors.primary),
+      );
+    }
+    if (current.hasAvatar) {
+      try {
+        return CircleAvatar(
+          backgroundImage: MemoryImage(base64Decode(current.avatarBase64!)),
+        );
+      } catch (_) {
+        // Rơi xuống chữ cái đầu nếu dữ liệu ảnh không hợp lệ.
+      }
+    }
+    return CircleAvatar(
+      backgroundColor: colors.primaryContainer,
+      child: Text(
+        current.initials,
+        style: TextStyle(color: colors.primary, fontWeight: FontWeight.w700),
       ),
     );
   }

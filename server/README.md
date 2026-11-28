@@ -1,9 +1,57 @@
-# AI proxy cho bản demo
+# Backend Flutter Lab
 
-Yêu cầu Node.js 22. Không cần npm install. Khóa Gemini chỉ tồn tại ở server.
-App chỉ gửi `{ "questionId": 1, "language": "vi" }` tới `POST /explain`.
-Server tự lấy câu hỏi, code, lựa chọn và lời giải từ JSON trong repo để tạo prompt.
-Ngôn ngữ hợp lệ: `vi`, `en`, `bilingual`. Payload có prompt hay trường khác bị từ chối.
+Yêu cầu Node.js 22. Không cần npm install. Server cung cấp đăng ký/đăng nhập,
+đồng bộ lịch sử làm bài theo tài khoản và giữ nguyên proxy AI `POST /explain`.
+
+## Tài khoản và lịch sử
+
+Đặt JWT secret mạnh (ít nhất 32 byte) và khởi động server từ thư mục repo:
+
+```powershell
+$env:AUTH_JWT_SECRET = (& node -e "process.stdout.write(require('node:crypto').randomBytes(48).toString('base64url'))")
+# Giữ nguyên giá trị này khi restart; mất secret sẽ làm token hiện tại hết hiệu lực.
+$env:DATA_FILE = 'server/data/store.json' # mặc định; dữ liệu người dùng không commit
+node server/server.js
+```
+
+Tệp JSON lưu user, hash mật khẩu `scrypt`, phiên đăng nhập, log đăng ký/đăng nhập
+và tối đa 100 lượt làm bài mỗi tài khoản. Mật khẩu gốc không được lưu. API:
+
+| Method | Endpoint | Nội dung |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Tạo tài khoản (email, mật khẩu từ 8 ký tự, tên hiển thị tuỳ chọn) |
+| `POST` | `/api/auth/login` | Đăng nhập, trả bearer token 30 ngày |
+| `GET/PATCH` | `/api/auth/me` | Xem/cập nhật tên hiển thị và avatar của tài khoản |
+| `GET` | `/api/auth/events` | Xem 100 sự kiện đăng ký/đăng nhập/đăng xuất gần nhất của chính mình |
+| `POST` | `/api/auth/logout` | Thu hồi phiên token hiện tại |
+| `GET/POST` | `/api/history` | Đọc/lưu lịch sử của tài khoản hiện tại |
+| `DELETE` | `/api/history/{id}` hoặc `/api/history` | Xoá một lượt / toàn bộ lịch sử |
+
+Mọi endpoint history yêu cầu `Authorization: Bearer <token>`. Server chỉ lấy user
+ID từ token đã ký; kiểm tra lại đáp án với ngân hàng câu hỏi và tính điểm phía
+server. `GET /api/health` báo `accounts: true` khi đã cấu hình secret.
+
+Kết nối app bằng build define (chỉ URL, không đưa secret vào APK):
+
+```powershell
+flutter run --dart-define=APP_API_URL=https://your-server.example
+```
+
+Với Android debug qua USB, dùng `adb reverse tcp:8787 tcp:8787` và
+`--dart-define=APP_API_URL=http://127.0.0.1:8787`. APK phát hành cần HTTPS.
+
+**Lưu ý triển khai:** backend file JSON hỗ trợ một tiến trình/một instance; không
+chạy nhiều replicas cùng dùng một file. Docker đặt data tại `/data/store.json`,
+cần persistent volume tại `/data`. Nếu mở rộng nhiều instance hoặc dùng dữ liệu
+sản phẩm, chuyển sang PostgreSQL/SQLite có giao dịch, backup và quản lý migration.
+Token session lưu trên thiết bị để duy trì đăng nhập; không lưu mật khẩu.
+
+## Proxy AI (tuỳ chọn)
+
+Server giữ khoá Gemini. App chỉ gửi `{ "questionId": 1, "language": "vi" }`
+tới `POST /explain`. Server tự lấy câu hỏi, code, lựa chọn và lời giải từ JSON
+trong repo để tạo prompt. Ngôn ngữ hợp lệ: `vi`, `en`, `bilingual`. Payload có
+prompt hay trường khác bị từ chối.
 
 ## Chạy thử không dùng hạn mức AI
 
@@ -59,14 +107,14 @@ server cùng phiên bản vì giao thức prompt cũ đã bị loại bỏ.
 - Tối đa 2 yêu cầu AI đồng thời, 100 lần gọi nhà cung cấp/ngày UTC.
 - Giới hạn đầu ra 600 token, timeout nhà cung cấp 55 giây; lỗi trả thông báo chung.
 - Cache 30 phút theo mã câu và ngôn ngữ; không cache lỗi. Không tự retry gây tốn lượt.
-- Test chỉ dùng fetch giả và khóa giả: `node --test server/server.test.js`.
+- Test auth, quyền sở hữu và độ bền dữ liệu: `node --test server/accounts.test.js server/server.test.js`.
 
-Đây là cơ chế cho demo một tiến trình server. Mã dùng chung không xác định từng
-người dùng. Hạn mức/cache nằm trong RAM, reset khi server khởi động lại và không
-chia sẻ giữa nhiều instance. Khi mở cho nhiều người dùng, cần tài khoản/token
-được xác thực, bộ đếm dùng chung và giới hạn ngân sách phía nhà cung cấp. Với
-reverse proxy, các người dùng có thể cùng chịu giới hạn IP của proxy. Không xem
-mã dùng chung là phương án xác thực người dùng cho sản phẩm công khai.
+Giới hạn AI theo IP/cache/ngân sách vẫn là bộ đếm trong RAM, reset khi restart và
+không chia sẻ giữa nhiều instance. Reverse proxy khiến nhiều client có thể dùng
+chung một IP quota; server cố ý không tin `X-Forwarded-For`. Tài khoản và lịch sử
+lưu bền trên JSON, nhưng chỉ an toàn với một server process. Không chạy nhiều
+replicas cùng file; môi trường production nhiều người dùng nên dùng database giao
+dịch và rate limit dùng chung. Không dùng HTTP công khai.
 
 ## Triển khai lên mạng (PaaS/VPS)
 
