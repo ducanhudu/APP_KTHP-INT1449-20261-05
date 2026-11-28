@@ -368,6 +368,18 @@ class TodayOverview extends StatelessWidget {
                       language: language,
                     ),
               ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                leading: const Icon(Icons.question_answer_outlined),
+                title: Text(s.aiOpenQuestionTitle),
+                subtitle: Text(s.aiOpenQuestionSubtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showLearningTool(
+                  context,
+                  LearningTool.askAi,
+                  language: language,
+                ),
+              ),
             ],
           ),
         ),

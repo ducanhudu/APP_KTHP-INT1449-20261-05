@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'ai_service.dart';
+import 'ask_ai_page.dart';
 import 'app_strings.dart';
 import 'camera_study_page.dart';
 import 'card_storage.dart';
 import 'question.dart';
 import 'tts_service.dart';
 
-enum LearningTool { assistant, camera }
+enum LearningTool { assistant, askAi, camera }
 
 /// Điểm mở giao diện AI và camera.
 /// AI giải thích theo câu hỏi; camera mở luồng nhận diện ảnh và QR.
@@ -18,6 +19,12 @@ Future<void> showLearningTool(
   QuestionLanguage language = QuestionLanguage.vietnamese,
   CardStorage storage = const SharedPrefsCardStorage(),
 }) async {
+  if (tool == LearningTool.askAi) {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => AskAiPage(language: language)),
+    );
+    return;
+  }
   if (tool == LearningTool.camera) {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(

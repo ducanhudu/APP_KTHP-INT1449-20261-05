@@ -29,7 +29,8 @@ function createServer(options = {}) {
       return reply(status, { ...body, accounts: accounts.enabled });
     }
     const accountRoute = pathname.startsWith('/api/auth/') || pathname.startsWith('/api/history');
-    if (!accountRoute && !(req.method === 'POST' && pathname === '/explain')) {
+    const aiRoute = pathname === '/explain' || pathname === '/ask';
+    if (!accountRoute && !(req.method === 'POST' && aiRoute)) {
       return reply(404, { error: 'not_found' });
     }
     const bodyLimit = accountRoute ? ACCOUNT_BODY_LIMIT : AI_BODY_LIMIT;
@@ -69,6 +70,7 @@ function createServer(options = {}) {
     const { status, body } = await core.handle({
       authHeader: req.headers.authorization || '',
       rawBody,
+      mode: pathname === '/ask' ? 'ask' : 'explain',
       // Bỏ qua X-Forwarded-For vì client tự khai được; sau reverse proxy mọi
       // request dùng chung một hạn mức theo IP của proxy.
       ip,

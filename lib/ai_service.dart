@@ -31,12 +31,19 @@ class AiService {
   // để người nhận APK không phải gõ tay. Đây KHÔNG phải khoá nhà cung cấp AI.
   static String accessCode = const String.fromEnvironment('AI_ACCESS_CODE');
   static bool get isConfigured => _baseUrl.isNotEmpty;
+  static bool get isAskConfigured =>
+      _baseUrl.isNotEmpty || _askBaseUrl.isNotEmpty;
 
   /// URL của proxy nhóm triển khai, không phải URL nhà cung cấp AI.
   static const String _baseUrl = String.fromEnvironment(
     'AI_API_URL',
     defaultValue: '',
   );
+  static const String _askBaseUrl = String.fromEnvironment(
+    'AI_ASK_API_URL',
+    defaultValue: '',
+  );
+  static const int maxAskLength = 500;
 
   // Model thật có thể trả lời 5-90 giây tuỳ tải. Proxy có cache theo nội dung
   // câu hỏi, nên lần hỏi đầu có thể chậm còn bấm 'Hỏi lại' sẽ nhận ngay.
@@ -95,6 +102,65 @@ class AiService {
 
     // Mọi lỗi → fallback lời giải JSON
     return AiResult(text: fallback, fromFallback: true);
+  }
+
+  /// Gửi câu hỏi tự do của người học tới proxy. Không có câu trả lời dự phòng:
+  /// nếu endpoint, mã truy cập hoặc nhà cung cấp gặp lỗi thì trả về null.
+  /// [endpoint] nếu truyền vào là URL explain thì tự đổi thành URL ask.
+  static Future<AiResult?> ask({
+    required String question,
+    required QuestionLanguage language,
+    http.Client? client,
+    String? endpoint,
+  }) async {
+    final normalized = question.trim();
+    if (normalized.isEmpty || normalized.length > maxAskLength) return null;
+    final url = _resolveAskEndpoint(endpoint);
+    if (url.isEmpty) return null;
+
+    try {
+      final uri = Uri.parse(url);
+      final body = jsonEncode({
+        'question': normalized,
+        'language': switch (language) {
+          QuestionLanguage.vietnamese => 'vi',
+          QuestionLanguage.english => 'en',
+          QuestionLanguage.bilingual => 'bilingual',
+        },
+      });
+      final headers = {
+        'Content-Type': 'application/json',
+        if (accessCode.isNotEmpty) 'Authorization': 'Bearer $accessCode',
+      };
+      final request = client == null
+          ? http.post(uri, headers: headers, body: body)
+          : client.post(uri, headers: headers, body: body);
+      final response = await request.timeout(_timeout);
+      if (response.statusCode != 200) return null;
+      final text = _extractText(response.body);
+      if (text == null || text.trim().isEmpty) return null;
+      return AiResult(text: text.trim(), fromFallback: false);
+    } catch (e) {
+      debugPrint('AI question error: $e');
+      return null;
+    }
+  }
+
+  static String _resolveAskEndpoint(String? endpoint) {
+    final configured =
+        endpoint ?? (_askBaseUrl.isNotEmpty ? _askBaseUrl : _baseUrl);
+    if (configured.isEmpty) return '';
+    try {
+      final uri = Uri.parse(configured);
+      final path = uri.path;
+      if (path.endsWith('/ask')) return uri.toString();
+      final askPath = path.endsWith('/explain')
+          ? '${path.substring(0, path.length - 'explain'.length)}ask'
+          : '${path.endsWith('/') ? path : '$path/'}ask';
+      return uri.replace(path: askPath).toString();
+    } catch (_) {
+      return '';
+    }
   }
 
   /// Đọc nội dung trả về của hai kiểu backend:
