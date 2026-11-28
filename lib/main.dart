@@ -18,6 +18,7 @@ import 'question.dart';
 import 'question_prompt.dart';
 import 'quiz_option_tile.dart';
 import 'reminder_service.dart';
+import 'streak_service.dart';
 import 'sm2.dart';
 
 export 'question_prompt.dart';
@@ -30,11 +31,13 @@ class FlutterLab extends StatelessWidget {
     super.key,
     this.storage = const SharedPrefsCardStorage(),
     this.historyStorage = const SharedPrefsHistoryStorage(),
+    this.streakStorage = const SharedPrefsStreakStorage(),
     this.reminder,
   });
 
   final CardStorage storage;
   final HistoryStorage historyStorage;
+  final StreakStorage streakStorage;
   final ReminderService? reminder;
 
   @override
@@ -45,6 +48,7 @@ class FlutterLab extends StatelessWidget {
     home: QuizHome(
       storage: storage,
       historyStorage: historyStorage,
+      streakStorage: streakStorage,
       reminder: reminder,
     ),
   );
@@ -55,11 +59,13 @@ class QuizHome extends StatefulWidget {
     super.key,
     this.storage = const SharedPrefsCardStorage(),
     this.historyStorage = const SharedPrefsHistoryStorage(),
+    this.streakStorage = const SharedPrefsStreakStorage(),
     this.reminder,
   });
 
   final CardStorage storage;
   final HistoryStorage historyStorage;
+  final StreakStorage streakStorage;
   final ReminderService? reminder;
 
   @override
@@ -78,6 +84,15 @@ class _QuizHomeState extends State<QuizHome> {
   late Future<List<QuizAttempt>> historyFuture = widget.historyStorage
       .loadHistory();
 
+  /// Trạng thái chuỗi học theo ngày, đọc một lần rồi cập nhật sau mỗi lượt.
+  late Future<StreakState> streakFuture = widget.streakStorage.load();
+
+  /// Ghi nhận ngày học tuần tự để hai thao tác đồng thời không đè nhau.
+  late final StreakTracker _streakTracker = StreakTracker(widget.streakStorage);
+
+  /// Mốc vừa đạt nhưng chưa khen, chờ đóng màn kết quả mới hiện hộp thoại.
+  int? _pendingMilestone;
+
   /// Chỉ tạo dịch vụ nhắc ôn khi thực sự dùng, để test truyền bản giả.
   late final ReminderService reminder =
       widget.reminder ?? NotificationReminderService();
@@ -90,6 +105,53 @@ class _QuizHomeState extends State<QuizHome> {
   Future<List<Question>> _loadBank() async => decodeQuestions(
     await rootBundle.loadString('assets/flutter_quiz_300.json'),
   );
+
+  /// Ghi nhận hôm nay là một ngày học và trả về kết quả để khen mốc nếu có.
+  Future<StreakUpdate?> _recordStudyDay() async {
+    try {
+      final update = await _streakTracker.recordStudy(DateTime.now());
+      if (update.milestone != null) {
+        _pendingMilestone = update.milestone;
+      }
+      if (mounted) {
+        setState(() => streakFuture = Future.value(update.state));
+      }
+      return update;
+    } catch (error) {
+      debugPrint('Không ghi được chuỗi học: $error');
+      return null;
+    }
+  }
+
+  /// Hiện hộp thoại khen mốc đang chờ, nếu có.
+  Future<void> _maybeCelebrateStreak() async {
+    final milestone = _pendingMilestone;
+    if (milestone == null || !mounted) return;
+    _pendingMilestone = null;
+    await _showStreakMilestone(milestone);
+  }
+
+  /// Hộp thoại khen khi vừa đạt một mốc chuỗi học.
+  Future<void> _showStreakMilestone(int milestone) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(
+          Icons.local_fire_department,
+          color: Color(0xffe25822),
+          size: 40,
+        ),
+        title: Text(s.streakMilestoneTitle),
+        content: Text(s.streakMilestoneBody(milestone)),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(s.streakDialogOk),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// Đọc lại bộ thẻ và lịch sử sau khi người dùng làm bài, lưu thẻ hoặc ôn tập.
   void _refreshCards() {
@@ -262,7 +324,13 @@ class _QuizHomeState extends State<QuizHome> {
       }
       if (!mounted) return;
 
+      // Không chặn màn kết quả: ghi nhận chuỗi chạy nền, đóng kết quả mới khen.
+      unawaited(_recordStudyDay());
+
       final retry = await _showResult(result);
+      if (!mounted) return;
+      await _maybeCelebrateStreak();
+      if (!mounted) return;
       if (retry != true) return;
       final wrong = result.wrongQuestions.toList();
       if (wrong.isEmpty) return;
@@ -278,10 +346,13 @@ class _QuizHomeState extends State<QuizHome> {
           allQuestions: questions,
           storage: widget.storage,
           language: language,
+          onCardGraded: () =>
+              unawaited(_recordStudyDay().then((_) => _maybeCelebrateStreak())),
         ),
       ),
     );
     _refreshCards();
+    await _maybeCelebrateStreak();
   }
 
   Future<void> _start(
@@ -379,6 +450,7 @@ class _QuizHomeState extends State<QuizHome> {
             questions: questions,
             cardsFuture: cardsFuture,
             historyFuture: historyFuture,
+            streakFuture: streakFuture,
             onAdaptivePractice: () => _startAdaptivePractice(questions),
             onCameraRequested: _openCamera,
             onAiTutor: () => _openAiTutor(questions),
@@ -403,6 +475,9 @@ class _QuizHomeState extends State<QuizHome> {
             language: language,
             embedded: true,
             onCardsChanged: _refreshCards,
+            onCardGraded: () => unawaited(
+              _recordStudyDay().then((_) => _maybeCelebrateStreak()),
+            ),
             onPracticeRequested: () => setState(() => selectedTab = 1),
           );
         }

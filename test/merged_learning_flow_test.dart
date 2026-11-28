@@ -217,6 +217,9 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).first,
     );
+    // Trang Hôm nay có thêm thẻ chuỗi học nên phải bảo đảm ô này hiện ra hẳn.
+    await tester.ensureVisible(tile);
+    await tester.pumpAndSettle();
     await tester.tap(tile);
     await tester.pumpAndSettle();
     expect(find.textContaining('Chưa có câu nào làm sai'), findsOneWidget);
