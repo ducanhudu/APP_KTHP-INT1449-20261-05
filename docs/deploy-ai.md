@@ -1,9 +1,9 @@
 # Triển khai AI proxy lên mạng
 
 App dùng URL HTTPS cho `POST /explain` và `POST /ask`; khoá Gemini ở lại server.
-Build `AI_API_URL` trỏ tới `/explain`; app tự đổi hậu tố thành `/ask`. Có thể ghi đè
-bằng `AI_ASK_API_URL` nếu hai route nằm ở URL riêng. Tài liệu này dùng cho bản
-demo/nộp bài, không phải hạ tầng sản phẩm.
+Build `AI_API_URL` trỏ tới `/explain`; app tự đổi hậu tố thành `/ask`. Nếu không
+truyền URL, hỏi tự do dùng proxy công khai mặc định; có thể ghi đè bằng
+`AI_ASK_API_URL`. Tài liệu này dùng cho bản demo/nộp bài, không phải hạ tầng sản phẩm.
 
 > **Đã deploy (28/11/2026):** `https://flutterlab-ai-proxy.onrender.com` — Render
 > gói Free, repo riêng `4lanP/flutterlab-ai-proxy`, bí mật đặt trong Environment.

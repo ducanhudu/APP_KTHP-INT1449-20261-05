@@ -85,6 +85,44 @@ void main() {
       expect(result?.text, 'Flutter là framework.');
     });
 
+    test('Uses the deployed proxy for free questions by default', () async {
+      Uri? requestedUri;
+      final client = MockClient((request) async {
+        requestedUri = request.url;
+        return http.Response(jsonEncode({'text': 'AI answer'}), 200);
+      });
+
+      final result = await AiService.ask(
+        question: 'Flutter là gì?',
+        language: QuestionLanguage.vietnamese,
+        client: client,
+      );
+
+      expect(AiService.isAskConfigured, isTrue);
+      expect(requestedUri?.host, 'flutterlab-ai-proxy.onrender.com');
+      expect(requestedUri?.path, '/ask');
+      expect(result?.text, 'AI answer');
+    });
+
+    test('Uses the deployed proxy for free questions by default', () async {
+      Uri? requestedUri;
+      final client = MockClient((request) async {
+        requestedUri = request.url;
+        return http.Response(jsonEncode({'text': 'AI answer'}), 200);
+      });
+
+      final result = await AiService.ask(
+        question: 'Flutter là gì?',
+        language: QuestionLanguage.vietnamese,
+        client: client,
+      );
+
+      expect(AiService.isAskConfigured, isTrue);
+      expect(requestedUri?.host, 'flutterlab-ai-proxy.onrender.com');
+      expect(requestedUri?.path, '/ask');
+      expect(result?.text, 'AI answer');
+    });
+
     test(
       'Returns no fake answer when an open-question request fails',
       () async {

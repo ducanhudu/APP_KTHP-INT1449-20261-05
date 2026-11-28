@@ -181,9 +181,8 @@ JWT bằng kho bảo mật của hệ điều hành. Hướng dẫn API, biến 
 
 Nút "Hỏi AI về câu này" gọi `AiService` (`lib/ai_service.dart`):
 
-- **Mặc định không gọi mạng.** URL đọc từ `--dart-define=AI_API_URL=...`; bỏ trống
-  thì app trả về **lời giải gốc** trong JSON (`explanation_vi` / `explanation_en`)
-  và hiện nhãn "Lời giải gốc". Nhờ vậy bản nộp chạy được khi không có backend.
+- **Giải thích câu trong đề:** mặc định không gọi mạng; URL đọc từ `--dart-define=AI_API_URL=...`. Bỏ trống thì app dùng lời giải gốc trong JSON (`explanation_vi` / `explanation_en`).
+- **Hỏi AI tự do:** mặc định dùng proxy `https://flutterlab-ai-proxy.onrender.com/ask`; có thể thay bằng `AI_ASK_API_URL` hoặc `AI_API_URL`. Trang sẽ yêu cầu mã `AI_ACCESS_CODE` của nhóm.
 - **Không có khoá API trong repo.** Repo không chứa key, token hay mật khẩu. Khoá
   nằm ở **server** (`server/server.js`); app chỉ biết URL của server đó, truyền vào
   lúc build bằng `--dart-define=AI_API_URL=https://.../explain`.
