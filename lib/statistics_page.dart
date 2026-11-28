@@ -35,8 +35,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   Future<void> _reload() async {
-    setState(() => _historyFuture = widget.historyStorage.loadHistory());
-    await _historyFuture;
+    final history = widget.historyStorage.loadHistory();
+    setState(() => _historyFuture = history);
+    try {
+      await history;
+    } catch (_) {
+      // The FutureBuilder displays the error and offers another retry.
+    }
   }
 
   @override

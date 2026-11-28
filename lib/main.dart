@@ -338,9 +338,10 @@ class _QuizHomeState extends State<QuizHome> {
       if (!mounted) return;
 
       // Không chặn màn kết quả: ghi nhận chuỗi chạy nền, đóng kết quả mới khen.
-      unawaited(_recordStudyDay());
+      final studyDay = _recordStudyDay();
 
       final retry = await _showResult(result);
+      await studyDay;
       if (!mounted) return;
       await _maybeCelebrateStreak();
       if (!mounted) return;
