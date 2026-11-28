@@ -1,9 +1,9 @@
-# AI proxy cho app Flutter Lab — chạy được trên mọi PaaS có Docker.
+# Backend tài khoản/lịch sử + AI proxy cho app Flutter Lab.
 #
 # Build từ thư mục gốc repo vì server đọc assets/flutter_quiz_300.json:
-#   docker build -t flutterlab-ai-proxy .
-#   docker run --rm -p 8080:8080 \
-#     -e GEMINI_API_KEY=... -e AI_ACCESS_CODE=... flutterlab-ai-proxy
+#   docker build -t flutterlab-backend .
+#   docker run --rm -p 8080:8080 --mount source=flutterlab-data,target=/data \
+#     -e AUTH_JWT_SECRET=... -e GEMINI_API_KEY=... -e AI_ACCESS_CODE=... flutterlab-backend
 FROM node:22-alpine
 
 WORKDIR /app
@@ -12,7 +12,9 @@ WORKDIR /app
 COPY assets/flutter_quiz_300.json ./assets/flutter_quiz_300.json
 COPY server ./server
 
-ENV PORT=8080
+ENV PORT=8080 \
+    DATA_FILE=/data/store.json
+RUN mkdir -p /data && chown node:node /data
 EXPOSE 8080
 
 # Không chạy bằng root.

@@ -119,15 +119,30 @@ Chi tiết kiểm thử lịch sử: `docs/device-notes.md`. Bản trước đ�
 cài/mở trên OPPO CPH2599. Nghiệm thu APK mới và các ca còn chờ xem
 `docs/release-handover.md`; chưa suy kết quả bản cũ cho bản mới.
 
+## Tài khoản & hồ sơ thành viên (demo)
+
+App có luồng đăng nhập, đăng ký và trang **Thông tin thành viên** chạy ngay khi
+chưa có backend, bằng bộ xác thực **mô phỏng** trên thiết bị (không dùng cho môi
+trường thật). Mở từ nút avatar trên thanh tiêu đề.
+
+- Tài khoản mẫu: `demo@example.com` / `Demo123!` (chỉ khi bật chế độ demo).
+- Đăng nhập bằng email + mật khẩu, có nút hiện/ẩn mật khẩu và ghi nhớ đăng nhập.
+- Nút "Tiếp tục với Google" hiện giao diện nhưng chưa tích hợp OAuth (không giả
+  mạo đăng nhập thành công).
+- Mật khẩu không lưu dạng văn bản: chỉ lưu muối (salt) + băm SHA-256.
+- Cách bật/tắt demo và cấu hình Google OAuth: xem [docs/auth.md](docs/auth.md).
+
 ## Dữ liệu lưu ở đâu
 
 - **Ngân hàng câu hỏi**: tệp `assets/flutter_quiz_300.json` đóng gói trong APK,
   chỉ đọc, không sửa được lúc chạy.
 - **Phiên làm bài đang mở**: điểm và danh sách câu của lượt đang làm chỉ nằm trong
   bộ nhớ (RAM) của tiến trình; đóng app giữa lượt là mất lượt đó.
-- **Lịch sử làm bài**: các lượt đã hoàn thành được lưu trong `SharedPreferences`
-  (key `flutter_lab_quiz_history_v1`, tối đa 100 lượt) để xem lại, xoá từng lượt
-  và phân tích điểm yếu. Đây là dữ liệu cục bộ, không gửi lên mạng.
+- **Lịch sử làm bài**: khi chưa đăng nhập, lưu trong `SharedPreferences`
+  (tối đa 100 lượt). Khi đăng nhập backend, các lượt thuộc tài khoản được đồng bộ
+  lên server và có bản cục bộ riêng theo tài khoản để dùng ngoại tuyến. Lịch sử
+  khách vẫn ở thiết bị, không tự nhập vào tài khoản. Mở tài khoản từ biểu tượng
+  người dùng trên thanh trên cùng.
 - **Bộ thẻ SM-2 và lịch ôn**: lưu trong `SharedPreferences` của Android
   (`FlutterSharedPreferences.xml`), gồm danh sách thẻ, số lần lặp, khoảng cách,
   hệ số dễ, ngày đến hạn và trạng thái bật/tắt nhắc ôn. Gỡ app là mất dữ liệu.
@@ -135,14 +150,32 @@ cài/mở trên OPPO CPH2599. Nghiệm thu APK mới và các ca còn chờ xem
   - `POST_NOTIFICATIONS` — hỏi **đúng lúc** người dùng bật công tắc "Nhắc ôn hằng
     ngày", không hỏi khi mở app. Từ chối thì app vẫn dùng bình thường, chỉ không
     có thông báo.
-  - `INTERNET` — chỉ dùng cho nút **"Hỏi AI"**. Không bấm thì không có request nào
-    rời khỏi máy: ngân hàng câu hỏi, bộ thẻ, lịch sử và điểm đều nằm trong app.
+  - `INTERNET` — dùng cho **Hỏi AI** và (chỉ sau khi người dùng chọn đăng ký/
+    đăng nhập) xác thực, đồng bộ lịch sử với backend đã cấu hình. Chế độ khách vẫn
+    lưu lịch sử cục bộ và không gửi dữ liệu học tập lên mạng.
   - `RECORD_AUDIO` — chỉ xin khi người dùng bấm **"Nhập bằng giọng nói"**; không
     hỏi lúc mở app. Từ chối thì vẫn nhập tay và tìm câu bình thường. Âm thanh do
     bộ nhận dạng của hệ điều hành xử lý; app không gửi âm thanh hay bản chép lời
     tới backend AI của nhóm.
   - `RECEIVE_BOOT_COMPLETED` — khôi phục lịch thông báo sau reboot/cập nhật APK,
     không có hộp thoại runtime riêng.
+
+## Backend tài khoản và lịch sử (tuỳ chọn)
+
+Server Node.js trong `server/` hỗ trợ đăng ký/đăng nhập, thu hồi phiên đăng xuất,
+log auth events và lịch sử làm bài riêng theo tài khoản. Password dùng `scrypt`,
+đáp án/điểm được xác thực lại theo ngân hàng câu hỏi. Server cần biến
+`AUTH_JWT_SECRET` ngẫu nhiên (ít nhất 32 byte); dữ liệu mặc định ở
+`server/data/store.json` và bị loại khỏi Git. Khởi chạy `node server/server.js`,
+sau đó build app với `--dart-define=APP_API_URL=https://<server>` để hiện đăng
+ký/đăng nhập. Android debug USB có thể dùng
+`adb reverse tcp:8787 tcp:8787` và `APP_API_URL=http://127.0.0.1:8787`.
+
+Backend hiện dùng tệp JSON và chỉ dành cho một process/instance; cần volume bền
+vững, backup và HTTPS khi triển khai. Không chạy nhiều replicas cùng file. Môi
+trường sản phẩm nên chuyển sang database giao dịch (PostgreSQL/SQLite) và lưu
+JWT bằng kho bảo mật của hệ điều hành. Hướng dẫn API, biến môi trường và test ở
+[`server/README.md`](server/README.md).
 
 ## Hỏi AI (tuỳ chọn)
 
@@ -232,6 +265,7 @@ Phạm vi và cách nghiệm thu: [docs/speech-input.md](docs/speech-input.md).
 | `docs/device-notes.md` | Thiết bị kiểm thử, 10 kịch bản đã chạy, phát hiện, kịch bản demo 5 phút |
 | `docs/day-2-test-log.md` | Nhật ký kiểm thử Ngày 2: 31 test, kịch bản thẻ trên máy, 5 lỗi kèm bước tái hiện |
 | `docs/json-audit.md` | Kết quả kiểm tra 300 câu và các phát hiện về dữ liệu |
+| `docs/auth.md` | Hướng dẫn đăng nhập/đăng ký, bật/tắt chế độ demo và cấu hình Google OAuth |
 | `docs/screenshots/` | Ảnh chụp các màn hình trên emulator |
 
 ## Cấu trúc thư mục
@@ -247,6 +281,11 @@ lib/history_storage.dart      lưu lượt làm bài (SharedPreferences + bản 
 lib/quiz_attempt.dart         bản ghi một lượt làm bài và JSON
 lib/weakness_analyzer.dart    phân tích khối yếu, chọn câu luyện thích ứng
 lib/app_strings.dart          nhãn giao diện Việt/Anh
+lib/auth_user.dart            mô hình hồ sơ thành viên (không chứa mật khẩu)
+lib/auth_service.dart         xác thực demo mô phỏng (tài khoản mẫu, Google stub)
+lib/auth_controller.dart      trạng thái đăng nhập cho giao diện
+lib/auth_pages.dart           trang đăng nhập, đăng ký, nút Google
+lib/profile_page.dart         trang thông tin thành viên (ảnh đại diện, đăng xuất)
 assets/flutter_quiz_300.json  300 câu song ngữ (20 khối K01–K20)
 test/                         kiểm thử unit và widget
 integration_test/             kiểm thử native trên thiết bị (camera OCR/QR)

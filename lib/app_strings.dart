@@ -63,6 +63,8 @@ class AppStrings {
     required this.toolsHeading,
     required this.aiTutor,
     required this.aiTutorSubtitle,
+    required this.aiOpenQuestionTitle,
+    required this.aiOpenQuestionSubtitle,
     required this.cameraTool,
     required this.cameraSubtitle,
     required this.soon,
@@ -149,6 +151,62 @@ class AppStrings {
     required this.closeButton,
     required this.aiTutorPickTitle,
     required this.aiTutorNoHistory,
+    required this.aiAskPageTitle,
+    required this.aiAskDescription,
+    required this.aiAskInputLabel,
+    required this.aiAskInputHint,
+    required this.aiAskButton,
+    required this.aiAskLoading,
+    required this.aiAskAnswerTitle,
+    required this.aiAskFailed,
+    required this.aiAskNotConfigured,
+    required this.aiAskNeedAccessCode,
+    required this.aiAskTooLong,
+    required this.accountTooltip,
+    required this.signInTitle,
+    required this.signInSubtitle,
+    required this.registerTitle,
+    required this.registerSubtitle,
+    required this.nameLabel,
+    required this.emailLabel,
+    required this.passwordLabel,
+    required this.confirmPasswordLabel,
+    required this.rememberMe,
+    required this.signInButton,
+    required this.signUpButton,
+    required this.continueWithGoogle,
+    required this.showPassword,
+    required this.hidePassword,
+    required this.noAccount,
+    required this.haveAccount,
+    required this.signUpLink,
+    required this.signInLink,
+    required this.emailRequired,
+    required this.emailInvalid,
+    required this.nameRequired,
+    required this.passwordRequired,
+    required this.passwordTooShort,
+    required this.passwordMismatch,
+    required this.demoHintTitle,
+    required this.demoHintBody,
+    required this.authInvalidCredentials,
+    required this.authEmailInUse,
+    required this.authGoogleNotConfigured,
+    required this.authDisabled,
+    required this.authUnknown,
+    required this.registerSuccess,
+    required this.registerFailed,
+    required this.signInFailed,
+    required this.profileTitle,
+    required this.memberSince,
+    required this.editName,
+    required this.editAvatar,
+    required this.removeAvatar,
+    required this.logout,
+    required this.demoBadge,
+    required this.demoBadgeNote,
+    required this.profileNameSaved,
+    required this.avatarPickFailed,
   });
 
   final String appTitle;
@@ -208,6 +266,8 @@ class AppStrings {
   final String toolsHeading;
   final String aiTutor;
   final String aiTutorSubtitle;
+  final String aiOpenQuestionTitle;
+  final String aiOpenQuestionSubtitle;
   final String cameraTool;
   final String cameraSubtitle;
   final String soon;
@@ -298,6 +358,63 @@ class AppStrings {
   final String closeButton;
   final String aiTutorPickTitle;
   final String aiTutorNoHistory;
+  final String aiAskPageTitle;
+  final String aiAskDescription;
+  final String aiAskInputLabel;
+  final String aiAskInputHint;
+  final String aiAskButton;
+  final String aiAskLoading;
+  final String aiAskAnswerTitle;
+  final String aiAskFailed;
+  final String aiAskNotConfigured;
+  final String aiAskNeedAccessCode;
+  final String aiAskTooLong;
+
+  final String accountTooltip;
+  final String signInTitle;
+  final String signInSubtitle;
+  final String registerTitle;
+  final String registerSubtitle;
+  final String nameLabel;
+  final String emailLabel;
+  final String passwordLabel;
+  final String confirmPasswordLabel;
+  final String rememberMe;
+  final String signInButton;
+  final String signUpButton;
+  final String continueWithGoogle;
+  final String showPassword;
+  final String hidePassword;
+  final String noAccount;
+  final String haveAccount;
+  final String signUpLink;
+  final String signInLink;
+  final String emailRequired;
+  final String emailInvalid;
+  final String nameRequired;
+  final String passwordRequired;
+  final String passwordTooShort;
+  final String passwordMismatch;
+  final String demoHintTitle;
+  final String Function(String email, String password) demoHintBody;
+  final String authInvalidCredentials;
+  final String authEmailInUse;
+  final String authGoogleNotConfigured;
+  final String authDisabled;
+  final String authUnknown;
+  final String registerSuccess;
+  final String registerFailed;
+  final String signInFailed;
+  final String profileTitle;
+  final String memberSince;
+  final String editName;
+  final String editAvatar;
+  final String removeAvatar;
+  final String logout;
+  final String demoBadge;
+  final String demoBadgeNote;
+  final String profileNameSaved;
+  final String avatarPickFailed;
 
   /// Chọn bộ chuỗi theo ngôn ngữ đang dùng. Chế độ song ngữ hiển thị tiếng Việt
   /// cho nhãn giao diện vì nội dung đã có cả hai thứ tiếng.
@@ -362,6 +479,9 @@ class AppStrings {
     toolsHeading: 'Công cụ học tập',
     aiTutor: 'Gia sư AI',
     aiTutorSubtitle: 'Giải thích theo câu hỏi và chủ đề',
+    aiOpenQuestionTitle: 'Hỏi AI tự do',
+    aiOpenQuestionSubtitle:
+        'Đặt câu hỏi bất kỳ về Flutter, Dart hoặc lập trình',
     cameraTool: 'Camera học tập',
     cameraSubtitle: 'Quét QR và chụp câu hỏi',
     soon: 'Sắp có',
@@ -456,6 +576,62 @@ class AppStrings {
     aiTutorPickTitle: 'Chọn câu để hỏi AI',
     aiTutorNoHistory:
         'Chưa có câu nào làm sai để hỏi AI. Hãy làm một lượt luyện tập trước.',
+    aiAskPageTitle: 'Hỏi AI',
+    aiAskDescription: 'Đặt câu hỏi tự do để được giải thích ngắn gọn về Flutter, Dart hoặc lập trình.',
+    aiAskInputLabel: 'Câu hỏi của bạn',
+    aiAskInputHint: 'Ví dụ: Flutter là gì?',
+    aiAskButton: 'Gửi câu hỏi',
+    aiAskLoading: 'Đang tìm câu trả lời…',
+    aiAskAnswerTitle: 'Câu trả lời',
+    aiAskFailed: 'AI chưa trả lời được. Kiểm tra kết nối hoặc thử lại sau.',
+    aiAskNotConfigured: 'Tính năng AI chưa được cấu hình cho ứng dụng này.',
+    aiAskNeedAccessCode: 'Cần nhập mã truy cập để gửi câu hỏi cho AI.',
+    aiAskTooLong: 'Câu hỏi quá dài. Hãy giữ trong giới hạn 500 ký tự.',
+    accountTooltip: 'Tài khoản',
+    signInTitle: 'Đăng nhập',
+    signInSubtitle: 'Đăng nhập để xem và chỉnh sửa hồ sơ thành viên.',
+    registerTitle: 'Đăng ký',
+    registerSubtitle: 'Tạo tài khoản để lưu hồ sơ thành viên.',
+    nameLabel: 'Họ tên',
+    emailLabel: 'Email',
+    passwordLabel: 'Mật khẩu',
+    confirmPasswordLabel: 'Xác nhận mật khẩu',
+    rememberMe: 'Ghi nhớ đăng nhập',
+    signInButton: 'Đăng nhập',
+    signUpButton: 'Đăng ký',
+    continueWithGoogle: 'Tiếp tục với Google',
+    showPassword: 'Hiện mật khẩu',
+    hidePassword: 'Ẩn mật khẩu',
+    noAccount: 'Chưa có tài khoản?',
+    haveAccount: 'Đã có tài khoản?',
+    signUpLink: 'Đăng ký',
+    signInLink: 'Đăng nhập',
+    emailRequired: 'Vui lòng nhập email.',
+    emailInvalid: 'Email không hợp lệ.',
+    nameRequired: 'Vui lòng nhập họ tên.',
+    passwordRequired: 'Vui lòng nhập mật khẩu.',
+    passwordTooShort: 'Mật khẩu phải có ít nhất 8 ký tự.',
+    passwordMismatch: 'Mật khẩu xác nhận không khớp.',
+    demoHintTitle: 'Tài khoản mẫu (chỉ dùng khi chạy demo)',
+    demoHintBody: _viDemoHintBody,
+    authInvalidCredentials: 'Email hoặc mật khẩu không đúng.',
+    authEmailInUse: 'Email này đã được đăng ký.',
+    authGoogleNotConfigured: 'Đăng nhập Google chưa được cấu hình. Hãy cấu hình Google OAuth (Client ID) để dùng tính năng này.',
+    authDisabled: 'Chức năng đăng nhập chưa khả dụng trong chế độ này.',
+    authUnknown: 'Có lỗi xảy ra. Vui lòng thử lại.',
+    registerSuccess: 'Đăng ký thành công!',
+    registerFailed: 'Đăng ký thất bại. Vui lòng thử lại.',
+    signInFailed: 'Đăng nhập thất bại. Vui lòng thử lại.',
+    profileTitle: 'Thông tin thành viên',
+    memberSince: 'Ngày tham gia',
+    editName: 'Sửa họ tên',
+    editAvatar: 'Đổi ảnh đại diện',
+    removeAvatar: 'Xoá ảnh đại diện',
+    logout: 'Đăng xuất',
+    demoBadge: 'Tài khoản mẫu',
+    demoBadgeNote: 'Đây là tài khoản mẫu, chỉ dùng khi chạy chế độ demo. Xác thực được mô phỏng trên thiết bị và không dùng cho môi trường thật.',
+    profileNameSaved: 'Đã cập nhật hồ sơ.',
+    avatarPickFailed: 'Không đọc được ảnh. Thử lại sau.',
   );
 
   static const AppStrings english = AppStrings(
@@ -516,6 +692,8 @@ class AppStrings {
     toolsHeading: 'Study tools',
     aiTutor: 'AI tutor',
     aiTutorSubtitle: 'Explains by question and topic',
+    aiOpenQuestionTitle: 'Ask AI anything',
+    aiOpenQuestionSubtitle: 'Ask about Flutter, Dart, or programming',
     cameraTool: 'Study camera',
     cameraSubtitle: 'Scan QR codes and capture questions',
     soon: 'Coming soon',
@@ -608,6 +786,63 @@ class AppStrings {
     closeButton: 'Close',
     aiTutorPickTitle: 'Pick a question to ask AI',
     aiTutorNoHistory: 'No wrong answers yet. Finish a practice round first.',
+    aiAskPageTitle: 'Ask AI',
+    aiAskDescription: 'Ask an open question for a concise explanation about Flutter, Dart, or programming.',
+    aiAskInputLabel: 'Your question',
+    aiAskInputHint: 'For example: What is Flutter?',
+    aiAskButton: 'Ask question',
+    aiAskLoading: 'Getting an answer…',
+    aiAskAnswerTitle: 'Answer',
+    aiAskFailed:
+        'AI could not answer. Check your connection or try again later.',
+    aiAskNotConfigured: 'AI is not configured for this app.',
+    aiAskNeedAccessCode: 'Enter the access code to ask AI.',
+    aiAskTooLong: 'Question is too long. Keep it within 500 characters.',
+    accountTooltip: 'Account',
+    signInTitle: 'Sign in',
+    signInSubtitle: 'Sign in to view and edit your member profile.',
+    registerTitle: 'Sign up',
+    registerSubtitle: 'Create an account to keep your member profile.',
+    nameLabel: 'Full name',
+    emailLabel: 'Email',
+    passwordLabel: 'Password',
+    confirmPasswordLabel: 'Confirm password',
+    rememberMe: 'Remember me',
+    signInButton: 'Sign in',
+    signUpButton: 'Sign up',
+    continueWithGoogle: 'Continue with Google',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+    noAccount: "Don't have an account?",
+    haveAccount: 'Already have an account?',
+    signUpLink: 'Sign up',
+    signInLink: 'Sign in',
+    emailRequired: 'Please enter your email.',
+    emailInvalid: 'Please enter a valid email address.',
+    nameRequired: 'Please enter your full name.',
+    passwordRequired: 'Please enter your password.',
+    passwordTooShort: 'Password must be at least 8 characters.',
+    passwordMismatch: 'Passwords do not match.',
+    demoHintTitle: 'Demo account (demo mode only)',
+    demoHintBody: _enDemoHintBody,
+    authInvalidCredentials: 'Incorrect email or password.',
+    authEmailInUse: 'This email is already registered.',
+    authGoogleNotConfigured: 'Google sign-in is not configured yet. Configure Google OAuth (Client ID) to enable it.',
+    authDisabled: 'Sign-in is not available in this mode.',
+    authUnknown: 'Something went wrong. Please try again.',
+    registerSuccess: 'Registration successful!',
+    registerFailed: 'Registration failed. Please try again.',
+    signInFailed: 'Sign-in failed. Please try again.',
+    profileTitle: 'Member profile',
+    memberSince: 'Member since',
+    editName: 'Edit name',
+    editAvatar: 'Change avatar',
+    removeAvatar: 'Remove avatar',
+    logout: 'Sign out',
+    demoBadge: 'Demo account',
+    demoBadgeNote: 'This is a demo account for demo mode only. Authentication is simulated on-device and is not for production use.',
+    profileNameSaved: 'Profile updated.',
+    avatarPickFailed: 'Could not read the image. Try again later.',
   );
 
   static String _viCounter(int index, int total, int answered) =>
@@ -728,4 +963,11 @@ class AppStrings {
   static String _viAiQuestionRef(int id, String topic) => 'Câu #$id · $topic';
   static String _enAiQuestionRef(int id, String topic) =>
       'Question #$id · $topic';
+
+  static String _viDemoHintBody(String email, String password) =>
+      'Email: $email\nMật khẩu: $password\nĐây là xác thực mô phỏng, chỉ để '
+      'chạy thử, không dùng cho môi trường thật.';
+  static String _enDemoHintBody(String email, String password) =>
+      'Email: $email\nPassword: $password\nThis is simulated authentication '
+      'for demo use only — not for production.';
 }

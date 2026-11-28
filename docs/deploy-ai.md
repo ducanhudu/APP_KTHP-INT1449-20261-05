@@ -1,7 +1,9 @@
 # Triển khai AI proxy lên mạng
 
-App chỉ cần **một URL HTTPS** trỏ tới `POST /explain`; khoá Gemini ở lại server.
-Tài liệu này dùng cho bản demo/nộp bài, không phải hạ tầng sản phẩm.
+App dùng URL HTTPS cho `POST /explain` và `POST /ask`; khoá Gemini ở lại server.
+Build `AI_API_URL` trỏ tới `/explain`; app tự đổi hậu tố thành `/ask`. Có thể ghi đè
+bằng `AI_ASK_API_URL` nếu hai route nằm ở URL riêng. Tài liệu này dùng cho bản
+demo/nộp bài, không phải hạ tầng sản phẩm.
 
 > **Đã deploy (28/11/2026):** `https://flutterlab-ai-proxy.onrender.com` — Render
 > gói Free, repo riêng `4lanP/flutterlab-ai-proxy`, bí mật đặt trong Environment.
@@ -12,13 +14,15 @@ Tài liệu này dùng cho bản demo/nộp bài, không phải hạ tầng sả
 
 | Thành phần | Ghi chú |
 | --- | --- |
-| `server/server.js` + `server/core.js` | HTTP server thuần Node, **không có dependency npm** |
-| `assets/flutter_quiz_300.json` | Server tạo prompt từ chính ngân hàng câu hỏi |
-| Biến môi trường `GEMINI_API_KEY`, `AI_ACCESS_CODE` | Đặt trên PaaS, **không** commit |
+| `server/server.js`, `server/core.js`, `server/accounts.js` | HTTP API thuần Node, **không có dependency npm** |
+| `assets/flutter_quiz_300.json` | AI proxy tạo prompt và history API kiểm tra điểm |
+| `GEMINI_API_KEY`, `AI_ACCESS_CODE` | Tuỳ chọn cho AI; đặt trên PaaS, **không** commit |
+| `AUTH_JWT_SECRET` | Bắt buộc để bật tài khoản; dùng chuỗi ngẫu nhiên ít nhất 32 byte |
+| `DATA_FILE` | Đường dẫn JSON; Docker mặc định `/data/store.json`, gắn persistent volume |
 | Cổng | Đọc `PORT` do PaaS cấp (mặc định 8787 khi chạy máy) |
 
-`Dockerfile` ở gốc repo đã gói đúng hai thứ trên; `.dockerignore` loại phần Flutter
-để image nhẹ.
+`Dockerfile` ở gốc repo gói server + ngân hàng câu hỏi; `.dockerignore` loại phần Flutter
+khỏi image. JSON account nằm riêng trên persistent volume `/data`.
 
 ## Cách 1 — Render (miễn phí, dễ nhất)
 
@@ -31,14 +35,20 @@ Tài liệu này dùng cho bản demo/nộp bài, không phải hạ tầng sả
 4. **Environment → Add Environment Variable**:
    - `GEMINI_API_KEY` = khoá Gemini của nhóm.
    - `AI_ACCESS_CODE` = mã demo tự đặt (dài, ngẫu nhiên).
+   - `AUTH_JWT_SECRET` = chuỗi ngẫu nhiên ≥32 byte nếu bật tài khoản (giữ ổn định qua restart).
 5. **Create Web Service**, đợi build xong, nhận URL dạng
    `https://<tên-dịch-vụ>.onrender.com`.
 6. Kiểm tra:
 
 ```powershell
 Invoke-RestMethod https://<tên>.onrender.com/health
-# {"ok":true,"configured":true}
+# {"ok":true,"configured":true,"accounts":true}
 ```
+
+Backend account hiện ghi JSON và chỉ hỗ trợ **một instance**. Muốn giữ lịch sử qua
+deploy/restart, host phải có persistent disk mounted vào `/data`; nếu không có,
+để `AUTH_JWT_SECRET` trống (tài khoản tắt) hoặc chuyển database sang dịch vụ bền
+vững như PostgreSQL. Không bật nhiều replicas dùng chung file JSON.
 
 **Hạn chế của gói free:** dịch vụ ngủ sau ~15 phút không dùng, request đầu tiên
 sau khi ngủ mất 30–60 giây. App chờ tối đa 65 giây nên có thể kịp, nhưng trước buổi
@@ -49,10 +59,12 @@ demo nên gọi `/health` để đánh thức trước.
 Dùng chung `Dockerfile`:
 
 ```powershell
-docker build -t flutterlab-ai-proxy .
-docker run --rm -p 8080:8080 `
-  -e GEMINI_API_KEY="..." -e AI_ACCESS_CODE="..." flutterlab-ai-proxy
-# kiểm tra: http://127.0.0.1:8080/health
+docker build -t flutterlab-backend .
+docker volume create flutterlab-data
+docker run --rm -p 8080:8080 --mount source=flutterlab-data,target=/data `
+  -e AUTH_JWT_SECRET="<random-secret-32-bytes-or-more>" `
+  -e GEMINI_API_KEY="..." -e AI_ACCESS_CODE="..." flutterlab-backend
+# kiểm tra: http://127.0.0.1:8080/api/health
 ```
 
 - **Railway**: New Project → Deploy from GitHub repo → tự nhận Dockerfile → thêm
@@ -65,7 +77,9 @@ docker run --rm -p 8080:8080 `
 
 ```powershell
 # APK release: bắt buộc HTTPS
-flutter build apk --release --dart-define=AI_API_URL=https://<tên>.onrender.com/explain
+flutter build apk --release `
+  --dart-define=AI_API_URL=https://<tên>.onrender.com/explain `
+  --dart-define=APP_API_URL=https://<tên>.onrender.com
 ```
 
 - **Không** đưa `GEMINI_API_KEY` hay `AI_ACCESS_CODE` vào `--dart-define`; mã truy
@@ -90,6 +104,11 @@ try {
 Invoke-WebRequest -Method Post -Uri https://<tên>.onrender.com/explain `
   -Headers @{ Authorization = 'Bearer <AI_ACCESS_CODE>' } -ContentType 'application/json' `
   -Body '{"questionId":1,"language":"vi"}' -UseBasicParsing
+
+# 4. Câu hỏi mở (ví dụ: Flutter là gì?)
+Invoke-WebRequest -Method Post -Uri https://<tên>.onrender.com/ask `
+  -Headers @{ Authorization = 'Bearer <AI_ACCESS_CODE>' } -ContentType 'application/json' `
+  -Body '{"question":"Flutter là gì?","language":"vi"}' -UseBasicParsing
 ```
 
 Có thể kiểm tra từ trong app bằng probe có sẵn:

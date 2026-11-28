@@ -18,6 +18,8 @@ dependencies:
   flutter_timezone: ^4.1.0
   # Ngày 3 – AI explain + TTS
   http: ^1.2.0
+  # Băm mật khẩu (có muối) cho xác thực demo mô phỏng.
+  crypto: ^3.0.8
   flutter_tts: ^4.2.0
   image_picker: ^1.2.4
   google_mlkit_text_recognition: ^1.0.3
