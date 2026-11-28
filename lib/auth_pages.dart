@@ -193,18 +193,6 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: _googleLoading ? null : _googleSignIn,
             ),
           ],
-          if (widget.controller.demoEnabled &&
-              widget.controller.demoEmail != null &&
-              widget.controller.demoPassword != null) ...[
-            const SizedBox(height: 20),
-            DemoHintCard(
-              title: s.demoHintTitle,
-              body: s.demoHintBody(
-                widget.controller.demoEmail!,
-                widget.controller.demoPassword!,
-              ),
-            ),
-          ],
           const SizedBox(height: 24),
           AuthSwitchRow(
             prompt: s.noAccount,
