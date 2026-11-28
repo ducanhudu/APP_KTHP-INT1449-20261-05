@@ -18,8 +18,10 @@ Future<void> showLearningTool(
   Question? question,
   QuestionLanguage language = QuestionLanguage.vietnamese,
   CardStorage storage = const SharedPrefsCardStorage(),
+  bool isAuthenticated = false,
 }) async {
   if (tool == LearningTool.askAi) {
+    if (!isAuthenticated) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute(builder: (_) => AskAiPage(language: language)),
     );

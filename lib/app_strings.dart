@@ -65,6 +65,7 @@ class AppStrings {
     required this.aiTutorSubtitle,
     required this.aiOpenQuestionTitle,
     required this.aiOpenQuestionSubtitle,
+    required this.aiLoginRequired,
     required this.cameraTool,
     required this.cameraSubtitle,
     required this.soon,
@@ -277,6 +278,7 @@ class AppStrings {
   final String aiTutorSubtitle;
   final String aiOpenQuestionTitle;
   final String aiOpenQuestionSubtitle;
+  final String aiLoginRequired;
   final String cameraTool;
   final String cameraSubtitle;
   final String soon;
@@ -500,6 +502,7 @@ class AppStrings {
     aiOpenQuestionTitle: 'Hỏi AI tự do',
     aiOpenQuestionSubtitle:
         'Đặt câu hỏi bất kỳ về Flutter, Dart hoặc lập trình',
+    aiLoginRequired: 'Đăng nhập để sử dụng tính năng này',
     cameraTool: 'Camera học tập',
     cameraSubtitle: 'Quét QR và chụp câu hỏi',
     soon: 'Sắp có',
@@ -721,6 +724,7 @@ class AppStrings {
     aiTutorSubtitle: 'Explains by question and topic',
     aiOpenQuestionTitle: 'Ask AI anything',
     aiOpenQuestionSubtitle: 'Ask about Flutter, Dart, or programming',
+    aiLoginRequired: 'Sign in to use this feature',
     cameraTool: 'Study camera',
     cameraSubtitle: 'Scan QR codes and capture questions',
     soon: 'Coming soon',

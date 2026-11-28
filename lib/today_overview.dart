@@ -30,6 +30,8 @@ class TodayOverview extends StatelessWidget {
     this.onCameraRequested,
     this.onAiTutor,
     this.onStatistics,
+    this.onAskAi,
+    this.isAuthenticated = false,
   });
 
   final List<Question> questions;
@@ -62,6 +64,8 @@ class TodayOverview extends StatelessWidget {
   /// Mở panel Gia sư AI với danh sách câu đã làm sai (do màn chính cung cấp).
   final VoidCallback? onAiTutor;
   final VoidCallback? onStatistics;
+  final VoidCallback? onAskAi;
+  final bool isAuthenticated;
 
   @override
   Widget build(BuildContext context) {
@@ -372,13 +376,15 @@ class TodayOverview extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.question_answer_outlined),
                 title: Text(s.aiOpenQuestionTitle),
-                subtitle: Text(s.aiOpenQuestionSubtitle),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => showLearningTool(
-                  context,
-                  LearningTool.askAi,
-                  language: language,
+                subtitle: Text(
+                  isAuthenticated
+                      ? s.aiOpenQuestionSubtitle
+                      : s.aiLoginRequired,
                 ),
+                trailing: Icon(
+                  isAuthenticated ? Icons.chevron_right : Icons.lock_outline,
+                ),
+                onTap: onAskAi,
               ),
             ],
           ),

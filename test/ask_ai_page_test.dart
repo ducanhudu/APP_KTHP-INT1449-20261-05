@@ -77,7 +77,7 @@ void main() {
     expect(find.text(AppStrings.english.aiAskFailed), findsOneWidget);
   });
 
-  testWidgets('AI tools entry opens the free-question page', (tester) async {
+  testWidgets('Free-question page cannot open without login', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Builder(
@@ -87,6 +87,56 @@ void main() {
                 context,
                 LearningTool.askAi,
                 language: QuestionLanguage.english,
+              ),
+              child: const Text('Open locked AI'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open locked AI'));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.english.aiAskPageTitle), findsNothing);
+  });
+
+  testWidgets('AI tools cannot open the free-question page before login', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showLearningTool(
+                context,
+                LearningTool.askAi,
+                language: QuestionLanguage.english,
+              ),
+              child: const Text('Open locked AI'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open locked AI'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.english.aiAskPageTitle), findsNothing);
+  });
+
+  testWidgets('AI tools entry opens the free-question page after login', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showLearningTool(
+                context,
+                LearningTool.askAi,
+                language: QuestionLanguage.english,
+                isAuthenticated: true,
               ),
               child: const Text('Open open-question AI'),
             ),

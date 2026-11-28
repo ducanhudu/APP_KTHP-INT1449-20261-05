@@ -97,6 +97,7 @@ class _QuizHomeState extends State<QuizHome> {
             ? BackendAuthService(_accountService)
             : DemoAuthService()),
   );
+  late final Future<void> _authRestoreFuture;
 
   AccountSession? _accountSession;
   AccountService get _accountService => AccountService.instance;
@@ -146,7 +147,8 @@ class _QuizHomeState extends State<QuizHome> {
   void initState() {
     super.initState();
     _auth.addListener(_onAuthChanged);
-    unawaited(_auth.restore());
+    _authRestoreFuture = _auth.restore();
+    unawaited(_authRestoreFuture);
   }
 
   @override
@@ -157,6 +159,7 @@ class _QuizHomeState extends State<QuizHome> {
   }
 
   void _onAuthChanged() {
+    if (mounted) setState(() {});
     if (!_accountService.isConfigured) return;
     unawaited(_syncAccountSession());
   }
@@ -454,6 +457,25 @@ class _QuizHomeState extends State<QuizHome> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _openFreeQuestionAi() async {
+    await _authRestoreFuture;
+    if (!mounted) return;
+    if (!_auth.isAuthenticated) {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => LoginPage(controller: _auth, language: language),
+        ),
+      );
+      return;
+    }
+    await showLearningTool(
+      context,
+      LearningTool.askAi,
+      language: language,
+      isAuthenticated: true,
+    );
+  }
+
   Future<void> _start(
     List<Question> pool,
     int size, {
@@ -561,6 +583,8 @@ class _QuizHomeState extends State<QuizHome> {
             onAdaptivePractice: () => _startAdaptivePractice(questions),
             onCameraRequested: _openCamera,
             onAiTutor: () => _openAiTutor(questions),
+            onAskAi: _openFreeQuestionAi,
+            isAuthenticated: _auth.isAuthenticated,
             onStatistics: () => _openStatistics(questions),
             onOpenCards: () => _openCards(questions),
             onQuickPractice: () => _start(questions, 10),
