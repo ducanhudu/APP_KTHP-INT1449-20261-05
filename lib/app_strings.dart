@@ -135,6 +135,16 @@ class AppStrings {
     required this.closeButton,
     required this.aiTutorPickTitle,
     required this.aiTutorNoHistory,
+    required this.streakTitle,
+    required this.streakDays,
+    required this.streakStart,
+    required this.streakStudiedToday,
+    required this.streakKeepToday,
+    required this.streakNext,
+    required this.streakBest,
+    required this.streakMilestoneTitle,
+    required this.streakMilestoneBody,
+    required this.streakDialogOk,
   });
 
   final String appTitle;
@@ -268,6 +278,16 @@ class AppStrings {
   final String closeButton;
   final String aiTutorPickTitle;
   final String aiTutorNoHistory;
+  final String streakTitle;
+  final String Function(int days) streakDays;
+  final String streakStart;
+  final String streakStudiedToday;
+  final String streakKeepToday;
+  final String Function(int milestone, int remaining) streakNext;
+  final String Function(int best) streakBest;
+  final String streakMilestoneTitle;
+  final String Function(int days) streakMilestoneBody;
+  final String streakDialogOk;
 
   /// Chọn bộ chuỗi theo ngôn ngữ đang dùng. Chế độ song ngữ hiển thị tiếng Việt
   /// cho nhãn giao diện vì nội dung đã có cả hai thứ tiếng.
@@ -410,6 +430,16 @@ class AppStrings {
     aiTutorPickTitle: 'Chọn câu để hỏi AI',
     aiTutorNoHistory:
         'Chưa có câu nào làm sai để hỏi AI. Hãy làm một lượt luyện tập trước.',
+    streakTitle: 'Chuỗi học',
+    streakDays: _viStreakDays,
+    streakStart: 'Học một lượt hôm nay để bắt đầu chuỗi',
+    streakStudiedToday: 'Hôm nay đã học',
+    streakKeepToday: 'Học một lượt hôm nay để giữ chuỗi',
+    streakNext: _viStreakNext,
+    streakBest: _viStreakBest,
+    streakMilestoneTitle: 'Đạt mốc chuỗi học!',
+    streakMilestoneBody: _viStreakMilestoneBody,
+    streakDialogOk: 'Tiếp tục',
   );
 
   static const AppStrings english = AppStrings(
@@ -546,6 +576,16 @@ class AppStrings {
     closeButton: 'Close',
     aiTutorPickTitle: 'Pick a question to ask AI',
     aiTutorNoHistory: 'No wrong answers yet. Finish a practice round first.',
+    streakTitle: 'Study streak',
+    streakDays: _enStreakDays,
+    streakStart: 'Finish one session today to start your streak',
+    streakStudiedToday: 'Studied today',
+    streakKeepToday: 'Finish one session today to keep the streak',
+    streakNext: _enStreakNext,
+    streakBest: _enStreakBest,
+    streakMilestoneTitle: 'Streak milestone!',
+    streakMilestoneBody: _enStreakMilestoneBody,
+    streakDialogOk: 'Keep going',
   );
 
   static String _viCounter(int index, int total, int answered) =>
@@ -564,6 +604,18 @@ class AppStrings {
       'Câu $index [Mã #$code] · $status';
   static String _enReviewTitle(int index, int code, String status) =>
       'Question $index [#$code] · $status';
+  static String _viStreakDays(int days) => '$days ngày liên tiếp';
+  static String _enStreakDays(int days) => '$days-day streak';
+  static String _viStreakNext(int milestone, int remaining) =>
+      'Mốc $milestone ngày · còn $remaining ngày';
+  static String _enStreakNext(int milestone, int remaining) =>
+      'Milestone $milestone days · $remaining to go';
+  static String _viStreakBest(int best) => 'Kỷ lục $best ngày';
+  static String _enStreakBest(int best) => 'Best $best days';
+  static String _viStreakMilestoneBody(int days) =>
+      'Bạn đã học $days ngày liên tiếp. Giữ nhịp nhé!';
+  static String _enStreakMilestoneBody(int days) =>
+      'You studied $days days in a row. Keep it up!';
   static String _viCardCounter(int index, int total) => 'Thẻ $index/$total';
   static String _enCardCounter(int index, int total) => 'Card $index/$total';
   static String _viCardsDue(int due) => '$due thẻ đến hạn';

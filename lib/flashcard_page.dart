@@ -15,6 +15,7 @@ class FlashcardPage extends StatefulWidget {
     this.language = QuestionLanguage.vietnamese,
     this.embedded = false,
     this.onCardsChanged,
+    this.onCardGraded,
     this.onPracticeRequested,
   });
 
@@ -23,6 +24,9 @@ class FlashcardPage extends StatefulWidget {
   final QuestionLanguage language;
   final bool embedded;
   final VoidCallback? onCardsChanged;
+
+  /// Gọi sau mỗi lần chấm mức nhớ, dùng để ghi nhận ngày học cho chuỗi.
+  final VoidCallback? onCardGraded;
   final VoidCallback? onPracticeRequested;
 
   @override
@@ -79,6 +83,7 @@ class _FlashcardPageState extends State<FlashcardPage> {
     final updated = sm2.review(item: item, grade: grade);
     await widget.storage.updateCard(updated);
     widget.onCardsChanged?.call();
+    widget.onCardGraded?.call();
 
     if (!mounted) return;
 

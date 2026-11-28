@@ -7,6 +7,8 @@ import 'quiz_attempt.dart';
 import 'reminder_service.dart';
 import 'reminder_tile.dart';
 import 'sm2.dart';
+import 'streak_card.dart';
+import 'streak_service.dart';
 import 'weakness_analyzer.dart';
 
 class TodayOverview extends StatelessWidget {
@@ -22,6 +24,7 @@ class TodayOverview extends StatelessWidget {
     required this.onRetryCards,
     required this.reminder,
     this.historyFuture,
+    this.streakFuture,
     this.onAdaptivePractice,
     this.language = QuestionLanguage.vietnamese,
     this.onCameraRequested,
@@ -44,6 +47,9 @@ class TodayOverview extends StatelessWidget {
 
   /// Tương lai đọc danh sách lịch sử để phân tích điểm yếu.
   final Future<List<QuizAttempt>>? historyFuture;
+
+  /// Tương lai đọc trạng thái chuỗi học; null thì không hiện thẻ chuỗi.
+  final Future<StreakState>? streakFuture;
 
   /// Bắt đầu lượt luyện tập thích ứng theo điểm yếu.
   final VoidCallback? onAdaptivePractice;
@@ -122,6 +128,10 @@ class TodayOverview extends StatelessWidget {
             ),
           ),
         ),
+        if (streakFuture != null) ...[
+          const SizedBox(height: 16),
+          StreakCard(future: streakFuture!, strings: s),
+        ],
         const SizedBox(height: 24),
         Card(
           elevation: 0,
