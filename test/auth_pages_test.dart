@@ -32,8 +32,8 @@ void main() {
     expect(find.text('Ghi nhớ đăng nhập'), findsOneWidget);
     expect(find.text('Tiếp tục với Google'), findsOneWidget);
     expect(find.text('Chưa có tài khoản?'), findsOneWidget);
-    expect(find.textContaining('demo@example.com'), findsOneWidget);
-    expect(find.textContaining('Demo123!'), findsOneWidget);
+    expect(find.textContaining('demo@example.com'), findsNothing);
+    expect(find.textContaining('Demo123!'), findsNothing);
   });
 
   testWidgets('Đăng nhập trống hiển thị lỗi cho các trường bắt buộc', (
