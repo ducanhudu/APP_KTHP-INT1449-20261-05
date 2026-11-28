@@ -55,6 +55,79 @@ void main() {
     expect(result.text, q.explanationEn);
   });
   group('AiService', () {
+    test('Sends a free-form question to the derived /ask URL', () async {
+      AiService.accessCode = 'session-code';
+      Uri? requestedUri;
+      final client = MockClient((request) async {
+        requestedUri = request.url;
+        expect(request.method, 'POST');
+        expect(request.headers['Authorization'], 'Bearer session-code');
+        expect(request.headers['Content-Type'], contains('application/json'));
+        expect(jsonDecode(request.body), {
+          'question': 'Flutter là gì?',
+          'language': 'vi',
+        });
+        return http.Response(
+          jsonEncode({'text': 'Flutter là framework.'}),
+          200,
+        );
+      });
+
+      final result = await AiService.ask(
+        question: '  Flutter là gì?  ',
+        language: QuestionLanguage.vietnamese,
+        endpoint: 'https://ai.test/api/explain',
+        client: client,
+      );
+
+      expect(requestedUri?.path, '/api/ask');
+      expect(result?.fromFallback, isFalse);
+      expect(result?.text, 'Flutter là framework.');
+    });
+
+    test(
+      'Returns no fake answer when an open-question request fails',
+      () async {
+        final client = MockClient(
+          (_) async => http.Response('{"error":"rate_limited"}', 429),
+        );
+        final result = await AiService.ask(
+          question: 'Flutter là gì?',
+          language: QuestionLanguage.vietnamese,
+          endpoint: 'https://ai.test/explain',
+          client: client,
+        );
+        expect(result, isNull);
+      },
+    );
+
+    test('Rejects empty or too-long questions before sending', () async {
+      var requests = 0;
+      final client = MockClient((_) async {
+        requests++;
+        return http.Response('{"text":"ok"}', 200);
+      });
+      expect(
+        await AiService.ask(
+          question: ' ',
+          language: QuestionLanguage.vietnamese,
+          endpoint: 'https://ai.test/explain',
+          client: client,
+        ),
+        isNull,
+      );
+      expect(
+        await AiService.ask(
+          question: List.filled(501, 'x').join(),
+          language: QuestionLanguage.vietnamese,
+          endpoint: 'https://ai.test/explain',
+          client: client,
+        ),
+        isNull,
+      );
+      expect(requests, 0);
+    });
+
     test('Trả về fallback lời giải gốc khi AI_API_URL chưa cấu hình', () async {
       // Vì biến môi trường AI_API_URL không được set trong test, AiService
       // phải trả về fromFallback=true với text từ explanationVi.

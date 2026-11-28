@@ -3,6 +3,7 @@
   "regions": ["sin1"],
   "rewrites": [
     { "source": "/explain", "destination": "/api/explain" },
+    { "source": "/ask", "destination": "/api/ask" },
     { "source": "/health", "destination": "/api/explain" }
   ]
 }

@@ -14,7 +14,7 @@ demo/nộp bài, không phải hạ tầng sản phẩm.
 
 | Thành phần | Ghi chú |
 | --- | --- |
-| `server/server.js`, `server/core.js`, `server/accounts.js` | HTTP API thuần Node, **không có dependency npm** |
+| `server/server.js`, `server/core.js`, `server/accounts.js`, `api/ask.js`, `vercel.json` | HTTP API thuần Node, **không có dependency npm** |
 | `assets/flutter_quiz_300.json` | AI proxy tạo prompt và history API kiểm tra điểm |
 | `GEMINI_API_KEY`, `AI_ACCESS_CODE` | Tuỳ chọn cho AI; đặt trên PaaS, **không** commit |
 | `AUTH_JWT_SECRET` | Bắt buộc để bật tài khoản; dùng chuỗi ngẫu nhiên ít nhất 32 byte |
