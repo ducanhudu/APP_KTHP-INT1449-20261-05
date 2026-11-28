@@ -26,6 +26,7 @@ class TodayOverview extends StatelessWidget {
     this.language = QuestionLanguage.vietnamese,
     this.onCameraRequested,
     this.onAiTutor,
+    this.onStatistics,
   });
 
   final List<Question> questions;
@@ -54,6 +55,7 @@ class TodayOverview extends StatelessWidget {
 
   /// Mở panel Gia sư AI với danh sách câu đã làm sai (do màn chính cung cấp).
   final VoidCallback? onAiTutor;
+  final VoidCallback? onStatistics;
 
   @override
   Widget build(BuildContext context) {
@@ -359,6 +361,21 @@ class TodayOverview extends StatelessWidget {
             ],
           ),
         ),
+        if (onStatistics != null) ...[
+          const SizedBox(height: 12),
+          Card(
+            child: ListTile(
+              leading: Icon(
+                Icons.insights_outlined,
+                color: theme.colorScheme.primary,
+              ),
+              title: Text(s.homeStatisticsTitle),
+              subtitle: Text(s.homeStatisticsSubtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: onStatistics,
+            ),
+          ),
+        ],
       ],
     );
   }
