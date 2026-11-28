@@ -31,8 +31,12 @@ class AiService {
   // để người nhận APK không phải gõ tay. Đây KHÔNG phải khoá nhà cung cấp AI.
   static String accessCode = const String.fromEnvironment('AI_ACCESS_CODE');
   static bool get isConfigured => _baseUrl.isNotEmpty;
-  static bool get isAskConfigured =>
-      _baseUrl.isNotEmpty || _askBaseUrl.isNotEmpty;
+  static bool get isAskConfigured => _resolveAskEndpoint(null).isNotEmpty;
+
+  /// Proxy công khai của nhóm dùng cho tính năng hỏi tự do nếu build không
+  /// truyền AI_API_URL/AI_ASK_API_URL. Không chứa mã truy cập hay khóa Gemini.
+  static const String _defaultAskUrl =
+      'https://flutterlab-ai-proxy.onrender.com/ask';
 
   /// URL của proxy nhóm triển khai, không phải URL nhà cung cấp AI.
   static const String _baseUrl = String.fromEnvironment(
@@ -148,7 +152,12 @@ class AiService {
 
   static String _resolveAskEndpoint(String? endpoint) {
     final configured =
-        endpoint ?? (_askBaseUrl.isNotEmpty ? _askBaseUrl : _baseUrl);
+        endpoint ??
+        (_askBaseUrl.isNotEmpty
+            ? _askBaseUrl
+            : _baseUrl.isNotEmpty
+            ? _baseUrl
+            : _defaultAskUrl);
     if (configured.isEmpty) return '';
     try {
       final uri = Uri.parse(configured);
