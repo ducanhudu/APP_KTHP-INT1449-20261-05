@@ -170,7 +170,6 @@ class AppStrings {
     required this.aiAskAnswerTitle,
     required this.aiAskFailed,
     required this.aiAskNotConfigured,
-    required this.aiAskNeedAccessCode,
     required this.aiAskTooLong,
     required this.accountTooltip,
     required this.signInTitle,
@@ -387,7 +386,6 @@ class AppStrings {
   final String aiAskAnswerTitle;
   final String aiAskFailed;
   final String aiAskNotConfigured;
-  final String aiAskNeedAccessCode;
   final String aiAskTooLong;
 
   final String accountTooltip;
@@ -615,7 +613,6 @@ class AppStrings {
     aiAskAnswerTitle: 'Câu trả lời',
     aiAskFailed: 'AI chưa trả lời được. Kiểm tra kết nối hoặc thử lại sau.',
     aiAskNotConfigured: 'Tính năng AI chưa được cấu hình cho ứng dụng này.',
-    aiAskNeedAccessCode: 'Cần nhập mã truy cập để gửi câu hỏi cho AI.',
     aiAskTooLong: 'Câu hỏi quá dài. Hãy giữ trong giới hạn 500 ký tự.',
     accountTooltip: 'Tài khoản',
     signInTitle: 'Đăng nhập',
@@ -836,7 +833,6 @@ class AppStrings {
     aiAskFailed:
         'AI could not answer. Check your connection or try again later.',
     aiAskNotConfigured: 'AI is not configured for this app.',
-    aiAskNeedAccessCode: 'Enter the access code to ask AI.',
     aiAskTooLong: 'Question is too long. Keep it within 500 characters.',
     accountTooltip: 'Account',
     signInTitle: 'Sign in',

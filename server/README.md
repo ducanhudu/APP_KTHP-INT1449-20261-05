@@ -48,10 +48,10 @@ Token session lưu trên thiết bị để duy trì đăng nhập; không lưu 
 
 ## Proxy AI (tuỳ chọn)
 
-Server giữ khoá Gemini. App chỉ gửi `{ "questionId": 1, "language": "vi" }`
-tới `POST /explain`. Server tự lấy câu hỏi, code, lựa chọn và lời giải từ JSON
-trong repo để tạo prompt. Ngôn ngữ hợp lệ: `vi`, `en`, `bilingual`. Payload có
-prompt hay trường khác bị từ chối.
+Server giữ khoá Gemini. `POST /explain` nhận `{ "questionId": 1, "language": "vi" }`
+và yêu cầu `AI_ACCESS_CODE`; `POST /ask` nhận `{ "question": "Flutter là gì?", "language": "vi" }`
+và không yêu cầu mã truy cập. `/ask` giới hạn 500 ký tự, theo IP và ngân sách/ngày.
+Ngôn ngữ hợp lệ: `vi`, `en`, `bilingual`. Payload có prompt hay trường khác bị từ chối.
 
 ## Chạy thử không dùng hạn mức AI
 
@@ -70,14 +70,14 @@ $env:AI_ACCESS_CODE = Read-Host 'Tạo mã truy cập demo riêng cho nhóm'
 node server/server.js
 ```
 
-`GET /health` trả `configured: true` khi đã đặt cả hai biến. Thiếu cấu hình,
-server trả 503 và app vẫn dùng lời giải JSON. Đóng terminal để xóa biến của phiên.
+`GET /health` trả `configured: true` khi có `GEMINI_API_KEY` và báo riêng
+`accessCodeRequired`. Câu hỏi mở cần khóa Gemini; `/explain` cần thêm mã truy cập.
 
 ## Chạy AI thật
 
-Trên server, đặt `GEMINI_API_KEY` từ nhà cung cấp và `AI_ACCESS_CODE` là mã ngẫu
-nhiên riêng cho nhóm. Bỏ `AI_UPSTREAM` để dùng model mặc định. Không commit hai
-giá trị này và không đưa chúng vào `--dart-define`.
+Trên server, đặt `GEMINI_API_KEY` từ nhà cung cấp. `AI_ACCESS_CODE` chỉ cần nếu
+muốn bảo vệ `/explain`; `/ask` công khai nhưng có hạn mức chặt. Bỏ `AI_UPSTREAM`
+để dùng model mặc định. Không commit bí mật hay đưa khóa Gemini vào `--dart-define`.
 
 ```powershell
 # Chỉ URL được đưa vào app
@@ -102,11 +102,11 @@ server cùng phiên bản vì giao thức prompt cũ đã bị loại bỏ.
 
 ## Giới hạn bảo vệ
 
-- Không có mã hoặc mã sai: 401; câu không hợp lệ: 400; body trên 1 KB: 413.
-- Tối đa 6 request/phút/IP, kể cả cache; không tin header X-Forwarded-For.
-- Tối đa 2 yêu cầu AI đồng thời, 100 lần gọi nhà cung cấp/ngày UTC.
+- `/explain` không có mã hoặc mã sai: 401; câu không hợp lệ: 400; body trên 4 KB: 413; `/ask` giới hạn 500 ký tự.
+- `/ask` tối đa 3 request/phút/IP và 100 lần gọi nhà cung cấp/ngày UTC; `/explain` tối đa 30 request/phút/IP và 1.000 lần gọi/ngày.
+- Cả hai route dùng chung giới hạn 2 yêu cầu AI đồng thời; không tin header X-Forwarded-For.
 - Giới hạn đầu ra 600 token, timeout nhà cung cấp 55 giây; lỗi trả thông báo chung.
-- Cache 30 phút theo mã câu và ngôn ngữ; không cache lỗi. Không tự retry gây tốn lượt.
+- Cache 30 phút theo mã câu hoặc nội dung hỏi và ngôn ngữ; không cache lỗi. Không tự retry gây tốn lượt.
 - Test auth, quyền sở hữu và độ bền dữ liệu: `node --test server/accounts.test.js server/server.test.js`.
 
 Giới hạn AI theo IP/cache/ngân sách vẫn là bộ đếm trong RAM, reset khi restart và

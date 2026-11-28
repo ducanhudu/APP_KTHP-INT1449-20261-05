@@ -55,54 +55,43 @@ void main() {
     expect(result.text, q.explanationEn);
   });
   group('AiService', () {
-    test('Sends a free-form question to the derived /ask URL', () async {
-      AiService.accessCode = 'session-code';
-      Uri? requestedUri;
-      final client = MockClient((request) async {
-        requestedUri = request.url;
-        expect(request.method, 'POST');
-        expect(request.headers['Authorization'], 'Bearer session-code');
-        expect(request.headers['Content-Type'], contains('application/json'));
-        expect(jsonDecode(request.body), {
-          'question': 'Flutter là gì?',
-          'language': 'vi',
+    test(
+      'Sends a free-form question anonymously to the derived /ask URL',
+      () async {
+        AiService.accessCode = 'should-not-be-sent';
+        Uri? requestedUri;
+        final client = MockClient((request) async {
+          requestedUri = request.url;
+          expect(request.method, 'POST');
+          expect(
+            request.headers.keys.any(
+              (key) => key.toLowerCase() == 'authorization',
+            ),
+            isFalse,
+          );
+          expect(request.headers['Content-Type'], contains('application/json'));
+          expect(jsonDecode(request.body), {
+            'question': 'Flutter là gì?',
+            'language': 'vi',
+          });
+          return http.Response(
+            jsonEncode({'text': 'Flutter là framework.'}),
+            200,
+          );
         });
-        return http.Response(
-          jsonEncode({'text': 'Flutter là framework.'}),
-          200,
+
+        final result = await AiService.ask(
+          question: '  Flutter là gì?  ',
+          language: QuestionLanguage.vietnamese,
+          endpoint: 'https://ai.test/api/explain',
+          client: client,
         );
-      });
 
-      final result = await AiService.ask(
-        question: '  Flutter là gì?  ',
-        language: QuestionLanguage.vietnamese,
-        endpoint: 'https://ai.test/api/explain',
-        client: client,
-      );
-
-      expect(requestedUri?.path, '/api/ask');
-      expect(result?.fromFallback, isFalse);
-      expect(result?.text, 'Flutter là framework.');
-    });
-
-    test('Uses the deployed proxy for free questions by default', () async {
-      Uri? requestedUri;
-      final client = MockClient((request) async {
-        requestedUri = request.url;
-        return http.Response(jsonEncode({'text': 'AI answer'}), 200);
-      });
-
-      final result = await AiService.ask(
-        question: 'Flutter là gì?',
-        language: QuestionLanguage.vietnamese,
-        client: client,
-      );
-
-      expect(AiService.isAskConfigured, isTrue);
-      expect(requestedUri?.host, 'flutterlab-ai-proxy.onrender.com');
-      expect(requestedUri?.path, '/ask');
-      expect(result?.text, 'AI answer');
-    });
+        expect(requestedUri?.path, '/api/ask');
+        expect(result?.fromFallback, isFalse);
+        expect(result?.text, 'Flutter là framework.');
+      },
+    );
 
     test('Uses the deployed proxy for free questions by default', () async {
       Uri? requestedUri;
@@ -125,6 +114,7 @@ void main() {
 
     test(
       'Returns no fake answer when an open-question request fails',
+
       () async {
         final client = MockClient(
           (_) async => http.Response('{"error":"rate_limited"}', 429),

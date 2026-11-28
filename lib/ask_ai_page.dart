@@ -46,15 +46,6 @@ class _AskAiPageState extends State<AskAiPage> {
       setState(() => _error = s.aiAskNotConfigured);
       return;
     }
-    if (widget.sender == null && AiService.accessCode.trim().isEmpty) {
-      await _enterAccessCode();
-      if (!mounted) return;
-      if (AiService.accessCode.trim().isEmpty) {
-        setState(() => _error = s.aiAskNeedAccessCode);
-        return;
-      }
-    }
-
     setState(() {
       _loading = true;
       _error = null;
@@ -75,35 +66,6 @@ class _AskAiPageState extends State<AskAiPage> {
       _error = result == null ? s.aiAskFailed : null;
       _loading = false;
     });
-  }
-
-  Future<void> _enterAccessCode() async {
-    var value = '';
-    final code = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(s.aiAccessCodeTitle),
-        content: TextField(
-          autofocus: true,
-          obscureText: true,
-          autocorrect: false,
-          enableSuggestions: false,
-          onChanged: (text) => value = text,
-          decoration: InputDecoration(labelText: s.aiAccessCodeHint),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(s.cancelButton),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, value.trim()),
-            child: Text(s.saveButton),
-          ),
-        ],
-      ),
-    );
-    if (code != null) AiService.accessCode = code;
   }
 
   @override
@@ -152,17 +114,6 @@ class _AskAiPageState extends State<AskAiPage> {
                     : const Icon(Icons.send),
                 label: Text(_loading ? s.aiAskLoading : s.aiAskButton),
               ),
-              if (AiService.isAskConfigured && widget.sender == null) ...[
-                const SizedBox(height: 4),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: TextButton.icon(
-                    onPressed: _loading ? null : _enterAccessCode,
-                    icon: const Icon(Icons.key, size: 18),
-                    label: Text(s.aiAccessCodeButton),
-                  ),
-                ),
-              ],
               if (_error != null) ...[
                 const SizedBox(height: 16),
                 Card(

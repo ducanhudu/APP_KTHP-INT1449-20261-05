@@ -13,16 +13,17 @@ async function setup(t, options = {}) {
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   t.after(() => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); }));
-  const request = (path, body, token = 'test-access') => fetch(
-    `http://127.0.0.1:${server.address().port}${path}`,
-    {
+  const request = (path, body, token) => {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(`http://127.0.0.1:${server.address().port}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers,
       body: JSON.stringify(body),
-    },
-  );
-  const post = (body, token) => request('/explain', body, token);
-  const ask = (body, token) => request('/ask', body, token);
+    });
+  };
+  const post = (body, token = 'test-access') => request('/explain', body, token);
+  const ask = (body, token = null) => request('/ask', body, token);
   return { post, ask, calls };
 }
 test('Reject missing or wrong access code before calling provider', async t => {
@@ -39,9 +40,8 @@ test('Reject arbitrary prompts, unknown IDs and unsupported languages', async t 
   }
   assert.equal(calls.length, 0);
 });
-test('Answer an open learner question through the protected /ask route', async t => {
+test('Answer open questions through /ask without an access code', async t => {
   const { ask, calls } = await setup(t);
-  assert.equal((await ask({ question: 'Flutter là gì?', language: 'vi' }, '')).status, 401);
   const response = await ask({ question: 'Flutter là gì?', language: 'vi' });
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { text: 'Explanation' });
@@ -53,7 +53,7 @@ test('Answer an open learner question through the protected /ask route', async t
 });
 
 test('Validate open questions and reject extra prompt fields', async t => {
-  const { ask, calls } = await setup(t);
+  const { ask, calls } = await setup(t, { askMinuteLimit: 10 });
   for (const body of [
     { question: '', language: 'vi' },
     { question: 'x'.repeat(501), language: 'vi' },
@@ -71,6 +71,37 @@ test('Cache open questions by normalized content and language', async t => {
   assert.equal((await ask({ question: ' flutter   là gì? ', language: 'vi' })).status, 200);
   assert.equal(calls.length, 1);
   assert.equal((await ask({ question: 'Flutter là gì?', language: 'en' })).status, 200);
+  assert.equal(calls.length, 2);
+});
+
+test('Rate-limit anonymous /ask requests per IP, including cache hits', async t => {
+  const { ask, calls } = await setup(t, { askMinuteLimit: 2 });
+  const question = { question: 'Flutter là gì?', language: 'vi' };
+  assert.equal((await ask(question)).status, 200);
+  assert.equal((await ask(question)).status, 200);
+  assert.equal((await ask(question)).status, 429);
+  assert.equal(calls.length, 1);
+});
+
+test('Enforce a separate daily budget for anonymous open questions', async t => {
+  let time = Date.now();
+  const { ask, calls } = await setup(t, {
+    askDailyLimit: 1,
+    now: () => time,
+  });
+  assert.equal(
+    (await ask({ question: 'Flutter là gì?', language: 'vi' })).status,
+    200,
+  );
+  assert.equal(
+    (await ask({ question: 'Dart là gì?', language: 'vi' })).status,
+    429,
+  );
+  time += 86400000;
+  assert.equal(
+    (await ask({ question: 'Dart là gì?', language: 'vi' })).status,
+    200,
+  );
   assert.equal(calls.length, 2);
 });
 
@@ -99,11 +130,15 @@ test('Enforce daily provider budget and reset next day', async t => {
   assert.equal((await post({ questionId: 2, language: 'vi' })).status, 200);
   assert.equal(calls.length, 2);
 });
-test('Sanitize provider errors and fail closed when not configured', async t => {
+test('Sanitize provider errors and keep /explain closed without its access code', async t => {
   const broken = await setup(t, { fetchImpl: async () => { throw new Error('secret'); } });
   const response = await broken.post({ questionId: 1, language: 'vi' });
   assert.equal(response.status, 502);
   assert.equal(JSON.stringify(await response.json()).includes('secret'), false);
   const missing = await setup(t, { accessCode: '' });
   assert.equal((await missing.post({ questionId: 1, language: 'vi' })).status, 503);
+  assert.equal(
+    (await missing.ask({ question: 'Flutter là gì?', language: 'vi' })).status,
+    200,
+  );
 });

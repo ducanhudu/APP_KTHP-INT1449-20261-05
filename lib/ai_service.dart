@@ -108,8 +108,8 @@ class AiService {
     return AiResult(text: fallback, fromFallback: true);
   }
 
-  /// Gửi câu hỏi tự do của người học tới proxy. Không có câu trả lời dự phòng:
-  /// nếu endpoint, mã truy cập hoặc nhà cung cấp gặp lỗi thì trả về null.
+  /// Gửi câu hỏi tự do tới route công khai có giới hạn sử dụng. Không có câu
+  /// trả lời dự phòng: endpoint hoặc nhà cung cấp lỗi thì trả về null.
   /// [endpoint] nếu truyền vào là URL explain thì tự đổi thành URL ask.
   static Future<AiResult?> ask({
     required String question,
@@ -132,10 +132,7 @@ class AiService {
           QuestionLanguage.bilingual => 'bilingual',
         },
       });
-      final headers = {
-        'Content-Type': 'application/json',
-        if (accessCode.isNotEmpty) 'Authorization': 'Bearer $accessCode',
-      };
+      final headers = {'Content-Type': 'application/json'};
       final request = client == null
           ? http.post(uri, headers: headers, body: body)
           : client.post(uri, headers: headers, body: body);

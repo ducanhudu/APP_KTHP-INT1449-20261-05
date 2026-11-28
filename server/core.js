@@ -13,6 +13,8 @@ function createCore({
   fetchImpl = fetch,
   dailyLimit = Number(process.env.AI_DAILY_LIMIT || 1000),
   minuteLimit = Number(process.env.AI_MINUTE_LIMIT || 30),
+  askDailyLimit = Number(process.env.AI_PUBLIC_ASK_DAILY_LIMIT || 100),
+  askMinuteLimit = Number(process.env.AI_PUBLIC_ASK_MINUTE_LIMIT || 3),
   maxConcurrent = 2,
   timeoutMs = 55000,
   now = Date.now,
@@ -22,6 +24,7 @@ function createCore({
   const cache = new Map();
   const clients = new Map();
   let daily = { day: '', count: 0 };
+  let askDaily = { day: '', count: 0 };
   let active = 0;
 
   const hash = (value) => crypto.createHash('sha256').update(value).digest();
@@ -41,10 +44,11 @@ function createCore({
     ip = 'unknown',
     mode = 'explain',
   } = {}) {
-    if (!apiKey || !accessCode) {
+    const publicAsk = mode === 'ask';
+    if (!apiKey || (!publicAsk && !accessCode)) {
       return { status: 503, body: { error: 'not_configured' } };
     }
-    if (!authorized(authHeader)) {
+    if (!publicAsk && !authorized(authHeader)) {
       return { status: 401, body: { error: 'unauthorized' } };
     }
 
@@ -52,12 +56,17 @@ function createCore({
     for (const [key, value] of clients) {
       if (time - value.start >= 60000) clients.delete(key);
     }
-    const bucket = clients.get(ip) || { start: time, count: 0 };
-    if (bucket.count >= minuteLimit || (clients.size >= 2000 && !clients.has(ip))) {
+    const clientKey = `${publicAsk ? 'ask' : 'explain'}:${ip}`;
+    const requestLimit = publicAsk ? askMinuteLimit : minuteLimit;
+    const bucket = clients.get(clientKey) || { start: time, count: 0 };
+    if (
+      bucket.count >= requestLimit ||
+      (clients.size >= 2000 && !clients.has(clientKey))
+    ) {
       return { status: 429, body: { error: 'rate_limited' } };
     }
     bucket.count++;
-    clients.set(ip, bucket);
+    clients.set(clientKey, bucket);
 
     if (Buffer.byteLength(rawBody) > 4096) {
       return { status: 413, body: { error: 'body_too_large' } };
@@ -131,15 +140,26 @@ function createCore({
     }
 
     const day = new Date(time).toISOString().slice(0, 10);
-    if (daily.day !== day) daily = { day, count: 0 };
-    if (daily.count >= dailyLimit) {
-      return { status: 429, body: { error: 'daily_limit' } };
+    if (publicAsk) {
+      if (askDaily.day !== day) askDaily = { day, count: 0 };
+      if (askDaily.count >= askDailyLimit) {
+        return { status: 429, body: { error: 'ask_daily_limit' } };
+      }
+    } else {
+      if (daily.day !== day) daily = { day, count: 0 };
+      if (daily.count >= dailyLimit) {
+        return { status: 429, body: { error: 'daily_limit' } };
+      }
     }
     if (active >= maxConcurrent) {
       return { status: 429, body: { error: 'busy' } };
     }
 
-    daily.count++;
+    if (publicAsk) {
+      askDaily.count++;
+    } else {
+      daily.count++;
+    }
     active++;
     try {
       const url = new URL(upstream);
@@ -178,7 +198,11 @@ function createCore({
 
   const health = () => ({
     status: 200,
-    body: { ok: true, configured: Boolean(apiKey && accessCode) },
+    body: {
+      ok: true,
+      configured: Boolean(apiKey),
+      accessCodeRequired: Boolean(accessCode),
+    },
   });
 
   return { handle, health };
